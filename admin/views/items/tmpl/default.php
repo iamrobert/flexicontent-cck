@@ -651,7 +651,7 @@ Remove newline
 			</th>
 
 			<th class="col_title hideOnDemandClass left" style="<?php echo $this->hideCol($colposition++); ?>" >
-
+Remove newline
 				<?php echo JHtml::_('grid.sort', 'FLEXI_TITLE', 'a.' . $this->title_propname, $this->lists['order_Dir'], $this->lists['order'] ); ?>
 				<?php if (strlen($this->getModel()->getState('search'))) : ?>
 				<span <?php echo $rem_filt_tip; ?>>
