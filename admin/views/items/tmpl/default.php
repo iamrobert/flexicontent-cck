@@ -1133,7 +1133,7 @@ Restore left class
 				<?php echo '<span class="badge badge-warning"> ' .sprintf('%.0f', (float) $row->rating) .'%</span>'; ?>
 			</td>
 
-			<td class="col_id right small col_id center hidden-phone hidden-tablet" style="<?php echo $this->hideCol($colposition++); ?>" >
+col_id is already there, now it has been added twice
 				<?php echo $row->id; ?>
 			</td>
 
