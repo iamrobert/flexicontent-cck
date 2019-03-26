@@ -974,7 +974,7 @@ Restore left class
 
 
 			<td class="col_type center small hidden-phone" style="<?php echo $this->hideCol($colposition++); ?>" >
-
+please remove new line and remove center class
 				<?php echo JText::_($row->type_name); ?>
 			</td>
 
