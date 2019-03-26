@@ -684,7 +684,7 @@ Remove newline
 			</th>
 		<?php endif; ?>
 
-			<th class="col_type hideOnDemandClass center hidden-phone" style="<?php echo $this->hideCol($colposition++); ?>" >
+Remove 'center' class
 				<?php echo JHtml::_('grid.sort', 'FLEXI_TYPE_NAME', 'type_name', $this->lists['order_Dir'], $this->lists['order'] ); ?>
 				<?php if ($this->getModel()->getState('filter_type')) : ?>
 				<span <?php echo $rem_filt_tip; ?>>
