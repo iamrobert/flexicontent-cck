@@ -641,7 +641,7 @@ Remove newline
 			</th>
 
 			<th class="col_status hideOnDemandClass left" style="<?php echo $this->hideCol($colposition++); ?>" >
-
+Remove newline
 				<?php echo JHtml::_('grid.sort', 'FLEXI_STATUS', 'a.' . $this->state_propname, $this->lists['order_Dir'], $this->lists['order'] ); ?>
 				<?php if ($this->getModel()->getState('filter_state')) : ?>
 				<span <?php echo $rem_filt_tip; ?>>
