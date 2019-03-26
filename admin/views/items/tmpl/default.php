@@ -746,7 +746,7 @@ Remove 'center' class
 				?>
 			</th>
 
-			<th class="col_revised hideOnDemandClass right hidden-phone hidden-tablet" style="<?php echo $this->hideCol($colposition++); ?>" >
+Restore left class
 				<?php echo JHtml::_('grid.sort',   'FLEXI_REVISED', 'a.modified', $this->lists['order_Dir'], $this->lists['order'] ); ?>
 				<?php
 				if ($this->date == '2') :
