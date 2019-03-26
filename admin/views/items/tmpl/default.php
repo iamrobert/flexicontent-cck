@@ -1113,7 +1113,7 @@ Restore left class
 				?>
 			</td>
 
-			<td class="col_created small right hidden-phone" style="<?php echo $this->hideCol($colposition++); ?>" >
+please remove right class
 				<?php echo JHtml::_('date',  $row->created, $date_format); ?>
 			</td>
 
