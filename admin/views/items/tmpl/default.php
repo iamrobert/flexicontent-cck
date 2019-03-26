@@ -637,7 +637,7 @@ jQuery(document).ready(function(){
 			</th>
 
 			<th class="left"><?php $colposition++; ?>
-
+Remove newline
 			</th>
 
 			<th class="col_status hideOnDemandClass left" style="<?php echo $this->hideCol($colposition++); ?>" >
