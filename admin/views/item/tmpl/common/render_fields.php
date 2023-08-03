@@ -1516,6 +1516,7 @@ if ($typeid && $selecttheme) : ?>
 
 					</fieldset>
 
+
 				<?php endforeach; //fieldSets ?>
 				<?php echo JHtml::_('bootstrap.endSlide'); ?>
 
@@ -1803,11 +1804,11 @@ if ($this->fields && $typeid) :
 				' container_fcfield container_fcfield_id_' . $field->id . ' container_fcfield_name_' . $field->name;
 			?>
 
-			<div class="control-group">
+			<div class="control-group<?php echo $display_label_form === 2 ? ' fc_vertical' : ''; ?>">
 
 				<?php ob_start(); /* label_html */ ?>
 				<div
-					class="control-label <?php echo $display_label_form === 2 ? 'fclabel_cleared' : ''; ?>"
+					class="control-label<?php echo $display_label_form === 2 ? ' fclabel_cleared' : ''; ?>"
 					id="label_outer_fcfield_<?php echo $field->id; ?>"
 					style="<?php echo $display_label_form < 1 ? 'display:none;' : '' ?>"
 				>
@@ -1823,7 +1824,10 @@ if ($this->fields && $typeid) :
 
 				<?php ob_start(); /*input_html */ ?>
 				<div style="<?php echo $container_width . ($display_label_form !== 1 ? 'margin: 0' : ''); ?>" class="controls <?php echo $container_class; ?>" id="container_fcfield_<?php echo $field->id; ?>">
-					<?php echo ($field->description && $edithelp==3)  ?  sprintf( $alert_box, '', 'info', 'fc-nobgimage', $field->description )  :  ''; ?>
+					<?php echo ($field->description && $edithelp==3)  ?  sprintf( $alert_box, '', 'info', 'fc-nobgimage', $field->description )  :  ''; 
+					?>
+
+
 
 				<?php // CASE 1: CORE 'description' FIELD with multi-tabbed editing falang
 				if ($field->field_type === 'maintext' && isset($this->row->item_translations)) :
@@ -1833,6 +1837,7 @@ if ($this->fields && $typeid) :
 					$tabCnt[$tabSetCnt] = 0;
 					?>
 					<!-- tabber start -->
+					
 					<div class="fctabber tabber-inline s-gray tabber-lang" id="fcform_tabset_<?php echo $tabSetCnt; ?>">
 						<div class="tabbertab fc-tabbed-field-box" id="fcform_tabset_<?php echo $tabSetCnt; ?>_tab_<?php echo $tabCnt[$tabSetCnt]++; ?>" >
 							<h3 class="tabberheading"> <?php echo '- '.$this->itemlang->name.' -'; ?> </h3>
@@ -1890,13 +1895,22 @@ if ($this->fields && $typeid) :
 						</div>
 
 					<?php endforeach; ?>
+
+					
 					</div>
 					<!-- tabber end -->
 					<?php $tabSetCnt = array_pop($tabSetStack); ?>
 
+					
 					<?php echo $not_in_tabs;      // Output ENDING hidden fields, by placing them outside the tabbing area ?>
 
 				<?php endif; /* END MULTI-TABBED FIELD */ ?>
+				<?php 
+				// ADD PLACEHOLDER
+				if($field->description && $edithelp==4) {
+							echo  '<small class="form-text">'.$field->description.'</small>';
+					} ?>
+
 
 				</div>
 				<?php $rendered[$field->name]->input_html = ob_get_clean(); echo $rendered[$field->name]->input_html; ?>
