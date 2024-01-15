@@ -2290,7 +2290,7 @@ class FlexicontentFields
 		$values = array();
 		foreach($value_indexes as $val_index)
 		{
-			if ( !strlen($val_index) ) continue;
+			if ($val_index === null || (is_string($val_index) && strlen($val_index) === 0) ) continue;
 			if ( !isset($elements[$val_index]) ) continue;
 
 			$values[$val_index] = get_object_vars($elements[$val_index] );
