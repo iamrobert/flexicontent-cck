@@ -3000,7 +3000,7 @@ class FlexicontentFields
 				}
 
 				// Check value is not empty
-				if ( !is_array($v) && !strlen($v) ) continue;
+				if ( !is_array($v) && !(is_string($v) && strlen($v)) ) continue;
 
 				// If has field 'required/search' properties, then check field is multi-property (value is array)
 				if ( !is_array($v) && (count($required_props) || count($search_props)) ) continue;
@@ -3012,7 +3012,8 @@ class FlexicontentFields
 				$required_exists = true;
 				foreach ($required_props as $cp)
 				{
-					if ( !strlen($v[$cp] ?? '') ) $required_exists = false;
+					if ( !(isset($v[$cp]) && strlen($v[$cp])) ) $required_exists = false;
+
 				}
 				if (!$required_exists) continue;
 
@@ -3556,9 +3557,9 @@ class FlexicontentFields
 			$reverse_values = $filter->parameters->get( 'reverse_filter_order', 0) && $display_filter_as == 8;
 			$value1 = $reverse_values ? @$value[2] : @$value[1];
 			$value2 = $reverse_values ? @$value[1] : @$value[2];
-			$value_empty = !strlen(@$value[1] ?? '')  && strlen(@$value[2] ?? '')  ? ' OR _v_="" OR _v_ IS NULL' : '';
-			if ( strlen($value1 ?? '') ) $valueswhere .= ' AND (_v_ >=' . $value1 . ')';
-			if ( strlen($value2 ?? '') ) $valueswhere .= ' AND (_v_ <=' . $value2 . $value_empty . ')';
+			$value_empty = !strlen(@$value[1]) && strlen(@$value[2]) ? ' OR _v_="" OR _v_ IS NULL' : '';
+			if ( strlen($value1) ) $valueswhere .= ' AND (_v_ >=' . $value1 . ')';
+			if ( strlen($value2) ) $valueswhere .= ' AND (_v_ <=' . $value2 . $value_empty . ')';
 		}
 
 		// non-text, aka EXACT value cases: 0, 4, 5, 6, 7, * -OR- isDate
