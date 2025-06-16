@@ -35,6 +35,7 @@
 			</field>
 
 			<field name="" type="separator" default="FLEXI_FIELD_NUMBER_OF_VALUES" description="" depend_class="fieldgroupoff" level="level2" />
+			<field name="showon" type="text" default="" label="FLEXI_FIELD_SHOWON" description="FLEXI_FIELD_SHOWON_DESC" />
 			<field name="required" type="radio" default="0" label="FLEXI_FIELD_REQUIRED" description="FLEXI_FIELD_REQUIRED_DESC" class="btn-group btn-group-yesno">
 				<option value="0">FLEXI_NO</option>
 				<option value="1">FLEXI_YES</option>
@@ -416,6 +417,7 @@
 			<field name="algolia_edit_api_id" type="text" default="" label="PLG_FLEXICONTENT_FIELDS_ADDRESSINT_ALGOLIA_API_ID_EDITING" description="PLG_FLEXICONTENT_FIELDS_ADDRESSINT_ALGOLIA_API_KEY_EDITING_DESC" depend_class="algolia-edit-api" />
 			<field name="algolia_edit_api_key" type="text" default="" label="PLG_FLEXICONTENT_FIELDS_ADDRESSINT_ALGOLIA_API_KEY_EDITING" description="PLG_FLEXICONTENT_FIELDS_ADDRESSINT_ALGOLIA_API_KEY_EDITING_DESC" depend_class="algolia-edit-api" />
 			<field name="" type="separator" default="PLG_FLEXICONTENT_FIELDS_ADDRESSINT_ALGOLIA_GET_API_KEY_INFO" level="level3" class="alert alert-success" depend_class="algolia-edit-api" />
+			<field name="api_lang_code_edit" type="text" default="" label="Force language code (e.g. en)" description="Let this be empty to use language of current user" />
 
 			<field name="" type="separator" default="FLEXI_FIELD_VIEWING" level="level2" />
 
@@ -427,10 +429,11 @@
 			<field name="" type="separator" default="PLG_FLEXICONTENT_FIELDS_ADDRESSINT_GOOGLE_MAPS_VIEWING_API_KEY" level="level4" class="alert alert-info fcpadded" depend_class="googlemap-api" />
 			<field name="google_maps_static_api_key" type="text" default="" label="PLG_FLEXICONTENT_FIELDS_ADDRESSINT_GOOGLE_MAPS_API_KEY_VIEWING" description="PLG_FLEXICONTENT_FIELDS_ADDRESSINT_GOOGLE_MAPS_API_KEY_VIEWING_DESC" depend_class="googlemap-api" />
 			<field
-				name="os_tile_server_url" type="text" default=""
-				label="Tile (Map) Server URL" description="Enter a custom tile server URL (of Openstreet Maps). If you are going to be having a lot of traffic it is best to setup your own tiles server for hosting your map tiles, e.g. https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png"
+				name="os_tile_server_url" type="text" default="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+				label="Tile (Map) Server URL" description="Enter a custom tile server URL (of Openstreet Maps). If you are going to be having a lot of traffic it is best to setup your own tiles server for hosting your map tiles, e.g. https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
 				depend_class="openstreetmap-api"
 			/>
+			<field name="api_lang_code" type="text" default="" label="Force language code (e.g. en)" description="Let this be empty to use language of current user" />
 
 		</fieldset>
 		<fieldset name="group-addressint-fields" hidden="true" icon_class="icon-link" label="FLEXI_PROPERTIES_AS_FIELDS" addfieldpath="/administrator/components/com_flexicontent/elements">

@@ -429,6 +429,53 @@ jQuery(document).ready(function(){
 
 </script>
 
+<style>
+	.tabbernav {
+		display: flex !important;
+		flex-wrap: wrap !important;
+	}
+
+  .tabbernav li:has(a.break-subtypes) {
+    flex-basis: 100% !important;
+	  height: 0 !important;
+	  overflow: hidden !important;
+  }
+
+  .tabbernav li:has(a.subtypes-header) {
+    margin-left: 24px !important;
+  }
+  #flexicontent .s-cblue ul.tabbernav > li:hover:has(a.subtypes-header) > a,
+  .tabbernav li:has(a.subtypes-header) {
+    background: black !important;
+  }
+  .tabbernav li a.subtypes-header {
+	  display:none !important;
+  }
+  .tabbernav li:has(a.subtypes-header) a.subtypes-header {
+    display:flex !important;
+    font-weight: bold!important;
+    padding: 4px;
+  }
+  .tabbernav li:has(a.subtypes-header) a.subtypes-header > span {
+	  color: white !important;
+  }
+  body .s-cblue ul.tabbernav > li a.fc-subtype {
+     position: relative;
+  }
+  body .s-cblue ul.tabbernav > li a.fc-subtype:after {
+    opacity: 0.4;
+    content: "s" !important;
+	  position: absolute;
+	  height: 1rem;
+	  top: 6px;
+    line-height: 11px;
+	  font-size: 11px;
+	  background-color: #000 !important;
+	  padding: 2px;
+	  border-radius: 2px;
+	  color: white;
+  }
+</style>
 
 <div id="flexicontent" class="flexicontent">
 
@@ -503,25 +550,63 @@ elseif ($this->max_tab_types && count($this->itemTypes) > 1)
 				>' . $_name . '</h3>
 			</div>
 			';
+	}
+
+	$main_types = [];
+	$sub_types  = [];
+	foreach($this->itemTypes as $itemType) {
+		if ($itemType->params->get('is_subtype', 0)) {
+			$sub_types[] = $itemType;
+		} else {
+			$main_types[] = $itemType;
 		}
+	}
+	$sorted_itemTypes = array_merge($main_types, $sub_types);
 
-	$itemType = reset($this->itemTypes);
-
+	$subtype_count = 0;
+	$itemType = reset($sorted_itemTypes);
 	do
 	{
+		if ($itemType->params->get('is_subtype', 0) && $subtype_count == 0) {
+			$type_class = ' subtypes-header';
+			echo '
+				<div class="tabbertab ' . $type_class . '" id="type_tab_break_subtype" style="padding:0; border: 0;">
+					<h3 class="tabberheading ' . $type_class . '"
+						data-data_attr_a="' . (int) $itemType->id . '"
+					> Subtypes: </h3>
+			';
+			echo '</div>';
+		}
+
 		$type_class = $single_type && in_array($itemType->id, $filter_type) ? ' tabbertabforced' : '';
 		$__tip_class = ''; //' hasTooltip';
 		$__tip_props = ''; //' data-placement="top" data-title="' . Text::_( $itemType->name ) . '" ';
-
+		if ($itemType->params->get('is_subtype', 0)) {
+			$type_class .= ' fc-subtype';
+			$subtype_count++;
+		}
 		echo '
 			<div class="tabbertab ' . $type_class . '" id="type_tab_' . (int) $itemType->id . '" style="padding-left: 0; padding-right: 0; border-left: 0; border-right: 0; border-bottom: 0;">
-				<h3 class="tabberheading ' . $__tip_class . '" ' . $__tip_props . '
+				<h3 class="tabberheading ' . $__tip_class . $type_class . '" ' . $__tip_props . '
 					data-data_attr_a="' . (int) $itemType->id . '"
 					onmouseup="jQuery(\'#filter_assockey\').removeAttr(\'checked\'); jQuery(\'#filter_type\').val([this.getAttribute(\'data-data_attr_a\')]); jQuery(\'#filter_type\').trigger(\'change\')"
 				>' . Text::_( $itemType->name ) . '</h3>
 		';
 		echo '</div>';
-	} while($itemType = next($this->itemTypes));
+
+		$itemType = next($sorted_itemTypes);
+		if (0 && $itemType && $itemType->params->get('is_subtype', 0) && $subtype_count == 0) {
+			$type_class = ' break-subtypes';
+			echo '
+				<div class="tabbertab ' . $type_class . '" id="type_tab_break_subtype" style="padding:0; border: 0;">
+					<h3 class="tabberheading ' . $type_class . '"
+						data-data_attr_a="' . (int) $itemType->id . '"
+					></h3>
+			';
+			echo '</div>';
+		}
+
+	} while($itemType);
 
 	echo '
 		</div>
@@ -784,7 +869,7 @@ elseif ($this->max_tab_types && count($this->itemTypes) > 1)
 				<?php echo Text::_( 'FLEXI_NUM' ); ?>
 			</th-->
 
-			<th class="col_order center hidden-phone"><?php $colposition++; ?>
+			<th class="col_order center hidden-phone "><?php $colposition++; ?>
 				<?php
 				echo $canOrder ? $image_ordering_tip : '';
 				echo str_replace('_FLEXI_ORDER_',
@@ -1024,6 +1109,10 @@ elseif ($this->max_tab_types && count($this->itemTypes) > 1)
 			$assetName = 'com_content.article.' . $row->id;
 			$isAuthor  = $row->created_by && $row->created_by == $user->id;
 
+			// Get the type params of the item
+      $tparams = $this->tparams_array[$row->type_id];
+      $row->tparams = $tparams;
+
 			// Permissions
 			$row->canCheckin   = empty($row->checked_out) || $row->checked_out == $user->id || $canCheckinRecords;
 			$row->canEdit      = $user->authorise('core.edit', $assetName) || ($isAuthor && $user->authorise('core.edit.own', $assetName));
@@ -1128,7 +1217,7 @@ elseif ($this->max_tab_types && count($this->itemTypes) > 1)
 					//echo HTMLHelper::_($hlpname . '.published', $row->state, $i, $stateIsChangeable, 'cb', $row->publish_up, $row->publish_down);
 
 					echo HTMLHelper::_($hlpname . '.statebutton', $row, $i);
-					if (!$this->tparams->get('is_subtype', 0))
+					if (!$tparams->get('is_subtype', 0))
 					{
 						echo HTMLHelper::_($hlpname . '.featured', $row, $i);
 						echo HTMLHelper::_($hlpname . '.preview', $row, '_blank', $i);
@@ -1137,7 +1226,7 @@ elseif ($this->max_tab_types && count($this->itemTypes) > 1)
 				</div>
 			</td>
 
-			<td class="col_title smaller" style="<?php echo $this->hideCol($colposition++); ?>" >
+			<td class="col_title " style="<?php echo $this->hideCol($colposition++); ?>" >
 				<?php
 				/**
 				 * Display an edit pencil or a check-in button if: either (a) current user has Global
@@ -1179,14 +1268,14 @@ elseif ($this->max_tab_types && count($this->itemTypes) > 1)
 
 
 			<?php if (!isset($disable_columns['author'])) : ?>
-			<td class="col_authors small hidden-phone hidden-tablet" style="<?php echo $this->hideCol($colposition++); ?>" >
+			<td class="col_authors hidden-phone hidden-tablet" style="<?php echo $this->hideCol($colposition++); ?>" >
 				<?php echo $row->author; ?>
 			</td>
 			<?php endif; ?>
 
 
 			<?php if (!isset($disable_columns['lang'])) : ?>
-			<td class="col_lang small hidden-phone" style="<?php echo $this->hideCol($colposition++); ?>" >
+			<td class="col_lang hidden-phone" style="<?php echo $this->hideCol($colposition++); ?>" >
 				<?php
 					/**
 					 * Display language
@@ -1254,8 +1343,8 @@ elseif ($this->max_tab_types && count($this->itemTypes) > 1)
 							$assoc_isstale_class = $oc_item && (!$assoc_item->is_uptodate && $assoc_modified < $oc_item_modified) ? ' fc_assoc_isstale' : ' fc_assoc_isuptodate';
 
 							echo '
-							<a class="fc_assoc_translation label label-association ' . $this->popover_class . $assoc_isstale_class . $assoc_state_class . '"
-								target="_blank" href="'.$_link.'" data-placement="top" data-content="'.$_title.'"
+							<a class="fc_assoc_translation label label-association ' . $this->popover_class . $assoc_isstale_class . $assoc_state_class . ' hasTooltip"
+								target="_blank" href="'.$_link.'" data-placement="top" aria-label="'.$_title.' data-content="'.$_title.' data-bs-original-title="'.$_title.'"
 							>
 								<span>' . ($assoc_item->lang=='*' ? Text::_('FLEXI_ALL') : strtoupper($assoc_item->shortcode ?: '?')) . '</span>
 							</a>';
@@ -1268,7 +1357,7 @@ elseif ($this->max_tab_types && count($this->itemTypes) > 1)
 
 
 			<?php if (!$single_type || !isset($disable_columns['single_type'])): ?>
-			<td class="col_type small hidden-phone" style="<?php echo $this->hideCol($colposition++); ?>" >
+			<td class="col_type hidden-phone" style="<?php echo $this->hideCol($colposition++); ?>" >
 				<?php echo Text::_($row->type_name); ?>
 			</td>
 			<?php endif ; ?>
@@ -1278,7 +1367,7 @@ elseif ($this->max_tab_types && count($this->itemTypes) > 1)
 			<td class="col_edit_layout hidden-phone hidden-tablet" style="<?php echo $this->hideCol($colposition); ?>" >
 				<?php echo HTMLHelper::_($hlpname . '.edit_layout', $row, '__modal__', $i, $this->perms->CanTemplates, $row_ilayout); ?>
 			</td>
-			<td class="col_template small hidden-phone hidden-tablet" style="<?php echo $this->hideCol($colposition++); ?>" >
+			<td class="col_template hidden-phone hidden-tablet" style="<?php echo $this->hideCol($colposition++); ?>" >
 				<?php echo $row_ilayout.($row->config->get('ilayout') ? '' : '<sup>[1]</sup>') ?>
 			</td>
 			<?php endif; ?>
@@ -1305,7 +1394,7 @@ elseif ($this->max_tab_types && count($this->itemTypes) > 1)
 
 
 			<?php if (!isset($disable_columns['cats'])): ?>
-			<td class="col_cats small hidden-phone" style="<?php echo $this->hideCol($colposition++); ?>" >
+			<td class="col_cats hidden-phone" style="<?php echo $this->hideCol($colposition++); ?>" >
 				<?php
 				// Reorder categories place item's MAIN category first or ...
 				// place first the category being filtered (if order is 'FLEXIcontent')
@@ -1394,7 +1483,7 @@ elseif ($this->max_tab_types && count($this->itemTypes) > 1)
 
 
 			<?php if (!isset($disable_columns['tags'])): ?>
-			<td class="col_tag small hidden-phone hidden-tablet" style="<?php echo $this->hideCol($colposition++); ?>" >
+			<td class="col_tag hidden-phone hidden-tablet" style="<?php echo $this->hideCol($colposition++); ?>" >
 				<?php
 					$row_tags  = array();
 					$tag_names = array();
@@ -1421,15 +1510,18 @@ elseif ($this->max_tab_types && count($this->itemTypes) > 1)
 
 
 			<?php if (!isset($disable_columns['created'])) : ?>
-			<td class="col_created small hidden-phone" style="<?php echo $this->hideCol($colposition++); ?>" >
+			<td class="col_created hidden-phone" style="<?php echo $this->hideCol($colposition++); ?>" >
 				<?php echo HTMLHelper::_('date',  $row->created, $date_format); ?>
 			</td>
 			<?php endif; ?>
 
 
 			<?php if (!isset($disable_columns['modified'])) : ?>
-			<td class="col_revised small hidden-phone hidden-tablet" style="<?php echo $this->hideCol($colposition++); ?>" >
-				<?php echo ($row->modified != $_NULL_DATE_ && $row->modified != $row->created) ? HTMLHelper::_('date', $row->modified, $date_format) : $_NEVER_; ?>
+			<td class="col_revised hidden-phone hidden-tablet" style="<?php echo $this->hideCol($colposition++); ?>" >
+				<?php
+				if ($row->modified == $row->created)  echo Text::_('Same as creation');
+				else echo ($row->modified != $_NULL_DATE_) ? HTMLHelper::_('date', $row->modified, $date_format) : $_NEVER_;
+				?>
 			</td>
 			<?php endif; ?>
 

@@ -17,7 +17,8 @@
 
 	foreach ($field->value as $value)
 	{
-		if ( !strlen($value) && !$use_ingroup && $n) continue;  // If at least one added, skip empty if not in field group
+		$value = $value ?? ''; // value maybe null
+		if (!strlen($value) && !$use_ingroup && $n) continue;  // If at least one added, skip empty if not inside a field group
 
 		$fieldname_n = $fieldname.'['.$n.']';
 		$elementid_n = $elementid.'_'.$n;
@@ -43,7 +44,7 @@
 			</div>
 			' . $posttext . '
 			' . (!$add_ctrl_btns || $auto_value ? '' : '
-			<div class="'.$input_grp_class.' fc-xpended-btns">
+			<div class="'.$btn_group_class.' fc-xpended-btns">
 				'.$move2.'
 				'.$remove_button.'
 				'.(!$add_position ? '' : $add_here).'

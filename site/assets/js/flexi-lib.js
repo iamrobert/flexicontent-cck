@@ -1149,7 +1149,7 @@
 		var i = 0;
 		for (var cnt=0; cnt<col_selectors.length; cnt++)
 		{
-			if ( jQuery(col_selectors[cnt]).attr("checked") )
+			if ( jQuery(col_selectors[cnt]).prop("checked") )
 			{
 				col_selected[i++] = jQuery(col_selectors[cnt]).attr("data-colno");
 			}
@@ -1165,6 +1165,7 @@
 
 		var nDays = 30;
 		fclib_setCookie(cookieName, JSON.stringify(cookieValue), nDays);
+    //console.log('Updated columns selector cookie');
 
 		var totals_tag = jQuery('#columnchoose_totals');
 		if (totals_tag.length)
@@ -1613,9 +1614,12 @@
 			}
 
 			if (sel_EL.attr('multiple') && !sel_EL.hasClass('fc_select2_no_check'))
+			{
 				sel_EL.select2(sel2ops).addClass('select2_fc_checkboxes');
-			else
+			} else
+			{
 				sel_EL.select2(sel2ops);
+			}
 
 			// Set initially selected data (this allows setting order too)
 			if ( sel_EL.get(0).hasAttribute('data-select2-initdata') )

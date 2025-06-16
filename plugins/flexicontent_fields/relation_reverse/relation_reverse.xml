@@ -87,7 +87,7 @@
 			<field name="" type="separator" default="FLEXI_FIELD_ITEM_HTML" icon_class="icon-cog" level="tab_open" box_type="1" />
 			<field name="" type="separator" default="FLEXI_FIELD_ITEM_HTML_DESC" level="level3" class="alert alert-info fcpadded" />
 
-			<field name="relitem_html_form" type="editor" editor="codemirror" syntax="html" filter="RAW" cols="40" rows="4" height="60px" class="fc-unset-width" default="__display_text__" label="FLEXI_FIELD_ITEM_HTML_WITH_REPLACEMENTS" description="FLEXI_FIELD_ITEM_HTML_WITH_REPLACEMENTS_DESC" />
+			<field name="relitem_html_form" type="editor" editor="codemirror" syntax="html" filter="RAW" cols="80" rows="5" height="120px" class="fc-unset-width" default="__display_text__" label="FLEXI_FIELD_ITEM_HTML_WITH_REPLACEMENTS" description="FLEXI_FIELD_ITEM_HTML_WITH_REPLACEMENTS_DESC" />
 
 			<field name="" type="separator" default="FLEXI_RELATED_DISPLAY_TEXT_COMPOSITION" level="level2" />
 			<field name="displayway_form" type="list" default="1" label="FLEXI_RELATED_DISPLAY_TEXT" description="FLEXI_RELATED_DISPLAY_TEXT_DESC">
@@ -104,8 +104,8 @@
 			</field>
 
 			<field name="" type="separator" default="FLEXI_PREFIX_SUFFIX_SEPARATOR_LABEL" level="level2" />
-			<field name="pretext_form" type="text" default="" filter="JComponentHelper::filterText" label="FLEXI_FIELD_VALUE_PREFIX_TEXT" description="FLEXI_FIELD_VALUE_PREFIX_TEXT_DESC" />
-			<field name="posttext_form" type="text" default="" filter="JComponentHelper::filterText" label="FLEXI_FIELD_VALUE_SUFFIX_TEXT" description="FLEXI_FIELD_VALUE_SUFFIX_TEXT_DESC" />
+			<field name="pretext_form" type="text" default="" filter="\Joomla\CMS\Component\ComponentHelper::filterText" label="FLEXI_FIELD_VALUE_PREFIX_TEXT" description="FLEXI_FIELD_VALUE_PREFIX_TEXT_DESC" />
+			<field name="posttext_form" type="text" default="" filter="\Joomla\CMS\Component\ComponentHelper::filterText" label="FLEXI_FIELD_VALUE_SUFFIX_TEXT" description="FLEXI_FIELD_VALUE_SUFFIX_TEXT_DESC" />
 			<field name="separator" type="list" default="1" label="FLEXI_VALUE_SEPARATOR_ITEM_FORM" description="FLEXI_VALUE_SEPARATOR_ITEM_FORM_DESC">
 				<option value="0">FLEXI_SPACE</option>
 				<option value="1">FLEXI_LINE_BREAK</option>
@@ -233,7 +233,7 @@
 			<field name="" type="separator" default="FLEXI_FIELD_ITEM_HTML_DESC" level="level3" class="alert alert-info fcpadded" />
 			<field name="" type="separator" default="FLEXI_RIFLD_CONFIG_OVERRIDEN_INSIDE_TOTAL_COUNT_TAB_INFO" level="level4" class="alert alert-info fcpadded" />
 
-			<field name="relitem_html" type="editor" editor="codemirror" syntax="html" filter="RAW" cols="40" rows="4" height="60px" class="fc-unset-width" default="__display_text__" label="FLEXI_FIELD_ITEM_HTML_WITH_REPLACEMENTS" description="FLEXI_FIELD_ITEM_HTML_WITH_REPLACEMENTS_DESC" />
+			<field name="relitem_html" type="editor" editor="codemirror" syntax="html" filter="RAW" cols="80" rows="5" height="120px" class="fc-unset-width" default="__display_text__" label="FLEXI_FIELD_ITEM_HTML_WITH_REPLACEMENTS" description="FLEXI_FIELD_ITEM_HTML_WITH_REPLACEMENTS_DESC" />
 
 			<field name="" type="separator" default="FLEXI_RELATED_DISPLAY_TEXT_COMPOSITION" level="level2" />
 			<field name="displayway" type="list" default="1" label="FLEXI_RELATED_DISPLAY_TEXT" description="FLEXI_RELATED_DISPLAY_TEXT_DESC">

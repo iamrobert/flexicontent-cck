@@ -37,7 +37,7 @@ class plgFlexicontent_fieldsSharedmedia extends FCField
 	{
 		if ( !in_array($field->field_type, static::$field_types) ) return;
 
-		$field->label = $field->parameters->get('label_form') ? JText::_($field->parameters->get('label_form')) : JText::_($field->label);
+		$field->label = $field->parameters->get('label_form') ? \Joomla\CMS\Language\Text::_($field->parameters->get('label_form')) : \Joomla\CMS\Language\Text::_($field->label);
 
 		// Set field and item objects
 		$this->setField($field);
@@ -49,12 +49,14 @@ class plgFlexicontent_fieldsSharedmedia extends FCField
 		if ($use_ingroup && empty($field->ingroup)) return;
 
 		// Initialize framework objects and other variables
-		$document = JFactory::getDocument();
-		$cparams  = JComponentHelper::getParams( 'com_flexicontent' );
+		$document = \Joomla\CMS\Factory::getDocument();
+		$cparams  = \Joomla\CMS\Component\ComponentHelper::getParams( 'com_flexicontent' );
 
 		$tooltip_class = 'hasTooltip';
 		$add_on_class    = $cparams->get('bootstrap_ver', 2)==2  ?  'add-on' : 'input-group-addon';
 		$input_grp_class = $cparams->get('bootstrap_ver', 2)==2  ?  'input-append input-prepend' : 'input-group';
+		$btn_item_class  = $cparams->get('bootstrap_ver', 2)==2  ?  'btn' : 'btn';
+		$btn_group_class = $cparams->get('bootstrap_ver', 2)==2  ?  'btn-group' : 'btn-group';
 		$form_font_icons = $cparams->get('form_font_icons', 1);
 		$font_icon_class = $form_font_icons ? ' fcfont-icon' : '';
 		$font_icon_class .= FLEXI_J40GE ? ' icon icon- ' : '';
@@ -116,15 +118,15 @@ class plgFlexicontent_fieldsSharedmedia extends FCField
 
 		// Return error message if api keys are missing
 		//if( empty($embedly_key) && !$use_native_apis ) {
-		//  $api_key_name = JText::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_EMBEDLY_API_KEY');
-		//	$api_key_desc = JText::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_EMBEDLY_API_KEY_DESC');
-		//	$error_text = JText::sprintf('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_API_KEY_REQUIRED', $api_key_name) ." <br/> ". $api_key_desc;
+		//  $api_key_name = \Joomla\CMS\Language\Text::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_EMBEDLY_API_KEY');
+		//	$api_key_desc = \Joomla\CMS\Language\Text::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_EMBEDLY_API_KEY_DESC');
+		//	$error_text = \Joomla\CMS\Language\Text::sprintf('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_API_KEY_REQUIRED', $api_key_name) ." <br/> ". $api_key_desc;
 		//}
 		if (empty($youtube_key) && $use_native_apis)
 		{
-			$api_key_name = JText::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_YOUTUBE_API_KEY');
-			$api_key_desc = JText::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_YOUTUBE_API_KEY_DESC');
-			$error_text = JText::sprintf('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_API_KEY_REQUIRED', $api_key_name) ." <br/> ". $api_key_desc;
+			$api_key_name = \Joomla\CMS\Language\Text::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_YOUTUBE_API_KEY');
+			$api_key_desc = \Joomla\CMS\Language\Text::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_YOUTUBE_API_KEY_DESC');
+			$error_text = \Joomla\CMS\Language\Text::sprintf('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_API_KEY_REQUIRED', $api_key_name) ." <br/> ". $api_key_desc;
 		}
 
 		// Initialise property with default value
@@ -185,7 +187,7 @@ class plgFlexicontent_fieldsSharedmedia extends FCField
 			});
 			";
 
-			if ($max_values) JText::script("FLEXI_FIELD_MAX_ALLOWED_VALUES_REACHED", true);
+			if ($max_values) \Joomla\CMS\Language\Text::script("FLEXI_FIELD_MAX_ALLOWED_VALUES_REACHED", true);
 			$js .= "
 			function addField".$field->id."(el, groupval_box, fieldval_box, params)
 			{
@@ -310,23 +312,23 @@ class plgFlexicontent_fieldsSharedmedia extends FCField
 			$css .= '';
 
 			$remove_button = '
-				<button type="button" class="' . $add_on_class . ' fcfield-delvalue ' . $font_icon_class . '"
-					aria-label="' . JText::_('FLEXI_REMOVE_VALUE') . ' ' . JText::_('FLEXI_VALUE')  . '"
+				<button type="button" class="' . $btn_item_class . ' fcfield-delvalue ' . $font_icon_class . '"
+					aria-label="' . \Joomla\CMS\Language\Text::_('FLEXI_REMOVE_VALUE') . ' ' . \Joomla\CMS\Language\Text::_('FLEXI_VALUE')  . '"
 					onclick="deleteField'.$field->id.'(this); return false;"
 				></button>';
-			$move2 = '
-				<button type="button" class="' . $add_on_class . ' fcfield-drag-handle ' . $font_icon_class . '" onclick="event.preventDefault(); return false;"
-					aria-label="' . JText::_('FLEXI_CLICK_TO_DRAG') . '"
+			$move2         = '
+				<button type="button" class="' . $btn_item_class . ' fcfield-drag-handle ' . $font_icon_class . '" onclick="event.preventDefault(); return false;"
+					aria-label="' . \Joomla\CMS\Language\Text::_('FLEXI_CLICK_TO_DRAG') . '"
 				></button>';
 			$add_here = '';
 			$add_here .= $add_position==2 || $add_position==3 ? '
-				<button type="button" class="' . $add_on_class . ' fcfield-insertvalue fc_before ' . $font_icon_class . '"
-				 aria-label="' . JText::_('FLEXI_ADD_BEFORE') . '"
+				<button type="button" class="' . $btn_item_class . ' fcfield-insertvalue fc_before ' . $font_icon_class . '"
+				 aria-label="' . \Joomla\CMS\Language\Text::_('FLEXI_ADD_BEFORE') . '"
 				 onclick="addField'.$field->id.'(null, jQuery(this).closest(\'ul\'), jQuery(this).closest(\'li\'), {insert_before: 1}); return false;"
 				></button> ' : '';
 			$add_here .= $add_position==1 || $add_position==3 ? '
-				<button type="button" class="' . $add_on_class . ' fcfield-insertvalue fc_after ' . $font_icon_class . '"
-				 aria-label="' . JText::_('FLEXI_ADD_AFTER') . '"
+				<button type="button" class="' . $btn_item_class . ' fcfield-insertvalue fc_after ' . $font_icon_class . '"
+				 aria-label="' . \Joomla\CMS\Language\Text::_('FLEXI_ADD_AFTER') . '"
 				 onclick="addField'.$field->id.'(null, jQuery(this).closest(\'ul\'), jQuery(this).closest(\'li\'), {insert_before: 0}); return false;"
 				></button> ' : '';
 		}
@@ -335,7 +337,7 @@ class plgFlexicontent_fieldsSharedmedia extends FCField
 		else
 		{
 			$remove_button = '';
-			$move2 = '';
+			$move2         = '';
 			$add_here = '';
 			$js .= '';
 			$css .= '';
@@ -349,10 +351,10 @@ class plgFlexicontent_fieldsSharedmedia extends FCField
 		if ( $js_added === null )
 		{
 			$js_added = true;
-			JText::script('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_RESPONSE_PARSING_FAILED', false);
-			JText::script('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_SERVER_RESPONDED_WITH_ERROR', false);
-			JText::script('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_REASON', false);
-			$document->addScript(JUri::root(true) . '/plugins/flexicontent_fields/sharedmedia/js/form.js', array('version' => FLEXI_VHASH));
+			\Joomla\CMS\Language\Text::script('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_RESPONSE_PARSING_FAILED', false);
+			\Joomla\CMS\Language\Text::script('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_SERVER_RESPONDED_WITH_ERROR', false);
+			\Joomla\CMS\Language\Text::script('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_REASON', false);
+			$document->addScript(\Joomla\CMS\Uri\Uri::root(true) . '/plugins/flexicontent_fields/sharedmedia/js/form.js', array('version' => FLEXI_VHASH));
 		}
 
 		// JS CODE to handle fetching media DATA
@@ -439,7 +441,7 @@ class plgFlexicontent_fieldsSharedmedia extends FCField
 
 			$html_field = '
 				'.(!$add_ctrl_btns ? '' : '
-				<div class="'.$input_grp_class.' fc-xpended-btns">
+				<div class="'.$btn_group_class.' fc-xpended-btns">
 					'.$move2.'
 					'.$remove_button.'
 					'.(!$add_position ? '' : $add_here).'
@@ -451,7 +453,7 @@ class plgFlexicontent_fieldsSharedmedia extends FCField
 			<tbody>
 
 				<tr>
-					<td class="key"><label class="prop_label sm_url-lbl" for="'.$elementid_n.'_url">' . JText::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_MEDIA_URL') . '</label></td>
+					<td class="key"><label class="prop_label sm_url-lbl" for="'.$elementid_n.'_url">' . \Joomla\CMS\Language\Text::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_MEDIA_URL') . '</label></td>
 					<td>
 						<input type="text" class="fcfield_textval' . $required_class . ' sm_url" id="'.$elementid_n.'_url" name="'.$fieldname_n.'[url]" value="'.htmlspecialchars($value['url'], ENT_COMPAT, 'UTF-8').'" size="60" />
 					</td>
@@ -460,20 +462,20 @@ class plgFlexicontent_fieldsSharedmedia extends FCField
 				<tr>
 					<td style="text-align:right; padding:0 8px 4px 0;">
 						<button type="button" class="btn btn-primary btn-small sm_fetch_btn" id="'.$elementid_n.'_fetch_btn"
-							aria-label="' . JText::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_FETCH') . ' ' . JText::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_MEDIA_URL') . '"
+							aria-label="' . \Joomla\CMS\Language\Text::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_FETCH') . ' ' . \Joomla\CMS\Language\Text::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_MEDIA_URL') . '"
 							onclick="fcfield_sharemedia.fetchData(\''.$elementid_n.'\', \''.$field_name_js.'\'); return false;"
 						>
 								<i class="icon-loop" aria-hidden="true" ></i>' .
-								JText::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_FETCH') . '
+								\Joomla\CMS\Language\Text::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_FETCH') . '
 							</button>
 					</td>
 					<td style="text-align:left; padding:0 8px 4px 0;">' . ($use_ingroup ? '
 						<button type="button" class="btn btn-warning btn-small sm_clear_btn" id="'.$elementid_n.'_clear_btn"
-							aria-label="' . JText::_('FLEXI_CLEAR') . ' ' . JText::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_MEDIA_URL') . '"
+							aria-label="' . \Joomla\CMS\Language\Text::_('FLEXI_CLEAR') . ' ' . \Joomla\CMS\Language\Text::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_MEDIA_URL') . '"
 							onclick="fcfield_sharemedia.clearData(\''.$elementid_n.'\', \''.$field_name_js.'\'); return false;"
 						>
 							<i class="icon-cancel" aria-hidden="true"></i>' .
-							JText::_('FLEXI_CLEAR').'
+							\Joomla\CMS\Language\Text::_('FLEXI_CLEAR').'
 						</button>' : '').'
 					</td>
 				</tr>
@@ -484,7 +486,7 @@ class plgFlexicontent_fieldsSharedmedia extends FCField
 
 			.($display_embed_url_form && !$use_native_apis ? '
 				<tr '.($is_empty ? ' style="display:none;" ' : '').'>
-					<td class="key"><label class="prop_label sm_embed_url-lbl" for="'.$elementid_n.'_embed_url">' . JText::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_EMBED_URL') . '</label></td>
+					<td class="key"><label class="prop_label sm_embed_url-lbl" for="'.$elementid_n.'_embed_url">' . \Joomla\CMS\Language\Text::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_EMBED_URL') . '</label></td>
 					<td>
 						<input type="text" class="fcfield_textval sm_embed_url" readonly="readonly" id="'.$elementid_n.'_embed_url" name="'.$fieldname_n.'[embed_url]" value="'.htmlspecialchars($value['embed_url'], ENT_COMPAT, 'UTF-8').'" />
 					</td>
@@ -493,7 +495,7 @@ class plgFlexicontent_fieldsSharedmedia extends FCField
 
 			.($display_api_type_form ? '
 				<tr '.($is_empty ? ' style="display:none;" ' : '').'>
-					<td class="key"><label class="prop_label sm_api_type-lbl" for="'.$elementid_n.'_api_type">'.JText::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_EMBED_METHOD').'</label></td>
+					<td class="key"><label class="prop_label sm_api_type-lbl" for="'.$elementid_n.'_api_type">'.\Joomla\CMS\Language\Text::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_EMBED_METHOD').'</label></td>
 					<td>
 						<input type="text" class="fcfield_textval sm_api_type" id="'.$elementid_n.'_api_type" name="'.$fieldname_n.'[api_type]" value="'.htmlspecialchars($value['api_type'], ENT_COMPAT, 'UTF-8').'" size="30" readonly="readonly" />
 					</td>
@@ -502,7 +504,7 @@ class plgFlexicontent_fieldsSharedmedia extends FCField
 
 			.($display_media_id_form ? '
 				<tr '.($is_empty ? ' style="display:none;" ' : '').'>
-					<td class="key"><label class="prop_label sm_media_id-lbl" for="'.$elementid_n.'_media_id">'.JText::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_MEDIA_ID').'</label></td>
+					<td class="key"><label class="prop_label sm_media_id-lbl" for="'.$elementid_n.'_media_id">'.\Joomla\CMS\Language\Text::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_MEDIA_ID').'</label></td>
 					<td>
 						<input type="text" class="fcfield_textval sm_media_id" id="'.$elementid_n.'_media_id" name="'.$fieldname_n.'[media_id]" value="'.htmlspecialchars($value['media_id'], ENT_COMPAT, 'UTF-8').'" size="30" readonly="readonly" />
 					</td>
@@ -511,7 +513,7 @@ class plgFlexicontent_fieldsSharedmedia extends FCField
 
 			.($display_title_form ? '
 				<tr '.($is_empty ? ' style="display:none;" ' : '').'>
-					<td class="key"><label class="prop_label sm_title-lbl" for="'.$elementid_n.'_title">' . JText::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_TITLE') . '</label></td>
+					<td class="key"><label class="prop_label sm_title-lbl" for="'.$elementid_n.'_title">' . \Joomla\CMS\Language\Text::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_TITLE') . '</label></td>
 					<td>
 						<input type="text" class="fcfield_textval sm_title" id="'.$elementid_n.'_title" name="'.$fieldname_n.'[title]" value="'.htmlspecialchars($value['title'], ENT_COMPAT, 'UTF-8').'" size="60" '.($display_title_form==2 ? 'readonly="readonly"' : '').' />
 					</td>
@@ -520,7 +522,7 @@ class plgFlexicontent_fieldsSharedmedia extends FCField
 
 			.($display_author_form ? '
 				<tr '.($is_empty ? ' style="display:none;" ' : '').'>
-					<td class="key"><label class="prop_label sm_author-lbl" for="'.$elementid_n.'_author">' . JText::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_AUTHOR') . '</label></td>
+					<td class="key"><label class="prop_label sm_author-lbl" for="'.$elementid_n.'_author">' . \Joomla\CMS\Language\Text::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_AUTHOR') . '</label></td>
 					<td>
 						<input type="text" class="fcfield_textval sm_author" id="'.$elementid_n.'_author" name="'.$fieldname_n.'[author]" value="'.htmlspecialchars($value['author'], ENT_COMPAT, 'UTF-8').'" size="60" '.($display_author_form==2 ? 'readonly="readonly"' : '').' />
 					</td>
@@ -529,31 +531,31 @@ class plgFlexicontent_fieldsSharedmedia extends FCField
 
 			.($display_duration_form ? '
 				<tr '.($is_empty ? ' style="display:none;" ' : '').'>
-					<td class="key"><label class="prop_label sm_duration-lbl" for="'.$elementid_n.'_duration">' . JText::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_DURATION') . '</label></td>
+					<td class="key"><label class="prop_label sm_duration-lbl" for="'.$elementid_n.'_duration">' . \Joomla\CMS\Language\Text::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_DURATION') . '</label></td>
 					<td>
-						<input type="text" class="fcfield_textval inlineval sm_duration" id="'.$elementid_n.'_duration" name="'.$fieldname_n.'[duration]" value="'.htmlspecialchars($value['duration'], ENT_COMPAT, 'UTF-8').'" size="10" '.($display_duration_form==2 ? 'readonly="readonly"' : '').' /> '.JText::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_SECONDS').'
+						<input type="text" class="fcfield_textval inlineval sm_duration" id="'.$elementid_n.'_duration" name="'.$fieldname_n.'[duration]" value="'.htmlspecialchars($value['duration'], ENT_COMPAT, 'UTF-8').'" size="10" '.($display_duration_form==2 ? 'readonly="readonly"' : '').' /> '.\Joomla\CMS\Language\Text::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_SECONDS').'
 					</td>
 				</tr>' : '
 				<tr style="display:none;"><td colspan="2"><input type="hidden" class="sm_duration" id="'.$elementid_n.'_duration" name="'.$fieldname_n.'[duration]" value="'.htmlspecialchars($value['duration'], ENT_COMPAT, 'UTF-8').'" /></td></tr>')
 
 			.($display_edit_size_form ? '
 				<tr '.($is_empty ? ' style="display:none;" ' : '').'>
-					<td class="key"><span class="prop_label">' . JText::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_PLAYER_DIMENSIONS') . '</span></td>
+					<td class="key"><span class="prop_label">' . \Joomla\CMS\Language\Text::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_PLAYER_DIMENSIONS') . '</span></td>
 					<td>
 						<div class="fc-floated-labels-box" style="margin: 0;">
-							<label class="fc-floated-lbl fc-lbl sm_width-lbl fc-has-value" for="'.$elementid_n.'_width" >' . JText::_('FLEXI_WIDTH') . '</label>
+							<label class="fc-floated-lbl fc-lbl sm_width-lbl fc-has-value" for="'.$elementid_n.'_width" >' . \Joomla\CMS\Language\Text::_('FLEXI_WIDTH') . '</label>
 							<input type="text" class="fcfield_textval sm_width inlineval fc-floated-lbl-input" size="5" id="'.$elementid_n.'_width" name="'.$fieldname_n.'[width]" value="'.htmlspecialchars($value['width'], ENT_COMPAT, 'UTF-8').'" '.($display_edit_size_form==2 ? 'readonly="readonly"' : '').' /> x
 						</div>
 						<div class="fc-floated-labels-box" style="margin: 0;">
-							<label class="fc-floated-lbl fc-lbl sm_height-lbl fc-has-value" for="'.$elementid_n.'_height" >' . JText::_('FLEXI_HEIGHT') . '</label>
-							<input type="text" class="fcfield_textval sm_height inlineval fc-floated-lbl-input" size="5" id="'.$elementid_n.'_height" name="'.$fieldname_n.'[height]" value="'.htmlspecialchars($value['height'], ENT_COMPAT, 'UTF-8').'" '.($display_edit_size_form==2 ? 'readonly="readonly"' : '').' /> '.JText::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_PIXELS').'
+							<label class="fc-floated-lbl fc-lbl sm_height-lbl fc-has-value" for="'.$elementid_n.'_height" >' . \Joomla\CMS\Language\Text::_('FLEXI_HEIGHT') . '</label>
+							<input type="text" class="fcfield_textval sm_height inlineval fc-floated-lbl-input" size="5" id="'.$elementid_n.'_height" name="'.$fieldname_n.'[height]" value="'.htmlspecialchars($value['height'], ENT_COMPAT, 'UTF-8').'" '.($display_edit_size_form==2 ? 'readonly="readonly"' : '').' /> '.\Joomla\CMS\Language\Text::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_PIXELS').'
 						</div>
 					</td>
 				</tr>' : '')  // no need for hidden width/height fields, server validation will discard them anyway
 
 			.($display_description_form ? '
 				<tr '.($is_empty ? ' style="display:none;" ' : '').'>
-					<td class="key"><label class="prop_label sm_description-lbl" for="'.$elementid_n.'_description" >' . JText::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_DESCRIPTION') . '</label></td>
+					<td class="key"><label class="prop_label sm_description-lbl" for="'.$elementid_n.'_description" >' . \Joomla\CMS\Language\Text::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_DESCRIPTION') . '</label></td>
 					<td>
 						<textarea class="fcfield_textareaval sm_description" id="'.$elementid_n.'_description" name="'.$fieldname_n.'[description]" rows="7" '.($display_description_form==2 ? 'readonly="readonly"' : '').'>' . $value['description'] . '</textarea>
 					</td>
@@ -570,7 +572,7 @@ class plgFlexicontent_fieldsSharedmedia extends FCField
 			<tbody>
 				<tr '.($is_empty ? ' style="display:none;" ' : '').'>
 					<td>
-						' /*<label class="prop_label sm_thumb-lbl" for="'.$elementid_n.'_thumb">' . JText::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_PREVIEW') . '</label><br/>*/ .'
+						' /*<label class="prop_label sm_thumb-lbl" for="'.$elementid_n.'_thumb">' . \Joomla\CMS\Language\Text::_('PLG_FLEXICONTENT_FIELDS_SHAREDMEDIA_PREVIEW') . '</label><br/>*/ .'
 						<div class="sm_preview" id="'.$elementid_n.'_preview">
 							'.$embed_html.'
 						</div>
@@ -617,12 +619,12 @@ class plgFlexicontent_fieldsSharedmedia extends FCField
 				'</li>';
 			$field->html = '<ul class="fcfield-sortables" id="sortables_'.$field->id.'">' .$field->html. '</ul>';
 			if (!$add_position) $field->html .= '
-				<div class="input-append input-prepend fc-xpended-btns">
+				<div class="'.$btn_group_class.' fc-xpended-btns">
 					<button type="button" class="fcfield-addvalue ' . $font_icon_class . ' fccleared"
-						aria-label="' . JText::_( 'FLEXI_ADD_VALUE' ) . '" title="' . JText::_( 'FLEXI_ADD_VALUE' ) . '"
+						aria-label="' . \Joomla\CMS\Language\Text::_( 'FLEXI_ADD_VALUE' ) . '" title="' . \Joomla\CMS\Language\Text::_( 'FLEXI_ADD_VALUE' ) . '"
 						onclick="addField'.$field->id.'(jQuery(this).closest(\'.fc-xpended-btns\').get(0)); return false;"
 					>
-						' . JText::_( 'FLEXI_ADD_VALUE' ) . '
+						' . \Joomla\CMS\Language\Text::_( 'FLEXI_ADD_VALUE' ) . '
 					</button>
 				</div>';
 		}
@@ -662,7 +664,7 @@ class plgFlexicontent_fieldsSharedmedia extends FCField
 
 		if (count($skipped_vals))
 		{
-			$app->enqueueMessage( JText::sprintf('FLEXI_FIELD_DATE_EDIT_VALUES_SKIPPED', $field->label, implode(',',$skipped_vals)), 'notice' );
+			$app->enqueueMessage( \Joomla\CMS\Language\Text::sprintf('FLEXI_FIELD_DATE_EDIT_VALUES_SKIPPED', $field->label, implode(',',$skipped_vals)), 'notice' );
 		}
 	}
 
@@ -672,7 +674,7 @@ class plgFlexicontent_fieldsSharedmedia extends FCField
 	{
 		if ( !in_array($field->field_type, static::$field_types) ) return;
 
-		$field->label = JText::_($field->label);
+		$field->label = \Joomla\CMS\Language\Text::_($field->label);
 
 		// Set field and item objects
 		$this->setField($field);
@@ -690,8 +692,8 @@ class plgFlexicontent_fieldsSharedmedia extends FCField
 		{
 			$initialized = 1;
 
-			$app       = JFactory::getApplication();
-			$document  = JFactory::getDocument();
+			$app       = \Joomla\CMS\Factory::getApplication();
+			$document  = \Joomla\CMS\Factory::getDocument();
 			$option    = $app->input->getCmd('option', '');
 			$format    = $app->input->getCmd('format', 'html');
 			$realview  = $app->input->getCmd('view', '');
@@ -768,7 +770,7 @@ class plgFlexicontent_fieldsSharedmedia extends FCField
 			//$document->addScript('https://www.youtube.com/iframe_api');
 			//$document->addScript('https://cdn.plyr.io/3.6.2/plyr.js');
 			//$document->addStyleSheet('https://cdn.plyr.io/3.6.2/plyr.css');
-			$document->addScript(JUri::root(true) . '/plugins/flexicontent_fields/sharedmedia/js/view.js', array('version' => FLEXI_VHASH));
+			$document->addScript(\Joomla\CMS\Uri\Uri::root(true) . '/plugins/flexicontent_fields/sharedmedia/js/view.js', array('version' => FLEXI_VHASH));
 		}
 
 		if ($js)  $document->addScriptDeclaration($js);
@@ -854,7 +856,7 @@ class plgFlexicontent_fieldsSharedmedia extends FCField
 		if ( !is_array($post) && !strlen($post) && !$use_ingroup ) return;
 
 		// Get configuration
-		$app  = JFactory::getApplication();
+		$app  = \Joomla\CMS\Factory::getApplication();
 		$is_importcsv = $app->input->get('task', '', 'cmd') == 'importcsv';
 		$display_edit_size_form = $field->parameters->get('display_edit_size_form', 1);
 

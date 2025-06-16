@@ -19,7 +19,8 @@ foreach ($field->value as $i => $value)
       return;
     }
   }
-  if ( !strlen($value) && !$use_ingroup && $n) continue;  // If at least one added, skip empty if not in field group
+	$value = $value ?? '';
+  if (!strlen($value) && !$use_ingroup && $n) continue;  // If at least one added, skip empty if not inside a field group
 
   $fieldname_n = $field->field_type == 'maintext' ? $fieldname : $fieldname.'['.$n.']';
   $elementid_n = $field->field_type == 'maintext' ? $elementid : $elementid.'_'.$n;
@@ -32,14 +33,8 @@ foreach ($field->value as $i => $value)
   //display($name, $html, $width, $height, $col, $row, $buttons = true, $id = null, $asset = null, $author = null, $params = array())
   $mce_fieldname_sfx = $mce_fieldname ? '[' . $mce_fieldname . ']' : '';
   $txtarea = !$use_html ? '
-    <textarea class="txtarea ' . $classes . '"
-      id="'.$elementid_n.'" name="'.$fieldname_n.'"
-      cols="'.$cols.'" rows="'.$rows.'"
-      ' . ($maxlength ? 'maxlength="'.$maxlength.'"' : '') . '
-      ' . ($auto_value ? ' readonly="readonly" ' : '') . '
-      placeholder="'.htmlspecialchars( $placeholder, ENT_COMPAT, 'UTF-8' ).'"
-      >'
-      .htmlspecialchars( $value, ENT_COMPAT, 'UTF-8' ).
+    <textarea ' . $extra_attribs . ' id="'.$elementid_n.'" name="'.$fieldname_n.'" ' . ($auto_value ? ' readonly="readonly" ' : '') . '>'
+      . htmlspecialchars( $value, ENT_COMPAT, 'UTF-8' ) .
     '</textarea>
     ' : $editor->display(
       $fieldname_n . $mce_fieldname_sfx, htmlspecialchars( $value, ENT_COMPAT, 'UTF-8' ), $width, $height, $cols, $rows,
@@ -56,7 +51,7 @@ foreach ($field->value as $i => $value)
 
   $field->html[] = '
     ' . (!$add_ctrl_btns || $auto_value ? '' : '
-    <div class="'.$input_grp_class.' fc-xpended-btns">
+    <div class="'.$btn_group_class.' fc-xpended-btns">
       '.$move2.'
       '.$remove_button.'
       '.(!$add_position ? '' : $add_here).'

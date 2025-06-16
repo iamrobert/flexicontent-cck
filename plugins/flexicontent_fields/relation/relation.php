@@ -12,6 +12,7 @@
 defined( '_JEXEC' ) or die( 'Restricted access' );
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
 use Joomla\Utilities\ArrayHelper;
 use Joomla\String\StringHelper;
 JLoader::register('FCField', JPATH_ADMINISTRATOR . '/components/com_flexicontent/helpers/fcfield/parentfield.php');
@@ -20,6 +21,7 @@ class plgFlexicontent_fieldsRelation extends FCField
 {
 	static $field_types = array('relation', 'relation_reverse', 'autorelationfilters');
 	var $task_callable = array('getCategoryItems');  // Field's methods allowed to be called via AJAX
+	var $_custom_filters = null;
 
 	// ***
 	// *** CONSTRUCTOR
@@ -41,7 +43,7 @@ class plgFlexicontent_fieldsRelation extends FCField
 	{
 		if (!in_array($field->field_type, static::$field_types)) return;
 
-		$field->label = $field->parameters->get('label_form') ? JText::_($field->parameters->get('label_form')) : JText::_($field->label);
+		$field->label = $field->parameters->get('label_form') ? Text::_($field->parameters->get('label_form')) : Text::_($field->label);
 
 		// Set field and item objects
 		$this->setField($field);
@@ -66,14 +68,16 @@ class plgFlexicontent_fieldsRelation extends FCField
 
 		// Initialize framework objects and other variables
 		$document = Factory::getDocument();
-		$cparams  = JComponentHelper::getParams('com_flexicontent');
+		$cparams  = \Joomla\CMS\Component\ComponentHelper::getParams('com_flexicontent');
 		$app      = Factory::getApplication();
 		$db       = Factory::getDbo();
 		$user     = Factory::getUser();
 
 		$tooltip_class   = 'hasTooltip';
-		$add_on_class    = $cparams->get('bootstrap_ver', 2) == 2 ? 'add-on' : 'input-group-addon';
-		$input_grp_class = $cparams->get('bootstrap_ver', 2) == 2 ? 'input-append input-prepend' : 'input-group';
+		$add_on_class    = $cparams->get('bootstrap_ver', 2)==2  ?  'add-on' : 'input-group-addon';
+		$input_grp_class = $cparams->get('bootstrap_ver', 2)==2  ?  'input-append input-prepend' : 'input-group';
+		$btn_item_class  = $cparams->get('bootstrap_ver', 2)==2  ?  'btn' : 'btn';
+		$btn_group_class = $cparams->get('bootstrap_ver', 2)==2  ?  'btn-group' : 'btn-group';
 		$form_font_icons = $cparams->get('form_font_icons', 1);
 		$font_icon_class = $form_font_icons ? ' fcfont-icon' : '';
 		$font_icon_class .= FLEXI_J40GE ? ' icon icon- ' : '';
@@ -82,9 +86,14 @@ class plgFlexicontent_fieldsRelation extends FCField
 		/**
 		 * Number of values
 		 */
+		$multiple_per_value = (int) $field->parameters->get('multiple_per_value', 1);
 
 		$multiple     = $use_ingroup || (int) $field->parameters->get('allow_multiple', 0);
+
+		$min_values   = $use_ingroup ? 0 : (int) $field->parameters->get('min_values', 0);
 		$max_values   = $use_ingroup ? 0 : (int) $field->parameters->get('max_values', 0);
+		$exact_values = $use_ingroup ? 0 : (int) $field->parameters->get('exact_values', 0);
+
 		$required     = (int) $field->parameters->get('required', 0);
 		$add_position = (int) $field->parameters->get('add_position', 3);
 
@@ -111,12 +120,14 @@ class plgFlexicontent_fieldsRelation extends FCField
 
 		$size                    = (int) $field->parameters->get('size', 12);
 		$prepend_item_state      = $field->parameters->get('itemselector_prepend_item_state', 0);
+		$prepend_item_type       = $field->parameters->get('itemselector_prepend_item_type', 0);
+		$prepend_item_id         = $field->parameters->get('itemselector_prepend_item_id', 0);
 		$maxtitlechars           = $field->parameters->get('maxtitlechars', 40);
 		$selected_items_label    = $field->parameters->get('selected_items_label', 'FLEXI_RIFLD_SELECTED_ITEMS_LABEL');
 		$selected_items_sortable = $field->parameters->get('selected_items_sortable', 0);
 
 		// Create extra HTML TAG parameters for the form field
-		$classes = 'use_select2_lib fc_select2_no_check fc_select2_noselect'
+		$classes = 'use_select2_lib fc_select2_no_check fc_select2_noselect validate-sellimitations'
 			. $required_class
 			. ($selected_items_sortable ? ' fc_select2_sortable' : '');
 		$attribs = ''
@@ -161,7 +172,7 @@ class plgFlexicontent_fieldsRelation extends FCField
 		$allowed_cats = $this->getAllowedCategories($field);
 		if (empty($allowed_cats))
 		{
-			$field->html = JText::_('FLEXI_CANNOT_EDIT_FIELD') . ': <br/> ' . JText::_('FLEXI_NO_ACCESS_TO_USE_CONFIGURED_CATEGORIES');
+			$field->html = Text::_('FLEXI_CANNOT_EDIT_FIELD') . ': <br/> ' . Text::_('FLEXI_NO_ACCESS_TO_USE_CONFIGURED_CATEGORIES');
 
 			return;
 		}
@@ -202,7 +213,7 @@ class plgFlexicontent_fieldsRelation extends FCField
 			});
 			";
 
-			if ($max_values) JText::script("FLEXI_FIELD_MAX_ALLOWED_VALUES_REACHED", true);
+			if ($max_values) Text::script("FLEXI_FIELD_MAX_ALLOWED_VALUES_REACHED", true);
 			$js .= "
 			function addField" . $field->id . "(el, groupval_box, fieldval_box, params)
 			{
@@ -353,11 +364,11 @@ class plgFlexicontent_fieldsRelation extends FCField
 
 			$css .= '';
 
-			$remove_button = '<span class="' . $add_on_class . ' fcfield-delvalue ' . $font_icon_class . '" title="' . JText::_('FLEXI_REMOVE_VALUE') . '" onclick="deleteField' . $field->id . '(this);"></span>';
-			$move2         = '<span class="' . $add_on_class . ' fcfield-drag-handle ' . $font_icon_class . '" title="' . JText::_('FLEXI_CLICK_TO_DRAG') . '"></span>';
+			$remove_button = '<span class="' . $btn_item_class . ' fcfield-delvalue ' . $font_icon_class . '" title="' . Text::_('FLEXI_REMOVE_VALUE') . '" onclick="deleteField' . $field->id . '(this);"></span>';
+			$move2         = '<span class="' . $btn_item_class . ' fcfield-drag-handle ' . $font_icon_class . '" title="' . Text::_('FLEXI_CLICK_TO_DRAG') . '"></span>';
 			$add_here      = '';
-			$add_here      .= $add_position == 2 || $add_position == 3 ? '<span class="' . $add_on_class . ' fcfield-insertvalue fc_before ' . $font_icon_class . '" onclick="addField' . $field->id . '(null, jQuery(this).closest(\'ul\'), jQuery(this).closest(\'li\'), {insert_before: 1});" title="' . JText::_('FLEXI_ADD_BEFORE') . '"></span> ' : '';
-			$add_here      .= $add_position == 1 || $add_position == 3 ? '<span class="' . $add_on_class . ' fcfield-insertvalue fc_after ' . $font_icon_class . '"  onclick="addField' . $field->id . '(null, jQuery(this).closest(\'ul\'), jQuery(this).closest(\'li\'), {insert_before: 0});" title="' . JText::_('FLEXI_ADD_AFTER') . '"></span> ' : '';
+			$add_here      .= $add_position == 2 || $add_position == 3 ? '<span class="' . $btn_item_class . ' fcfield-insertvalue fc_before ' . $font_icon_class . '" onclick="addField' . $field->id . '(null, jQuery(this).closest(\'ul\'), jQuery(this).closest(\'li\'), {insert_before: 1});" title="' . Text::_('FLEXI_ADD_BEFORE') . '"></span> ' : '';
+			$add_here      .= $add_position == 1 || $add_position == 3 ? '<span class="' . $btn_item_class . ' fcfield-insertvalue fc_after ' . $font_icon_class . '"  onclick="addField' . $field->id . '(null, jQuery(this).closest(\'ul\'), jQuery(this).closest(\'li\'), {insert_before: 0});" title="' . Text::_('FLEXI_ADD_AFTER') . '"></span> ' : '';
 		}
 
 		// Field not multi-value
@@ -395,8 +406,9 @@ class plgFlexicontent_fieldsRelation extends FCField
 		{
 			if (count($_itemids_v))
 			{
-				$query = 'SELECT i.title, i.id, i.catid, i.state, i.alias'
+				$query = 'SELECT i.title, i.id, i.catid, i.state, i.alias, e.type_id '
 					. ' FROM #__content AS i '
+					. ' INNER JOIN #__flexicontent_items_ext AS e ON i.id = e.item_id'
 					. ' WHERE i.id IN (' . implode(',', $_itemids_v) . ')'
 					. ' ORDER BY FIELD(i.id, ' . implode(',', $_itemids_v) . ')';
 				$items_arr[$n] = $db->setQuery($query)->loadObjectList();
@@ -421,7 +433,7 @@ class plgFlexicontent_fieldsRelation extends FCField
 			$allowedtree,
 			'__ELEMENTID___cat_selector',
 			($cat_selected ? $cat_selected->id : ''),
-			$top_option = JText::_('FLEXI_SELECT'),  // Important: Add a first option "Select", otherwise single entry in select cannot initiate onchange event
+			$top_option = Text::_('FLEXI_SELECT'),  // Important: Add a first option "Select", otherwise single entry in select cannot initiate onchange event
 			$cat_selector_attribs,
 			$check_published = true,
 			$check_perms = true,
@@ -430,6 +442,13 @@ class plgFlexicontent_fieldsRelation extends FCField
 			$skip_subtrees = array(),
 			$disable_subtrees = array()
 		);
+
+		$types_arr = flexicontent_html::getTypesList();
+		$type_lbls = [];
+		foreach ($types_arr as $type)
+		{
+			$type_lbls[$type->id] = Text::_(isset($types_arr[$type->id]) ? $types_arr[$type->id]->name : '[Other]');
+		}
 
 
 		/**
@@ -451,6 +470,14 @@ class plgFlexicontent_fieldsRelation extends FCField
 					$statestr = $statestr ? '[' . $statestr .']' : '';
 					$itemtitle = $statestr . $itemtitle . " ";
 				}
+				if ($prepend_item_type)
+				{
+					$itemtitle = '[' .$type_lbls[$itemdata->type_id] . '] ' . $itemtitle;
+				}
+				if ($prepend_item_id)
+				{
+					$itemtitle = '[' .$itemdata->id . '] ' . $itemtitle;
+				}
 				$itemid                   = $itemdata->id;
 				$items_options_select[$n] .= '<option selected="selected" value="' . htmlspecialchars($related_items_sets[$n][$itemid]->value, ENT_COMPAT, 'UTF-8') . '" >' . $itemtitle . '</option>' . "\n";
 			}
@@ -467,14 +494,24 @@ class plgFlexicontent_fieldsRelation extends FCField
 			$common_css_js_added = true;
 			flexicontent_html::loadFramework('select2');
 
-			JText::script('FLEXI_RIFLD_ERROR', false);
-			JText::script('FLEXI_RIFLD_NO_ITEMS', false);
-			JText::script('FLEXI_RIFLD_ADD_ITEM', false);
-			$document->addScript(JUri::root(true) . '/plugins/flexicontent_fields/relation/js/form.js', array('version' => FLEXI_VHASH));
+			Text::script('FLEXI_RIFLD_ERROR', false);
+			Text::script('FLEXI_RIFLD_NO_ITEMS', false);
+			Text::script('FLEXI_RIFLD_ADD_ITEM', false);
+			$document->addScript(\Joomla\CMS\Uri\Uri::root(true) . '/plugins/flexicontent_fields/relation/js/form.js', array('version' => FLEXI_VHASH));
 		}
 
 		$per_val_js = '';
 
+		//array(1 => '', 0 => 'U', -1 => 'A', -3 => 'PE', -4 => 'OQ', -5 => 'IP');
+		$long_names = array(
+			'(empty)' => Text::_('FLEXI_PUBLISHED', true),
+			'[U]' => Text::_('FLEXI_UNPUBLISHED', true),
+			'[IP]' => Text::_('FLEXI_IN_PROGRESS', true),
+			'[PE]' => Text::_('FLEXI_PENDING', true),
+			'[OQ]' => Text::_('FLEXI_TO_WRITE', true),
+			'[A]' => Text::_('FLEXI_ARCHIVED', true),
+			'[T]' => Text::_('FLEXI_TRASHED', true)
+		);
 
 		/**
 		 * Create field's HTML display for item form
@@ -507,16 +544,6 @@ class plgFlexicontent_fieldsRelation extends FCField
 				$field->html[-1] = '';
 				if ($prepend_item_state)
 				{
-					//array(1 => '', 0 => 'U', -1 => 'A', -3 => 'PE', -4 => 'OQ', -5 => 'IP');
-					$long_names = array(
-						'(empty)' => JText::_('FLEXI_PUBLISHED', true),
-						'[U]' => JText::_('FLEXI_UNPUBLISHED', true),
-						'[IP]' => JText::_('FLEXI_IN_PROGRESS', true),
-						'[PE]' => JText::_('FLEXI_PENDING', true),
-						'[OQ]' => JText::_('FLEXI_TO_WRITE', true),
-						'[A]' => JText::_('FLEXI_ARCHIVED', true),
-						'[T]' => JText::_('FLEXI_TRASHED', true)
-					);
 					$states_lengend = [];
 					foreach ($long_names as $i => $v) $states_lengend[] = '<div><span class="badge long-state-name">' . $v . '</span>'
 						. '<small class="short-state-name">'. $i . '</small></div>';
@@ -525,6 +552,16 @@ class plgFlexicontent_fieldsRelation extends FCField
 				}
 				$field->html[-1] .= implode(' - ', $custom_filters_html);
 			}
+
+			if ($exact_values)
+				$attribs .= ' data-exact_values="'.$exact_values.'" ';
+			else
+			{
+				if ($max_values)    $attribs .= ' data-max_values="'.$max_values.'" ';
+				if ($min_values)    $attribs .= ' data-min_values="'.$min_values.'" ';
+			}
+
+			$load_method = (int) $field->parameters->get('load_method', 3);
 			$field->html[]   = '
 				' . ($use_ingroup ? '<input type="hidden" class="fcfield_value_holder" name="' . $valueholder_nm . '[' . $n . ']" id="' . $valueholder_id . '_' . $n . '" value="-">' : '') . '
 				' . (!$add_ctrl_btns ? '' : '
@@ -537,33 +574,38 @@ class plgFlexicontent_fieldsRelation extends FCField
 				' . ($use_ingroup ? '' : '<div class="fcclear"></div>') . '
 
 				<div class="fcfield-relation-value_box" data-elementbase="' . $elementid . '" data-elementid="' . $elementid_n . '" data-item_id="' . $item->id . '" data-field_id="' . $field->id . '" data-item_type="' . $item->type_id . '"  data-item_lang="' . $item->language . '">
+				
+					'. ($load_method === 4 ? '<div class="alert alert-info">Please select a filter to populate the selection list</div>' : '') .'
 
 					<div class="' . $input_grp_class . ' fc-xpended-row fcfield-relation-cat_selector_box" ' . $cat_selecor_box_style . '>
-						<label class="' . $add_on_class . ' fc-lbl cat_selector-lbl" id="' . $elementid_n . '_cat_selector-lbl" for="' . $elementid_n . '_cat_selector">' . JText::_('FLEXI_CATEGORY') . '</label>
+						<label class="' . $add_on_class . ' fc-lbl cat_selector-lbl" id="' . $elementid_n . '_cat_selector-lbl" for="' . $elementid_n . '_cat_selector">' . Text::_('FLEXI_CATEGORY') . '</label>
 						' . str_replace('__ELEMENTID__', $elementid_n, $cat_selector) . '
 					</div>
 
 					<div class="' . $input_grp_class . ' fc-xpended-row fcfield-relation-item_selector_box">
-						<label class="' . $add_on_class . ' fc-lbl item_selector-lbl" id="' . $elementid_n . '_item_selector-lbl" for="' . $elementid_n . '_item_selector">' . JText::_('FLEXI_RIFLD_ITEMS') . '</label>
+						<label class="' . $add_on_class . ' fc-lbl item_selector-lbl" id="' . $elementid_n . '_item_selector-lbl" for="' . $elementid_n . '_item_selector">' . Text::_('FLEXI_RIFLD_ITEMS') . '</label>
 						<select id="' . $elementid_n . '_item_selector" name="' . $elementid_n . '_item_selector" class="use_select2_lib fcfield-relation-item_selector" onchange="return fcfield_relation.add_related(this);">
 							<option value="">-</option>
 						</select>
 					</div>
-
+					
 					<div class="' . $input_grp_class . ' fc-xpended-row fcfield-relation-selected_items_box">
-						<label class="' . $add_on_class . ' fc-lbl selected_items-lbl" id="' . $elementid_n . '-lbl" for="' . $elementid_n . '">' . JText::_($selected_items_label) . '</label>
-						<select id="' . $elementid_n . '" name="' . $fieldname_n . '" multiple="multiple" class="' . $classes . ' fcfield-relation-selected_items" ' . $attribs . ' onchange="return fcfield_relation.selected_items_modified(this);">
+						<label class="' . $add_on_class . ' fc-lbl selected_items-lbl" id="' . $elementid_n . '-lbl" for="' . $elementid_n . '">' . Text::_($selected_items_label) . '</label>
+						<select id="' . $elementid_n . '" name="' . $fieldname_n . '" ' . ($multiple_per_value ? 'multiple="multiple" ' : '')
+				. ' class="' . $classes . ' fcfield-relation-selected_items" ' . $attribs
+				. ' data-max-related="' . $max_values . '" '
+				. ' onchange="return fcfield_relation.selected_items_modified(this);">
 							' . $items_options_select[$n] . '
 						</select>
 						' . ($selected_items_sortable ? '
-						<span class="add-on"><span class="icon-info hasTooltip" title="' . JText::_('FLEXI_FIELD_ALLOW_SORTABLE_INFO') . '"></span>' . JText::_('FLEXI_ORDER') . '</span>' : '') . '
+						<span class="add-on"><span class="icon-info hasTooltip" title="' . Text::_('FLEXI_FIELD_ALLOW_SORTABLE_INFO') . '"></span>' . Text::_('FLEXI_ORDER') . '</span>' : '') . '
 					</div>
 
 				</div>
 				';
 
 			// If using single category then trigger loading the items selector
-			$per_val_js .= count($allowedtree) === 1 ? "
+			$per_val_js .= count($allowedtree) === 1 && $load_method === 3 ? "
 					jQuery('#" . $elementid_n . "_cat_selector').trigger('change');
 				" : '';
 		}
@@ -586,7 +628,7 @@ class plgFlexicontent_fieldsRelation extends FCField
 			var maxValues" . $field->id . " = " . $max_values . ";
 		";
 		$js .= "
-			var sessionToken" . $field->id . " = '" . JSession::getFormToken() . "';
+			var sessionToken" . $field->id . " = '" . \Joomla\CMS\Session\Session::getFormToken() . "';
 		";
 		if ($js) $document->addScriptDeclaration($js);
 		if ($css) $document->addStyleDeclaration($css);
@@ -604,9 +646,9 @@ class plgFlexicontent_fieldsRelation extends FCField
 				'</li>';
 			$field->html = '<ul class="fcfield-sortables" id="sortables_' . $field->id . '">' . $field->html . '</ul>';
 			if (!$add_position) $field->html .= '
-				<div class="input-append input-prepend fc-xpended-btns">
-					<span class="fcfield-addvalue ' . $font_icon_class . ' fccleared" onclick="addField' . $field->id . '(jQuery(this).closest(\'.fc-xpended-btns\').get(0));" title="' . JText::_('FLEXI_ADD_TO_BOTTOM') . '">
-						' . JText::_('FLEXI_ADD_VALUE') . '
+				<div class="'.$btn_group_class.' fc-xpended-btns">
+					<span class="fcfield-addvalue ' . $font_icon_class . ' ' . $btn_item_class . '" onclick="addField'.$field->id.'(jQuery(this).closest(\'.fc-xpended-btns\').get(0));" title="'.Text::_('FLEXI_ADD_TO_BOTTOM') . '">
+						' . Text::_('FLEXI_ADD_VALUE') . '
 					</span>
 				</div>';
 		}
@@ -626,7 +668,7 @@ class plgFlexicontent_fieldsRelation extends FCField
 	{
 		if (!in_array($field->field_type, static::$field_types)) return;
 
-		$field->label = JText::_($field->label);
+		$field->label = Text::_($field->label);
 
 		// Set field and item objects
 		$this->setField($field);
@@ -690,7 +732,7 @@ class plgFlexicontent_fieldsRelation extends FCField
 		static $has_itemslist_access = array();
 		if (!isset($has_itemslist_access[$field->id]))
 		{
-			$aid_arr                          = JAccess::getAuthorisedViewLevels(Factory::getUser()->id);
+			$aid_arr                          = \Joomla\CMS\Access\Access::getAuthorisedViewLevels(Factory::getUser()->id);
 			$acclvl                           = (int) $field->parameters->get('itemslist_acclvl', 1);
 			$has_itemslist_access[$field->id] = in_array($acclvl, $aid_arr);
 		}
@@ -698,7 +740,7 @@ class plgFlexicontent_fieldsRelation extends FCField
 		static $has_auto_relate_access = array();
 		if (!isset($has_auto_relate_access[$field->id]))
 		{
-			$aid_arr                            = JAccess::getAuthorisedViewLevels(Factory::getUser()->id);
+			$aid_arr                            = \Joomla\CMS\Access\Access::getAuthorisedViewLevels(Factory::getUser()->id);
 			$acclvl                             = (int) $field->parameters->get('auto_relate_acclvl', 1);
 			$has_auto_relate_access[$field->id] = in_array($acclvl, $aid_arr);
 		}
@@ -763,7 +805,7 @@ class plgFlexicontent_fieldsRelation extends FCField
 			// Check that relation field to be reversed was configured
 			if (!$relation_field_id)
 			{
-				$field->{$prop} = '<div class="alert alert-warning">' . $field->label . ': ' . JText::_('FLEXI_RIFLD_NO_FIELD_SELECTED_TO_BE_REVERSED') . '</div>';
+				$field->{$prop} = '<div class="alert alert-warning">' . $field->label . ': ' . Text::_('FLEXI_RIFLD_NO_FIELD_SELECTED_TO_BE_REVERSED') . '</div>';
 
 				return;
 			}
@@ -818,6 +860,9 @@ class plgFlexicontent_fieldsRelation extends FCField
 
 		// Compatibility with legacy layouts
 		$related_items = count($related_items_sets) ? reset($related_items_sets) : null;
+
+		// Expose this information to the layout
+		$field->related_items_sets = $related_items_sets;
 
 
 		/**
@@ -989,7 +1034,7 @@ class plgFlexicontent_fieldsRelation extends FCField
 
 			if (!$relation_field_id)
 			{
-				echo '<div class="alert alert-warning">' . $filter->label . ': ' . JText::_('FLEXI_RIFLD_NO_FIELD_SELECTED_TO_BE_REVERSED') . '</div>';
+				echo '<div class="alert alert-warning">' . $filter->label . ': ' . Text::_('FLEXI_RIFLD_NO_FIELD_SELECTED_TO_BE_REVERSED') . '</div>';
 
 				return null;
 			}
@@ -1217,7 +1262,7 @@ class plgFlexicontent_fieldsRelation extends FCField
 
 	public function getCategoryItems()
 	{
-		JSession::checkToken('request') or jexit(JText::_('JINVALID_TOKEN'));
+		\Joomla\CMS\Session\Session::checkToken('request') or jexit(Text::_('JINVALID_TOKEN'));
 
 		// Get API objects / data
 		$app  = Factory::getApplication();
@@ -1226,7 +1271,7 @@ class plgFlexicontent_fieldsRelation extends FCField
 		$view = $app->input->get('view', '', 'CMD');
 
 		// Get Access Levels of user
-		$uacc = array_flip(JAccess::getAuthorisedViewLevels($user->id));
+		$uacc = array_flip(\Joomla\CMS\Access\Access::getAuthorisedViewLevels($user->id));
 
 
 		// Get request variables
@@ -1263,7 +1308,7 @@ class plgFlexicontent_fieldsRelation extends FCField
 		 * Load and check field
 		 */
 
-		$field = JTable::getInstance($_type = 'flexicontent_fields', $_prefix = '', $_config = array());
+		$field = \Joomla\CMS\Table\Table::getInstance($_type = 'flexicontent_fields', $_prefix = '', $_config = array());
 
 		if (!$field->load($field_id))
 		{
@@ -1295,7 +1340,7 @@ class plgFlexicontent_fieldsRelation extends FCField
 		 * Load and check item
 		 */
 
-		$item = JTable::getInstance($_type = 'flexicontent_items', $_prefix = '', $_config = array());
+		$item = \Joomla\CMS\Table\Table::getInstance($_type = 'flexicontent_items', $_prefix = '', $_config = array());
 
 		if (!$item_id)
 		{
@@ -1344,6 +1389,14 @@ class plgFlexicontent_fieldsRelation extends FCField
 		if ($customfilts)
 		{
 			parse_str($customfilts,$values);
+		}
+
+		//load_method parameters
+		$load_method = (int) $field->parameters->get('load_method', 3);
+		if ($load_method === 4 && empty($filter_ids))
+		{
+			$response['error'] = 'Load_method is set to "Load only if 1+ filters active" but no filters are configured';
+			jexit(json_encode($response));
 		}
 
 		if (!empty($filter_ids))
@@ -1495,7 +1548,7 @@ class plgFlexicontent_fieldsRelation extends FCField
 		if (empty($allowed_cats))
 		{
 			jexit(json_encode(array(
-				'error' => JText::_('FLEXI_CANNOT_EDIT_FIELD') . ': <br/> ' . JText::_('FLEXI_NO_ACCESS_TO_USE_CONFIGURED_CATEGORIES')
+				'error' => Text::_('FLEXI_CANNOT_EDIT_FIELD') . ': <br/> ' . Text::_('FLEXI_NO_ACCESS_TO_USE_CONFIGURED_CATEGORIES')
 			)));
 		}
 
@@ -1506,7 +1559,7 @@ class plgFlexicontent_fieldsRelation extends FCField
 		if (empty($catids))
 		{
 			jexit(json_encode(array(
-				'error' => JText::_('FLEXI_RIFLD_CATEGORY_NOT_ALLOWED')
+				'error' => Text::_('FLEXI_RIFLD_CATEGORY_NOT_ALLOWED')
 			)));
 		}
 
@@ -1645,9 +1698,12 @@ class plgFlexicontent_fieldsRelation extends FCField
 
 		// Some configuration
 		$prepend_item_state = (int) $field->parameters->get('itemselector_prepend_item_state', 0);
+		$prepend_item_type  = $app->input->get('prepend_item_type', 0, 'int');
+		$prepend_item_id    = $app->input->get('prepend_item_id', 0, 'int');
+
 		$append_field_ids   = $field->parameters->get('itemselector_append_fields', []);
 		$append_field_ids   = FLEXIUtilities::paramToArray($append_field_ids);
-		$state_shortname    = array(1 => '', 0 => 'U', -1 => 'A', -3 => 'PE', -4 => 'OQ', -5 => 'IP');
+		$state_shortname    = array(1 => '', 0 => 'U', -1 => 'A', 2 => 'A', -3 => 'PE', -4 => 'OQ', -5 => 'IP', -22 => 'T');
 
 
 		$append_vals   = [];
@@ -1657,7 +1713,7 @@ class plgFlexicontent_fieldsRelation extends FCField
 			$item_ids = array_keys($items_arr);
 
 			// Field's has_access flag
-			$aid_arr  = JAccess::getAuthorisedViewLevels($user->id);
+			$aid_arr  = \Joomla\CMS\Access\Access::getAuthorisedViewLevels($user->id);
 			$aid_list = implode(",", $aid_arr);
 
 			// Column of has_access flag
@@ -1703,11 +1759,39 @@ class plgFlexicontent_fieldsRelation extends FCField
 			}
 		}
 
+		// Label for current item state
+		$state_labels = array(
+			1 => 'FLEXI_PUBLISHED',
+			0 => 'FLEXI_UNPUBLISHED',
+			-5 => 'FLEXI_IN_PROGRESS',
+			-3 => 'FLEXI_PENDING',
+			-4 => 'FLEXI_TO_WRITE',
+			2 => 'FLEXI_ARCHIVED',
+			-2 => 'FLEXI_TRASHED',
+		);
+
+		$types_arr = flexicontent_html::getTypesList();
+		$type_lbls = [];
+		foreach ($types_arr as $type)
+		{
+			$type_lbls[$type->id] = Text::_(isset($types_arr[$type->id]) ? $types_arr[$type->id]->name : '[Other]');
+		}
+
+
 		foreach ($items_arr as $item_id => $itemdata)
 		{
 			$itemtitle = StringHelper::strlen($itemdata->title) > $maxtitlechars
 				? StringHelper::substr($itemdata->title, 0, $maxtitlechars) . '...'
 				: $itemdata->title;
+
+			$itemdata->state = (int) $itemdata->state;
+			$state_lbl = strtoupper(isset($state_labels[$itemdata->state])
+				? Text::_($state_labels[$itemdata->state])
+				: Text::_('FLEXI_UNKNOWN'));
+
+			if (!in_array($itemdata->state, [1, -5])) $itemtitle .= ' [' . $state_lbl . ']';
+			//if (!in_array($itemdata->state, [1, -5])) $itemtitle .= ' [' . ($state_shortname[$itemdata->state] ?? 'U') . ']';
+
 			$append_field_text = [];
 			foreach ($append_fields as $fld_id => $append_field)
 			{
@@ -1729,6 +1813,14 @@ class plgFlexicontent_fieldsRelation extends FCField
 				$statestr  = $statestr ? '[' . $statestr . ']' : '';
 				$itemtitle = $statestr . $itemtitle . " ";
 			}
+			if ($prepend_item_type)
+			{
+				$itemtitle = '[' .$type_lbls[$itemdata->type_id] . '] ' . $itemtitle;
+			}
+			if ($prepend_item_id)
+			{
+				$itemtitle = '[' .$itemdata->id . '] ' . $itemtitle;
+			}
 
 			$itemid      = $itemdata->id;
 
@@ -1747,7 +1839,7 @@ class plgFlexicontent_fieldsRelation extends FCField
 
 	public function getCategoryItems_v1()
 	{
-		JSession::checkToken('request') or jexit(JText::_('JINVALID_TOKEN'));
+		\Joomla\CMS\Session\Session::checkToken('request') or jexit(Text::_('JINVALID_TOKEN'));
 
 		// Get API objects / data
 		$app  = Factory::getApplication();
@@ -1755,7 +1847,7 @@ class plgFlexicontent_fieldsRelation extends FCField
 		$db   = Factory::getDbo();
 
 		// Get Access Levels of user
-		$uacc = array_flip(JAccess::getAuthorisedViewLevels($user->id));
+		$uacc = array_flip(\Joomla\CMS\Access\Access::getAuthorisedViewLevels($user->id));
 
 
 		// Get request variables
@@ -1792,7 +1884,7 @@ class plgFlexicontent_fieldsRelation extends FCField
 		 * Load and check field
 		 */
 
-		$field = JTable::getInstance($_type = 'flexicontent_fields', $_prefix = '', $_config = array());
+		$field = \Joomla\CMS\Table\Table::getInstance($_type = 'flexicontent_fields', $_prefix = '', $_config = array());
 
 		if (!$field->load($field_id))
 		{
@@ -1824,7 +1916,7 @@ class plgFlexicontent_fieldsRelation extends FCField
 		 * Load and check item
 		 */
 
-		$item = JTable::getInstance($_type = 'flexicontent_items', $_prefix = '', $_config = array());
+		$item = \Joomla\CMS\Table\Table::getInstance($_type = 'flexicontent_items', $_prefix = '', $_config = array());
 
 		if (!$item_id)
 		{
@@ -1914,7 +2006,7 @@ class plgFlexicontent_fieldsRelation extends FCField
 		if (empty($allowed_cats))
 		{
 			jexit(json_encode(array(
-				'error' => JText::_('FLEXI_CANNOT_EDIT_FIELD') . ': <br/> ' . JText::_('FLEXI_NO_ACCESS_TO_USE_CONFIGURED_CATEGORIES')
+				'error' => Text::_('FLEXI_CANNOT_EDIT_FIELD') . ': <br/> ' . Text::_('FLEXI_NO_ACCESS_TO_USE_CONFIGURED_CATEGORIES')
 			)));
 		}
 
@@ -1925,7 +2017,7 @@ class plgFlexicontent_fieldsRelation extends FCField
 		if (empty($catids))
 		{
 			jexit(json_encode(array(
-				'error' => JText::_('FLEXI_RIFLD_CATEGORY_NOT_ALLOWED')
+				'error' => Text::_('FLEXI_RIFLD_CATEGORY_NOT_ALLOWED')
 			)));
 		}
 
@@ -2285,7 +2377,7 @@ class plgFlexicontent_fieldsRelation extends FCField
 		}
 
 		// Field's has_access flag
-		$aid_arr  = JAccess::getAuthorisedViewLevels($user->id);
+		$aid_arr  = \Joomla\CMS\Access\Access::getAuthorisedViewLevels($user->id);
 		$aid_list = implode(",", $aid_arr);
 
 		// Column of has_access flag
@@ -2427,13 +2519,13 @@ class plgFlexicontent_fieldsRelation extends FCField
 
 				if ($sql_mode && $item_pros > 0)
 				{
-					$filter->html = sprintf(JText::_('FLEXI_FIELD_ITEM_SPECIFIC_AS_FILTERABLE'), $filter->label);
+					$filter->html = sprintf(Text::_('FLEXI_FIELD_ITEM_SPECIFIC_AS_FILTERABLE'), $filter->label);
 				}
 				else
 				{
 					$filter->html = $sql_mode
-						? JText::_('FLEXI_FIELD_INVALID_QUERY')
-						: JText::_('FLEXI_FIELD_INVALID_ELEMENTS');
+						? Text::_('FLEXI_FIELD_INVALID_QUERY')
+						: Text::_('FLEXI_FIELD_INVALID_ELEMENTS');
 				}
 				continue;
 			}

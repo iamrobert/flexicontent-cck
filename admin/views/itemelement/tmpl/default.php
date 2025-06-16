@@ -52,11 +52,11 @@ $btn_class = 'btn';
 $ico_class = 'fc-man-icon-s';
 $out_class = FLEXI_J40GE ? 'btn btn-outline-dark' : 'btn';
 
-$edit_cat_title  = JText::_('FLEXI_EDIT_CATEGORY', true);
-$rem_filt_txt    = JText::_('FLEXI_REMOVE_FILTER', true);
+$edit_cat_title  = \Joomla\CMS\Language\Text::_('FLEXI_EDIT_CATEGORY', true);
+$rem_filt_txt    = \Joomla\CMS\Language\Text::_('FLEXI_REMOVE_FILTER', true);
 $rem_filt_tip    = ' class="' . $this->tooltip_class . ' filterdel" title="'.flexicontent_html::getToolTip('FLEXI_ACTIVE_FILTER', 'FLEXI_CLICK_TO_REMOVE_THIS_FILTER', 1, 1).'" ';
-$_NEVER_         = JText::_('FLEXI_NEVER');
-$_NULL_DATE_     = JFactory::getDbo()->getNullDate();
+$_NEVER_         = \Joomla\CMS\Language\Text::_('FLEXI_NEVER');
+$_NULL_DATE_     = \Joomla\CMS\Factory::getDbo()->getNullDate();
 
 
 /**
@@ -69,7 +69,7 @@ $disable_columns = $this->tparams->get('iman_skip_cols', array('single_type'));
 $disable_columns = array_flip($disable_columns);
 
 // ID of specific type if one type is selected otherwise ZERO
-$single_type_id = $single_type ? reset($filter_type) : 0;
+$single_type_id = $single_type && is_array($filter_type) ? reset($filter_type) : $single_type;
 
 $this->data_tbl_id = 'adminListTableFC' . $this->view . '_type_' . $single_type_id;
 flexicontent_html::jscode_to_showhide_table(
@@ -187,13 +187,15 @@ $js .= (!$isXtdBtn ? "" : "
 			hreflang = ' hreflang=\"' + lang + '\"';
 		}
 
-		tag = '<a' + hreflang + ' href=\"' + link + '\">' + title + '</a>';
-
 		/** Use the API, if editor supports it **/
-		if (window.parent.Joomla && window.parent.Joomla.editors && window.parent.Joomla.editors.instances && window.parent.Joomla.editors.instances.hasOwnProperty(editor)) {
-			window.parent.Joomla.editors.instances[editor].replaceSelection(tag)
-		} else {
-			window.parent.jInsertEditorText(tag, editor);
+		if (!!window.parent.Joomla.editors.instances[editor]) {
+			let selectedText = window.parent.Joomla.editors.instances[editor].getSelection().trim() || title.trim();
+			let insertedHtml = ' <a' + hreflang + ' href=\"' + link + '\">' + selectedText + '</a> ';			
+			window.parent.Joomla.editors.instances[editor].replaceSelection(insertedHtml)
+		}
+		else {
+			insertedHtml = ' <a' + hreflang + ' href=\"' + link + '\">' + title.trim() + '</a> ';
+			window.parent.jInsertEditorText(insertedHtml, editor);
 		}
 
 		if (window.parent.Joomla.Modal) window.parent.Joomla.Modal.getCurrent().close();

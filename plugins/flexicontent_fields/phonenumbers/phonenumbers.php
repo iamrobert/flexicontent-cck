@@ -37,7 +37,7 @@ class plgFlexicontent_fieldsPhonenumbers extends FCField
 	{
 		if ( !in_array($field->field_type, static::$field_types) ) return;
 
-		$field->label = $field->parameters->get('label_form') ? JText::_($field->parameters->get('label_form')) : JText::_($field->label);
+		$field->label = $field->parameters->get('label_form') ? \Joomla\CMS\Language\Text::_($field->parameters->get('label_form')) : \Joomla\CMS\Language\Text::_($field->label);
 
 		// Set field and item objects
 		$this->setField($field);
@@ -49,12 +49,14 @@ class plgFlexicontent_fieldsPhonenumbers extends FCField
 		if ($use_ingroup && empty($field->ingroup)) return;
 
 		// Initialize framework objects and other variables
-		$document = JFactory::getDocument();
-		$cparams  = JComponentHelper::getParams( 'com_flexicontent' );
+		$document = \Joomla\CMS\Factory::getDocument();
+		$cparams  = \Joomla\CMS\Component\ComponentHelper::getParams( 'com_flexicontent' );
 
 		$tooltip_class = 'hasTooltip';
 		$add_on_class    = $cparams->get('bootstrap_ver', 2)==2  ?  'add-on' : 'input-group-addon';
 		$input_grp_class = $cparams->get('bootstrap_ver', 2)==2  ?  'input-append input-prepend' : 'input-group';
+		$btn_item_class  = $cparams->get('bootstrap_ver', 2)==2  ?  'btn' : 'btn';
+		$btn_group_class = $cparams->get('bootstrap_ver', 2)==2  ?  'btn-group' : 'btn-group';
 		$form_font_icons = $cparams->get('form_font_icons', 1);
 		$font_icon_class = $form_font_icons ? ' fcfont-icon' : '';
 		$font_icon_class .= FLEXI_J40GE ? ' icon icon- ' : '';
@@ -134,14 +136,14 @@ class plgFlexicontent_fieldsPhonenumbers extends FCField
 		$_list = count($ac_country_allowed_list) ? array_flip($ac_country_allowed_list) : array();
 
 		$allowed_country_names = array();
-		$allowed_countries     = array('' => JText::_('FLEXI_SELECT'));
+		$allowed_countries     = array('' => \Joomla\CMS\Language\Text::_('FLEXI_SELECT'));
 
 		foreach($_list as $country_code => $k)
 		{
 			$country_op          = new stdClass;
 			$allowed_countries[] = $country_op;
 			$country_op->value   = $country_code;
-			$country_op->text    = JText::_('PLG_FC_PHONENUMBERS_CC_' . $country_code);
+			$country_op->text    = \Joomla\CMS\Language\Text::_('PLG_FC_PHONENUMBERS_CC_' . $country_code);
 
 			if (count($ac_country_allowed_list))
 			{
@@ -195,7 +197,7 @@ class plgFlexicontent_fieldsPhonenumbers extends FCField
 			});
 			";
 
-			if ($max_values) JText::script("FLEXI_FIELD_MAX_ALLOWED_VALUES_REACHED", true);
+			if ($max_values) \Joomla\CMS\Language\Text::script("FLEXI_FIELD_MAX_ALLOWED_VALUES_REACHED", true);
 			$js .= "
 			function addField".$field->id."(el, groupval_box, fieldval_box, params)
 			{
@@ -314,18 +316,18 @@ class plgFlexicontent_fieldsPhonenumbers extends FCField
 
 			$css .= '';
 
-			$remove_button = '<span class="' . $add_on_class . ' fcfield-delvalue ' . $font_icon_class . '" title="'.JText::_( 'FLEXI_REMOVE_VALUE' ).'" onclick="deleteField'.$field->id.'(this);"></span>';
-			$move2 = '<span class="' . $add_on_class . ' fcfield-drag-handle ' . $font_icon_class . '" title="'.JText::_( 'FLEXI_CLICK_TO_DRAG' ).'"></span>';
+			$remove_button = '<span class="' . $btn_item_class . ' fcfield-delvalue ' . $font_icon_class . '" title="'.\Joomla\CMS\Language\Text::_( 'FLEXI_REMOVE_VALUE' ).'" onclick="deleteField'.$field->id.'(this);"></span>';
+			$move2         = '<span class="' . $btn_item_class . ' fcfield-drag-handle ' . $font_icon_class . '" title="'.\Joomla\CMS\Language\Text::_( 'FLEXI_CLICK_TO_DRAG' ).'"></span>';
 			$add_here = '';
-			$add_here .= $add_position==2 || $add_position==3 ? '<span class="' . $add_on_class . ' fcfield-insertvalue fc_before ' . $font_icon_class . '" onclick="addField'.$field->id.'(null, jQuery(this).closest(\'ul\'), jQuery(this).closest(\'li\'), {insert_before: 1});" title="'.JText::_( 'FLEXI_ADD_BEFORE' ).'"></span> ' : '';
-			$add_here .= $add_position==1 || $add_position==3 ? '<span class="' . $add_on_class . ' fcfield-insertvalue fc_after ' . $font_icon_class . '"  onclick="addField'.$field->id.'(null, jQuery(this).closest(\'ul\'), jQuery(this).closest(\'li\'), {insert_before: 0});" title="'.JText::_( 'FLEXI_ADD_AFTER' ).'"></span> ' : '';
+			$add_here .= $add_position==2 || $add_position==3 ? '<span class="' . $btn_item_class . ' fcfield-insertvalue fc_before ' . $font_icon_class . '" onclick="addField'.$field->id.'(null, jQuery(this).closest(\'ul\'), jQuery(this).closest(\'li\'), {insert_before: 1});" title="'.\Joomla\CMS\Language\Text::_( 'FLEXI_ADD_BEFORE' ).'"></span> ' : '';
+			$add_here .= $add_position==1 || $add_position==3 ? '<span class="' . $btn_item_class . ' fcfield-insertvalue fc_after ' . $font_icon_class . '"  onclick="addField'.$field->id.'(null, jQuery(this).closest(\'ul\'), jQuery(this).closest(\'li\'), {insert_before: 0});" title="'.\Joomla\CMS\Language\Text::_( 'FLEXI_ADD_AFTER' ).'"></span> ' : '';
 		}
 
 		// Field not multi-value
 		else
 		{
 			$remove_button = '';
-			$move2 = '';
+			$move2         = '';
 			$add_here = '';
 			$js .= '';
 			$css .= '';
@@ -371,40 +373,40 @@ class plgFlexicontent_fieldsPhonenumbers extends FCField
 			$elementid_n = $elementid.'_'.$n;
 
 			$phonelabel = (!$use_label ? '' : '
-				<tr><td class="key">' .JText::_( 'PLG_FLEXICONTENT_FIELDS_PHONENUMBERS_PHONE_LABEL' ). '</td><td>
+				<tr><td class="key">' .\Joomla\CMS\Language\Text::_( 'PLG_FLEXICONTENT_FIELDS_PHONENUMBERS_PHONE_LABEL' ). '</td><td>
 					<input class="fcfield_textval phonelabel" name="'.$fieldname_n.'[label]" id="'.$elementid_n.'_label" type="text" value="'.@$value['label'].'" '.$label_attribs.' />
 				</td></tr>');
 
 			$phonecc = (!$use_cc ? '' : '
-				<tr><td class="key">' .JText::_( 'PLG_FLEXICONTENT_FIELDS_PHONENUMBERS_COUNTRY_CODE' ). '</td><td>
-					' . JHtml::_('select.genericlist', $allowed_countries, $fieldname_n.'[cc]', $countries_attribs . ' class="use_select2_lib phonecc"', 'value', 'text', ($value['cc'] ? $value['cc'] : $ac_country_default), $elementid_n.'_cc') . '
+				<tr><td class="key">' .\Joomla\CMS\Language\Text::_( 'PLG_FLEXICONTENT_FIELDS_PHONENUMBERS_COUNTRY_CODE' ). '</td><td>
+					' . \Joomla\CMS\HTML\HTMLHelper::_('select.genericlist', $allowed_countries, $fieldname_n.'[cc]', $countries_attribs . ' class="use_select2_lib phonecc"', 'value', 'text', ($value['cc'] ? $value['cc'] : $ac_country_default), $elementid_n.'_cc') . '
 				</td></tr>');
 
 			$phone = '
-				<tr><td class="key">' .JText::_( 'PLG_FLEXICONTENT_FIELDS_PHONENUMBERS_PHONE_NUMBER' ). '</td><td>
+				<tr><td class="key">' .\Joomla\CMS\Language\Text::_( 'PLG_FLEXICONTENT_FIELDS_PHONENUMBERS_PHONE_NUMBER' ). '</td><td>
 					<div class="nowrap_box">
-						'.($show_part_labels && $part1_lbl ? '<label class="label phonenum1-lbl" for="'.$elementid_n.'_phone1" >'.JText::_($part1_lbl).'</label><br/>' : '').'
+						'.($show_part_labels && $part1_lbl ? '<label class="label phonenum1-lbl" for="'.$elementid_n.'_phone1" >'.\Joomla\CMS\Language\Text::_($part1_lbl).'</label><br/>' : '').'
 						<input class="phonenum1 fcfield_textval inlineval' . $allow_letters . $required_class . '" name="'.$fieldname_n.'[phone1]" id="'.$elementid_n.'_phone1" type="text" value="'.htmlspecialchars($value['phone1'], ENT_COMPAT, 'UTF-8').'" '.$phone1_attribs.' />
 						'.($use_phone > 1 ? '-' : '').'
 					</div>
 
 					'.($use_phone >= 2 ? '
 					<div class="nowrap_box">
-						'.($show_part_labels && $part2_lbl ? '<label class="label phonenum2-lbl" for="'.$elementid_n.'_phone2" >'.JText::_($part2_lbl).'</label><br/>' : '').'
+						'.($show_part_labels && $part2_lbl ? '<label class="label phonenum2-lbl" for="'.$elementid_n.'_phone2" >'.\Joomla\CMS\Language\Text::_($part2_lbl).'</label><br/>' : '').'
 						<input class="phonenum2 fcfield_textval inlineval' . $allow_letters . $required_class . '" name="'.$fieldname_n.'[phone2]" id="'.$elementid_n.'_phone2" type="text" value="'.htmlspecialchars($value['phone2'], ENT_COMPAT, 'UTF-8').'" '.$phone2_attribs.' />
 						'.($use_phone > 2 ? '-' : '').'
 					</div>' : '').'
 
 					'.($use_phone > 2 ? '
 					<div class="nowrap_box">
-						'.($show_part_labels && $part3_lbl ? '<label class="label phonenum3-lbl" for="'.$elementid_n.'_phone3" >'.JText::_($part3_lbl).'</label><br/>' : '').'
+						'.($show_part_labels && $part3_lbl ? '<label class="label phonenum3-lbl" for="'.$elementid_n.'_phone3" >'.\Joomla\CMS\Language\Text::_($part3_lbl).'</label><br/>' : '').'
 						<input class="phonenum3 fcfield_textval inlineval' . $allow_letters . $required_class . '" name="'.$fieldname_n.'[phone3]" id="'.$elementid_n.'_phone3" type="text" value="'.htmlspecialchars($value['phone3'], ENT_COMPAT, 'UTF-8').'" '.$phone3_attribs.' />
 					</div>' : '').'
 				</td></tr>';
 
 			$field->html[] = '
 				'.(!$add_ctrl_btns ? '' : '
-				<div class="'.$input_grp_class.' fc-xpended-btns">
+				<div class="'.$btn_group_class.' fc-xpended-btns">
 					'.$move2.'
 					'.$remove_button.'
 					'.(!$add_position ? '' : $add_here).'
@@ -434,9 +436,9 @@ class plgFlexicontent_fieldsPhonenumbers extends FCField
 				'</li>';
 			$field->html = '<ul class="fcfield-sortables" id="sortables_'.$field->id.'">' .$field->html. '</ul>';
 			if (!$add_position) $field->html .= '
-				<div class="input-append input-prepend fc-xpended-btns">
-					<span class="fcfield-addvalue ' . $font_icon_class . ' fccleared" onclick="addField'.$field->id.'(jQuery(this).closest(\'.fc-xpended-btns\').get(0));" title="'.JText::_( 'FLEXI_ADD_TO_BOTTOM' ).'">
-						'.JText::_( 'FLEXI_ADD_VALUE' ).'
+				<div class="'.$btn_group_class.' fc-xpended-btns">
+					<span class="fcfield-addvalue ' . $font_icon_class . ' ' . $btn_item_class . '" onclick="addField'.$field->id.'(jQuery(this).closest(\'.fc-xpended-btns\').get(0));" title="'.\Joomla\CMS\Language\Text::_( 'FLEXI_ADD_TO_BOTTOM' ).'">
+						'.\Joomla\CMS\Language\Text::_( 'FLEXI_ADD_VALUE' ).'
 					</span>
 				</div>';
 		}
@@ -456,7 +458,7 @@ class plgFlexicontent_fieldsPhonenumbers extends FCField
 	{
 		if ( !in_array($field->field_type, static::$field_types) ) return;
 
-		$field->label = JText::_($field->label);
+		$field->label = \Joomla\CMS\Language\Text::_($field->label);
 
 		// Set field and item objects
 		$this->setField($field);
@@ -474,8 +476,8 @@ class plgFlexicontent_fieldsPhonenumbers extends FCField
 		{
 			$initialized = 1;
 
-			$app       = JFactory::getApplication();
-			$document  = JFactory::getDocument();
+			$app       = \Joomla\CMS\Factory::getApplication();
+			$document  = \Joomla\CMS\Factory::getDocument();
 			$option    = $app->input->getCmd('option', '');
 			$format    = $app->input->getCmd('format', 'html');
 			$realview  = $app->input->getCmd('view', '');
@@ -525,11 +527,11 @@ class plgFlexicontent_fieldsPhonenumbers extends FCField
 		$separator_phone2_phone3 = $field->parameters->get( 'separator_phone2_phone3', '' ) ;
 
 		// Open/close tags (every value)
-		$opentag		= FlexicontentFields::replaceFieldValue( $field, $item, JText::_($field->parameters->get( 'opentag', '' )), 'opentag' );
-		$closetag		= FlexicontentFields::replaceFieldValue( $field, $item, JText::_($field->parameters->get( 'closetag', '' )), 'closetag' );
+		$opentag		= FlexicontentFields::replaceFieldValue( $field, $item, \Joomla\CMS\Language\Text::_($field->parameters->get( 'opentag', '' )), 'opentag' );
+		$closetag		= FlexicontentFields::replaceFieldValue( $field, $item, \Joomla\CMS\Language\Text::_($field->parameters->get( 'closetag', '' )), 'closetag' );
 		// Prefix/suffix (value list)
-		$field_prefix		= FlexicontentFields::replaceFieldValue( $field, $item, JText::_($field->parameters->get( 'field_prefix', '' )), 'field_prefix' );
-		$field_suffix		= FlexicontentFields::replaceFieldValue( $field, $item, JText::_($field->parameters->get( 'field_suffix', '' )), 'field_suffix' );
+		$field_prefix		= FlexicontentFields::replaceFieldValue( $field, $item, \Joomla\CMS\Language\Text::_($field->parameters->get( 'field_prefix', '' )), 'field_prefix' );
+		$field_suffix		= FlexicontentFields::replaceFieldValue( $field, $item, \Joomla\CMS\Language\Text::_($field->parameters->get( 'field_suffix', '' )), 'field_suffix' );
 
 
 		// initialise property
@@ -605,7 +607,7 @@ class plgFlexicontent_fieldsPhonenumbers extends FCField
 		if ( !is_array($post) && !strlen($post) && !$use_ingroup ) return;
 
 		// Get configuration
-		$app  = JFactory::getApplication();
+		$app  = \Joomla\CMS\Factory::getApplication();
 		$is_importcsv = $app->input->get('task', '', 'cmd') == 'importcsv';
 		$label_maxlength = (int) $field->parameters->get( 'label_maxlength', 0 ) ;  // client/server side enforced
 		$cc_maxlength    = (int) $field->parameters->get( 'cc_maxlength', 0 ) ;     // client/server side enforced

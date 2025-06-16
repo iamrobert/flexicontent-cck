@@ -1220,7 +1220,7 @@ iframe#fc_modal_popup_container_frame {
 }
 button.ui-dialog-titlebar-close:after {
 	content: '\f410';
-	font-family: 'Font Awesome 5 Free';
+	font-family: 'Font Awesome 5 Free', 'Font Awesome 6 Free';
 }
 .col-search .inline-button {
 	display: flex;
@@ -1229,6 +1229,7 @@ button.ui-dialog-titlebar-close:after {
 	flex-direction: row;
 	column-gap: 10px;
 	margin-bottom: 10px;
+	margin-top: 10px;
 }
 .col-search .inline-button .btn {
 	width: 100%;

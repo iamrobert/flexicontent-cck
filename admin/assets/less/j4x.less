@@ -1,4 +1,32 @@
 /*****************
+ADD old boostrap visibility classes
+ *****************/
+
+#flexicontent {
+	  .hidden-desktop {
+		display: none !important;
+	  }
+
+	  @media (min-width: 768px) and (max-width: 991.98px) {
+		.hidden-desktop {
+		  display: inherit !important;
+		}
+		.hidden-tablet {
+		  display: none !important;
+		}
+	  }
+	  @media (max-width: 767.98px) {
+		.hidden-desktop {
+		  display: inherit !important;
+		}
+		.hidden-phone {
+		  display: none !important;
+		}
+	  }
+}
+
+
+/*****************
  * Dashboard icons
  *****************/
 
@@ -732,11 +760,11 @@ table.fcmanlist tbody {
 	.fc_img_preview_btn.icon-search:after,
 	.fc_img_preview_btn.icon-search:before,
 	.fcfield-expand-view.fcfont-icon:before {
-		font-family: 'Font Awesome 5 Free' !important;
+		font-family: 'Font Awesome 5 Free', 'Font Awesome 6 Free' !important;
 		font-size: 1.4em;
 	}
 	.fa, .fas, [class*=" icon-"], [class^="icon-"] {
-    font-family: Font Awesome 5 Free;
+    font-family: 'Font Awesome 5 Free', 'Font Awesome 6 Free';
     font-weight: 900;
 	}
 
@@ -780,7 +808,7 @@ table.fcmanlist tbody {
 		content: "\f002";
 	}
 	.fcfield-clearvalue.fcfont-icon:before{
-		content: "\f12d";
+		content: "\f00d";
 	}
 	.fcfield-addvalue.fcfont-icon:before{
 		content: "\f302";
@@ -822,8 +850,8 @@ label.add-on.fc-lbl-short.addrint_autocomplete-lbl {
 #flexicontent .fc-field-props-box .fc_preview_msg,
 #flexicontent input.imgalt,
 #flexicontent textarea.imgdesc,
-#flexicontent form .fcfield_textareaval, 
-#flexicontent form .fcfield_selectval, 
+#flexicontent form .fcfield_textareaval,
+#flexicontent form .fcfield_selectval,
 #flexicontent form .fcfield_selectmulval,
 #flexicontent form .fcfield_textval,
 #flexicontent .fc_filedata_txt {
@@ -924,6 +952,7 @@ form div.container_fcfield {
 	> img,
 	> span {
 		margin:0px !important;
+		vertical-align: top;
 	}
 
 	> input,
@@ -973,7 +1002,7 @@ body .form-grid {
 				flex-wrap: wrap;
 				margin: 0 0 0 2rem !important;
 				min-width: 20%;
-				
+
 				.btn-group {
 					flex-wrap: wrap;
 				}
@@ -1032,7 +1061,7 @@ span.icon-menu-2.btn.btn-micro {
 }
 /** dropdown button in group **/
 span.btn.btn-sm.toolbar.dropdown-toggle.dropdown-toggle-split.fcfield-addvalue.fcfont-icon.icon.icon- {
-	height: 2.62rem !important;
+	height: 0 !important;
 }
 span.btn.btn-sm.toolbar.dropdown-toggle.dropdown-toggle-split.fcfield-addvalue.fcfont-icon.icon.icon-.dropdown-toggle:after{
 margin-top: 18px !important;
@@ -1049,9 +1078,6 @@ body .ui-widget-header {
 body .ui-widget-overlay {
 	background: #aaa;
 	opacity: .5;
-}
-#flexicontent .subform-repeatable-wrapper.subform-layout .btn-outline-info.active, .subform-repeatable-wrapper.subform-layout a.btn.btn-small, .subform-repeatable-wrapper.subform-layout .btn-outline-info, #flexicontent .subform-repeatable-wrapper.subform-layout .btn.btn-sm {
-	background: #000 !important; /*** need more css for good color ***/
 }
 #flexicontent .nav.nav-tabs.nav-stacked li {
 	width: 24%;
@@ -1110,4 +1136,236 @@ body div .control-group {
 
 div.flexicontent .sidebar-nav li a:before {
 	content: '';
+}
+
+/*** table version **/
+table#version_tbl td.versions {
+	border-bottom: 0px dotted silver;
+	padding: 10px 20px;
+}
+div table.fc-table-list tr:nth-child(odd) td {
+	background: initial;
+}
+/*** file view ***/
+.view-filemanager span.fc_hidden_1270.fc_noeffect.btn.btn-sm.hasTooltip {
+    padding: 8px;
+}
+.view-filemanager .group-fcset {
+    padding: 7px;
+}
+.view-filemanager span.btn.btn-sm.hasTooltip {
+    padding: 8px;
+}
+.view-filemanager div#fc_mainChooseColBox_btn {
+    padding: 7px;
+}
+
+/*** dark mode joomla 5 ***/
+[data-bs-theme="dark"] {
+	div#fc-dash-boardbtns .fc-board-button{
+		background-color: var(--bg-color);
+	}
+	table.fcmanlist tbody tr td, table.fcmanlist tbody tr td.filtered_column, table.fcmanlist tbody tr.row0 td.filtered_column, table.fcmanlist tbody tr.row1 td.filtered_column {
+		background-color: var(--table-bg);
+	}
+	table.fcmanlist tbody tr.row1 td {
+		background: inherit;
+	}
+	body span.maincat a {
+		color: initial;
+	}
+	table.fcmanlist tbody tr.row0:hover td, table.fcmanlist tbody tr.row1:hover td, table.fcmanlist tr:hover td.filtered_column {
+		background:var(--template-bg-dark-80) !important;
+	}
+	table.fcmanlist tbody tr {
+		border-top:1px solid var(--border-color) !important;
+	}
+	#flexicontent #j-main-container .btn-group > *, #flexicontent #j-main-container .fc-xpended > *, #flexicontent #j-main-container .fc-xpended-row > *, body #fc-managers-header .btn-group, .btn-group.fc-group.fc-items {
+		color: var(--body-color) !important;
+		background: var(--body-bg) !important;
+	}
+	#flexicontent #j-main-container select.fcfield_selectval, #flexicontent #j-main-container select {
+		background: initial !important;
+		color: var(--body-color) !important;
+	}
+	body label.fc-prop-lbl, body span.fc-prop-lbl, body #flexicontent label.fc-prop-lbl, body #flexicontent span.fc-prop-lbl, label.btn, label.btn.btn-outline-secondary, table.fcmanlist thead th {
+		color: var(--body-color) !important;
+	}
+	body .tabbertab, #flexicontent .tabbertab {
+		background-color: var(--body-bg);
+	}
+	body #flexicontent ul.tabbernav > li > a, #flexicontent ul.tabbernav > li > a {
+		color: var(--body-color) !important;
+	}
+	body li.tabberactive, body ul.tabbernav > li.tabberactive a, body ul.tabbernav > li.tabberactive a:hover, #flexicontent ul.tabbernav > li.tabberactive a, #flexicontent ul.tabbernav > li.tabberactive a:hover {
+		background: var(--template-bg-dark-60) !important;
+		color: var(--body-color) !important;
+	}
+	#flexicontent form span.fcfield_textval, #flexicontent form select.fcfield_selectval, #flexicontent form input.fcfield_textval {
+		color: var(--body-color) !important;
+	}
+	.select2-container .select2-choice {
+		background: var(--body-bg) !important;
+		color: var(--body-color) !important;
+	}
+	.plupload_droptext, .plupload_filelist_footer {
+		background: var(--body-bg) !important;
+	}
+	div.select2-drop.select2-drop-multi li.select2-result-selectable > .select2-result-label, .group-fcset input + label, input[type="checkbox"].fc_checkradio + label, input[type="radio"].fc_checkradio + label {
+		color: var(--body-color) !important;
+	}
+	div.width-20 fieldset, div.width-30 fieldset, div.width-35 fieldset, div.width-40 fieldset, div.width-45 fieldset, div.width-50 fieldset, div.width-55 fieldset, div.width-60 fieldset, div.width-65 fieldset, div.width-70 fieldset, div.width-80 fieldset, div.width-100 fieldset {
+		background-color: var(--body-bg) !important;
+	}
+	body .tabbertab, #flexicontent .tabbertab, div.records_container, div.positions_container {
+		background: var(--body-bg) !important;
+		background-color: var(--body-bg) !important;
+	}
+	body .records_container > ul > li.fcrecord, body .positions_container > ul > li.fields {
+		background: var(--body-bg) !important;
+	}
+	#flexicontent div [class^="fcfield-"].fcfont-icon:before, #flexicontent div [class*=" fcfield-"].fcfont-icon:before, #flexicontent div [class^="fcfield-"].fcfont-icon:after, #flexicontent div [class*=" fcfield-"].fcfont-icon:after, #flexicontent ul.fcfield-sortables > li [class^="fcfield-"].fcfont-icon:before, #flexicontent ul.fcfield-sortables > li [class*=" fcfield-"].fcfont-icon:before, #flexicontent ul.fcfield-sortables > li [class^="fcfield-"].fcfont-icon:after, #flexicontent ul.fcfield-sortables > li [class*=" fcfield-"].fcfont-icon:after{
+		color: var(--body-color) !important;
+	}
+	div table.fc-table-list {
+		text-shadow: none;
+		background: var(--body-bg) !important;
+		border-collapse: collapse;
+		font-size: initial;
+		line-height: initial;
+		margin: 16px;
+		text-align: left;
+		min-width: initial;
+	}
+	#fctoolbar.btn-toolbar > * .btn:hover, 
+	#toolbar.btn-toolbar > * .btn:hover {
+    color: #ffffffe6;
+    background-color: var(--template-bg-dark-60);
+    border-color: var(--template-bg-dark-60);
+	}
+	#flexicontent .fc-xpended-btns [class^="fcfield-"].fcfont-icon:hover, #flexicontent .fc-xpended-btns [class*=" fcfield-"].fcfont-icon:hover, #flexicontent .fc-xpended-btns .fcfield-button-add.fcfont-icon:hover a {
+		background-color: #595959 !important;
+		background-image: none !important;
+	}
+	#flexicontent div [class^="fcfield-"].fcfont-icon, #flexicontent div [class*=" fcfield-"].fcfont-icon, #flexicontent ul.fcfield-sortables > li [class^="fcfield-"].fcfont-icon, #flexicontent ul.fcfield-sortables > li [class*=" fcfield-"].fcfont-icon {
+		color: #fff !important;
+	}
+	div#fc-dash-boardbtns .fc-board-button:hover {
+        background: #2a2a2a;
+		}
+		.view-field.layout-default.task-edit div.select2-drop.select2-drop-multi li.select2-result-selectable > .select2-result-label, .group-fcset input + label, input[type="checkbox"].fc_checkradio + label, input[type="radio"].fc_checkradio + label {
+			color: #000 !important;
+		}
+		body .plupload_header_content, body .plupload_filelist_header, body .plupload_filelist_footer {
+			color: var(--body-color) !important;
+			background: #171c24 !important;
+		}
+		body .plupload_filelist li, body .plupload_scroll .plupload_filelist {
+			background: var(--body-bg);
+			border-bottom: 1px solid var(--border-color);
+		}
+		.noUi-handle {
+			background: #007db0 !important;
+			box-shadow: none !important;
+		}
+		.ui-widget.ui-widget-content {
+			border: 1px solid var(--border-color);
+			background: var(--body-bg);
+		}
+		body .ui-widget-header {
+			border: 1px solid var(--body-bg) !important;
+			background: var(--body-bg) !important;
+			color: var(--body-color) !important;
+			border-bottom: 1px solid var(--border-color) !important;
+		}
+		.group-fcset input + label {
+			color: var(--body-color) !important;
+		}
+		.text-dark {
+			color: var(--body-color) !important;
+		}
+		table.fcmanlist tfoot td, table.fcmanlist tfoot th {
+			background-color: var(--template-bg-dark-80);
+		}
+		div.statetoggler > div.statetoggler_inner > .options {
+			background: var(--body-bg);
+			box-shadow: none;
+		}
+		div.statetoggler > div.statetoggler_inner > .options > div, div.statetoggler > div.statetoggler_inner > .options > span {
+			color: var(--body-color);
+		}
+		.ui-widget-content {
+			color: #ffffff !important;
+		}
+		#fc_tagbox {
+			background: #282c33;
+		}
+		.select2-drop {
+			background: #282c33 !important;
+		}
+		.select2-container-multi .select2-choices .select2-search-field input.select2-input, .select2-container-multi.select2-dropdown-open .select2-choices .select2-search-field input.select2-input {
+			background: #282c33 !important;
+		}
+}
+.buttons.btn-group.fc-iblock.dropdown{
+	margin-left: inherit !important;
+	width: inherit !important;
+		display: contents;
+}
+#flexicontent [class*="fc-xpended"] > .btn-group {
+    margin: 0 -8px;
+}
+.fc-form-tbl.fcinner.fccompact > div {
+    margin-top: 6px;
+    margin-bottom: 6px;
+}
+//fix atum backend
+.input-group input{
+	min-width:initial !important;
+}
+// adapt plusupload to j4-5 design
+.plupload_button {
+	color:#fff !important;
+	font: normal 14px sans-serif !important;
+	padding: 8px !important;
+	margin-right: 4px;
+	background: #007db0 !important;
+}
+.plupload_add:before {
+content:'\2b';
+}
+a.plupload_button.plupload_start {
+	background: #418d52 !important;
+}
+.plupload_disabled, a.plupload_disabled:hover{
+	background: #1F3047 !important;
+}
+//fix atum joomla5
+.btn-group .dropdown-menu {
+    width: max-content;
+}
+#flexicontent.flexi_edit .input-group {
+    width: initial;
+}
+.fcfield_field_preview_box.fcfield_addressint_map {
+    padding: 0 20px;
+}
+// adapt tagbox
+div#tags #input_new_tag {
+    display: inline-block;
+    padding: 0px;
+    margin: 0;
+    width: 0;
+    height: 0;
+    background: none;
+}
+#fc_tagbox {
+	padding: 5px;
+	border: 0;
+}
+.icon-import:before {
+	content: "\f093";
+}
+.icon-test:before {
+	content: "\f0ae";
 }

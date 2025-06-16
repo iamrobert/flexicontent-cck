@@ -16,7 +16,7 @@ use Joomla\CMS\Language\Multilanguage;
 use Joomla\Component\Categories\Administrator\Helper\CategoryAssociationHelper as J4_CategoryAssociationHelper;
 
 JLoader::register('FlexicontentHelperRoute', JPATH_SITE . '/components/com_flexicontent/helpers/route.php');
-JTable::addIncludePath(JPATH_ADMINISTRATOR.DS.'components'.DS.'com_flexicontent'.DS.'tables');
+\Joomla\CMS\Table\Table::addIncludePath(JPATH_ADMINISTRATOR.DS.'components'.DS.'com_flexicontent'.DS.'tables');
 
 
 /*
@@ -56,10 +56,11 @@ abstract class FlexicontentHelperAssociation extends CategoryAssociationHelper
 
 	public static function getAssociations($id = 0, $view = null)
 	{
-		$jinput = JFactory::getApplication()->input;
+		$jinput = \Joomla\CMS\Factory::getApplication()->input;
 
 		$view   = is_null($view) ? $jinput->get('view', '', 'cmd') : $view;
 		$id     = empty($id) ? $jinput->get('id', 0, 'int') : $id;
+		$return = [];
 
 		if ($view === 'item')
 		{
@@ -73,7 +74,7 @@ abstract class FlexicontentHelperAssociation extends CategoryAssociationHelper
 			foreach ($associations as $tag => $assoc)
 			{
 				$lang_code    = substr($tag, 0, 2);
-				$return[$tag] = FlexicontentHelperRoute::getItemRoute($assoc->title_slug, $assoc->cat_slug, 0, $assoc) . '&lang=' . $lang_code;
+				$return[$tag] = FlexicontentHelperRoute::getItemRoute($assoc->title_slug, $assoc->cat_slug, 0, $assoc); //. '&lang=' . $lang_code;
 			}
 			return $return;
 		}
@@ -82,6 +83,14 @@ abstract class FlexicontentHelperAssociation extends CategoryAssociationHelper
 		{
 			$cid    = $jinput->getInt('cid');
 			$layout = $jinput->getCmd('layout');
+			if ($cid)
+			{
+				$db     = version_compare(JVERSION, '4', 'lt') ? Factory::getDbo() : Factory::getContainer()->get('DatabaseDriver');
+				$category = $db->setQuery('SELECT id, language FROM #__categories WHERE id = ' . $cid)->loadObject();
+			}
+			// Assume language ALL if no current language
+			else $category = (object) array('language' => '*');
+
 			if ($layout === 'tags')
 			{
 				$tagid = $jinput->getInt('tagid', 0);
@@ -93,8 +102,10 @@ abstract class FlexicontentHelperAssociation extends CategoryAssociationHelper
 
 					foreach ($associations as $tag => $assoc)
 					{
-						$lang_code    = substr($tag, 0, 2);
-						$return[$tag] = FlexicontentHelperRoute::getCategoryRoute($cid, 0, $urlvars, $assoc) . '&lang=' . $lang_code;
+						// Language code must be added to the URL for categories of type ALL !!!
+						// to allow switching between languages filtering the category items according to their language
+						$return[$tag] = FlexicontentHelperRoute::getCategoryRoute($cid, 0, $urlvars, $assoc)
+							. ($category->language === '*' ? '&lang=' . substr($tag, 0, 2) : '');
 					}
 
 					return $return;
@@ -105,15 +116,22 @@ abstract class FlexicontentHelperAssociation extends CategoryAssociationHelper
 
 			if (!$associations)
 			{
-				return self::_getMenuAssociations($view, $cid);
+				$associations = self::_getMenuAssociations($view, $cid);
+				foreach ($associations as $tag => $assoc)
+				{
+					$return[$tag] = $assoc . ($category->language === '*' ? '&lang=' . substr($tag, 0, 2) : '');
+				}
+				return $return;
 			}
 
 			$urlvars = flexicontent_html::getCatViewLayoutVars($catmodel = null, $use_slug = true);
 
 			foreach ($associations as $tag => $assoc)
 			{
-				$lang_code    = substr($tag, 0, 2);
-				$return[$tag] = FlexicontentHelperRoute::getCategoryRoute($assoc->title_slug, 0, $urlvars, $assoc) . '&lang=' . $lang_code;
+				// Language code must be added to the URL for categories of type ALL !!!
+				// to allow switching between languages filtering the category items according to their language
+				$return[$tag] = FlexicontentHelperRoute::getCategoryRoute($assoc->title_slug, 0, $urlvars, $assoc)
+					. ($category->language === '*' ? '&lang=' . substr($tag, 0, 2) : '');
 			}
 
 			return $return;
@@ -134,7 +152,7 @@ abstract class FlexicontentHelperAssociation extends CategoryAssociationHelper
 			return array();
 		}
 
-		$db = JFactory::getDbo();
+		$db = \Joomla\CMS\Factory::getDbo();
 		$query = 'SELECT i.language, ie.type_id, i.id, i.catid, '
 			. '  CASE WHEN CHAR_LENGTH(i.alias) THEN CONCAT_WS(":", i.id, i.alias) ELSE i.id END as title_slug, '
 			. '  CASE WHEN CHAR_LENGTH(c.alias) THEN CONCAT_WS(":", c.id, c.alias) ELSE c.id END as cat_slug '
@@ -159,7 +177,7 @@ abstract class FlexicontentHelperAssociation extends CategoryAssociationHelper
 			return array();
 		}
 
-		$db = JFactory::getDbo();
+		$db = \Joomla\CMS\Factory::getDbo();
 		if (!FLEXI_FALANG) return array();
 
 		$query  =
@@ -200,7 +218,7 @@ abstract class FlexicontentHelperAssociation extends CategoryAssociationHelper
 			return array();
 		}
 
-		$db = JFactory::getDbo();
+		$db = \Joomla\CMS\Factory::getDbo();
 		$query = 'SELECT c.language, c.id, '
 			. '  CASE WHEN CHAR_LENGTH(c.alias) THEN CONCAT_WS(":", c.id, c.alias) ELSE c.id END as title_slug '
 			. ' FROM #__associations AS a'
@@ -218,12 +236,12 @@ abstract class FlexicontentHelperAssociation extends CategoryAssociationHelper
 	{
 		if ($view == 'item')
 		{
-			$record = JTable::getInstance('flexicontent_items', '');
+			$record = \Joomla\CMS\Table\Table::getInstance('flexicontent_items', '');
 			$record->load(array('id' => $id));
 		}
 		elseif ($view == 'category')
 		{
-			$record = JTable::getInstance('flexicontent_categories', '');
+			$record = \Joomla\CMS\Table\Table::getInstance('flexicontent_categories', '');
 			$record->load(array('id' => $id));
 		}
 
@@ -232,12 +250,12 @@ abstract class FlexicontentHelperAssociation extends CategoryAssociationHelper
 			return array();
 		}
 
-		$app    = JFactory::getApplication();
+		$app    = \Joomla\CMS\Factory::getApplication();
 		$jinput = $app->input;
 		$menus  = $app->getMenu();
 		$Itemid = $jinput->getInt('Itemid', 0);
 
-		$langAssociations = JLanguageAssociations::getAssociations('com_menus', '#__menu', 'com_menus.item', $Itemid, 'id', '', '');
+		$langAssociations = \Joomla\CMS\Language\Associations::getAssociations('com_menus', '#__menu', 'com_menus.item', $Itemid, 'id', '', '');
 		$associations     = array();
 
 		foreach ($langAssociations as $tag => $menu_item)
@@ -260,7 +278,7 @@ abstract class FlexicontentHelperAssociation extends CategoryAssociationHelper
 				$cat_slug   = self::_getItemCatSlug($record, $menu);
 				$lang_code  = substr($tag, 0, 2);
 
-				$associations[$tag] = FlexicontentHelperRoute::getItemRoute($title_slug, $cat_slug, $menu_item->id, $record) . '&lang=' . $lang_code;
+				$associations[$tag] = FlexicontentHelperRoute::getItemRoute($title_slug, $cat_slug, $menu_item->id, $record); // . '&lang=' . $lang_code;
 			}
 			elseif ($view === 'category')
 			{
@@ -268,7 +286,7 @@ abstract class FlexicontentHelperAssociation extends CategoryAssociationHelper
 				$urlvars    = flexicontent_html::getCatViewLayoutVars($catmodel = null, $use_slug = true);
 				$lang_code  = substr($tag, 0, 2);
 
-				$associations[$tag] = FlexicontentHelperRoute::getCategoryRoute($title_slug, $menu_item->id, $urlvars, $record) . '&lang=' . $lang_code;
+				$associations[$tag] = FlexicontentHelperRoute::getCategoryRoute($title_slug, $menu_item->id, $urlvars, $record); // . '&lang=' . $lang_code;
 			}
 			else
 			{
@@ -287,7 +305,7 @@ abstract class FlexicontentHelperAssociation extends CategoryAssociationHelper
 	 */
 	private static function _getItemCatSlug($record, $menu)
 	{
-		$db = JFactory::getDbo();
+		$db = \Joomla\CMS\Factory::getDbo();
 
 		$moption = isset($menu->query['option']) ? $menu->query['option'] : '';
 		$mview   = isset($menu->query['view']) ? $menu->query['view'] : '';
@@ -310,7 +328,7 @@ abstract class FlexicontentHelperAssociation extends CategoryAssociationHelper
 		// Use matching category from menu item, otherwise use main category of item
 		$matched_cid = in_array($mcid, $catids) ? $mcid : $record->catid;
 
-		$cat = JTable::getInstance('flexicontent_categories', '');
+		$cat = \Joomla\CMS\Table\Table::getInstance('flexicontent_categories', '');
 		$cat->load(array('id' => $matched_cid));
 
 		return $matched_cid . ($cat ? ':' . $cat->alias : '');

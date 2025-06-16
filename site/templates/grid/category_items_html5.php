@@ -9,7 +9,7 @@
 defined( '_JEXEC' ) or die( 'Restricted access' );
 // first define the template name
 $tmpl = $this->tmpl;
-$user = JFactory::getUser();
+$user = \Joomla\CMS\Factory::getUser();
 
 $readon_type  = (int) $this->params->get('readon_type', 0);
 $readon_image = $this->params->get('readon_image', '');
@@ -18,9 +18,9 @@ $use_lazy_loading = (int) $this->params->get('use_lazy_loading', 1);
 $lazy_loading = $use_lazy_loading ? ' loading="lazy" decoding="async" ' : '';
 
 
-if ($readon_type && $readon_image && file_exists(JPath::clean(JPATH_SITE . DS . $readon_image)))
+if ($readon_type && $readon_image && file_exists(\Joomla\CMS\Filesystem\Path::clean(JPATH_SITE . DS . $readon_image)))
 {
-	$readon_image = JUri::base(true) . '/' . $readon_image;
+	$readon_image = \Joomla\CMS\Uri\Uri::base(true) . '/' . $readon_image;
 }
 $readon_type = !$readon_image ? 0 : $readon_type;
 
@@ -30,6 +30,7 @@ $display_text 		= $this->params->get('display_text');
 $display_hits			= $this->params->get('display_hits');
 $display_voting		= $this->params->get('display_voting');
 $display_comments	= $this->params->get('display_comments');
+$force_content_height	= $this->params->get('content_height_fit', 0);
 
 // featured
 $display_date_feat		= $this->params->get('display_date_feat');
@@ -135,7 +136,7 @@ switch ($content_layout) {
 // ***
 
 $mod_default_img_path = $this->params->get('mod_default_img_path', 'components/com_flexicontent/assets/images/image.png');
-$img_path = JUri::base(true) .'/'; 
+$img_path = \Joomla\CMS\Uri\Uri::base(true) .'/'; 
 
 // image of FEATURED items, auto-fit and (optionally) limit to image max-dimensions to avoid stretching
 $img_auto_dims_css_feat=" width: 100%; height: auto; display: block !important; border: 0 !important;";
@@ -166,7 +167,7 @@ $item_placement_std = $this->params->get('item_placement', 0);  // -1: other, 0:
 $item_columns_std = $this->params->get('item_columns', 2);
 $cols_class_std  = ($item_columns_std  <= 1)  ?  ''  :  'cols_'.$item_columns_std;
 
-$document = JFactory::getDocument();
+$document = \Joomla\CMS\Factory::getDocument();
 
 // Add masonry JS
 $load_masonry_feat = $item_placement_feat == 1 && $item_columns_feat > 1;
@@ -229,7 +230,7 @@ if (!empty($this->items) && ($load_masonry_feat || $load_masonry_std))
 	$js .= "	
 		});
 	";
-	JFactory::getDocument()->addScriptDeclaration($js);
+	\Joomla\CMS\Factory::getDocument()->addScriptDeclaration($js);
 }
 ?>
 
@@ -256,7 +257,7 @@ if (!$this->items) {
 	// No items exist
 	if ($this->getModel()->getState('limit')) {
 		// Not creating a category view without items
-		echo '<div class="noitems group">' . JText::_( 'FLEXI_NO_ITEMS_FOUND' ) . '</div>';
+		echo '<div class="noitems group">' . \Joomla\CMS\Language\Text::_( 'FLEXI_NO_ITEMS_FOUND' ) . '</div>';
 	}
 	return;
 }
@@ -265,7 +266,7 @@ $items	= & $this->items;
 $count 	= count($items);
 // Calculate common data outside the item loops
 if ($count) {
-	$_read_more_about = JText::_( 'FLEXI_READ_MORE_ABOUT' );
+	$_read_more_about = \Joomla\CMS\Language\Text::_( 'FLEXI_READ_MORE_ABOUT' );
 	$tooltip_class = FLEXI_J30GE ? 'hasTooltip' : 'hasTip';
 	$_comments_container_params = 'class="fc_comments_count '.$tooltip_class.'" title="'.flexicontent_html::getToolTip('FLEXI_NUM_OF_COMMENTS', 'FLEXI_NUM_OF_COMMENTS_TIP', 1, 1).'"';
 }
@@ -305,7 +306,7 @@ if ($leadnum) :
 
 	<!-- BOF DIV featured-block (featured items) -->
 
-	<div class="featured-block news fc-items-block <?php echo $classnum; ?> group row">
+	<div class="featured-block news fc-items-block <?php echo $classnum; ?> group row" >
 
 		<?php
 		if ($lead_use_image && $this->params->get('lead_image'))
@@ -389,7 +390,7 @@ if ($leadnum) :
 
 					if ($img_field)
 					{
-						$src = str_replace(JUri::root(), '', ($img_field->thumbs_src[$img_field_size][0] ?? '') );
+						$src = str_replace(\Joomla\CMS\Uri\Uri::root(), '', ($img_field->thumbs_src[$img_field_size][0] ?? '') );
 						if ( $lead_link_image_to && isset($img_field->value[0]) )
 						{
 							$custom_link = ($v = unserialize($img_field->value[0])) !== false ? @ $v['link'] : ($img_field->value[0]['link'] ?? '');
@@ -413,7 +414,7 @@ if ($leadnum) :
 
 							if ($lead_use_image==1)
 							{
-								$src = str_replace(JUri::root(), '', ($img_field2->thumbs_src[$img_field_size][0] ?? '') );
+								$src = str_replace(\Joomla\CMS\Uri\Uri::root(), '', ($img_field2->thumbs_src[$img_field_size][0] ?? '') );
 							}
 							else
 							{
@@ -442,8 +443,8 @@ if ($leadnum) :
 					$f = in_array( $ext, array('png', 'gif', 'jpeg', 'jpg', 'webp', 'wbmp', 'bmp', 'ico') ) ? '&amp;f='.$ext : '';
 					$conf	= $w . $h . $aoe . $q . $ar . $zc . $f;
 
-					$base_url = (!preg_match("#^http|^https|^ftp|^/#i", $src)) ?  JUri::base(true).'/' : '';
-					$item->image = JUri::base(true).'/components/com_flexicontent/librairies/phpthumb/phpThumb.php?src='.$base_url.$src.$conf;
+					$base_url = (!preg_match("#^http|^https|^ftp|^/#i", $src)) ?  \Joomla\CMS\Uri\Uri::base(true).'/' : '';
+					$item->image = \Joomla\CMS\Uri\Uri::base(true).'/components/com_flexicontent/librairies/phpthumb/phpThumb.php?src='.$base_url.$src.$conf;
 
 					$item->image_w = $this->params->get('lead_width', 200);
 					$item->image_h = $this->params->get('lead_height', 200);
@@ -455,7 +456,7 @@ if ($leadnum) :
 				// Instead of empty image
 				$item->image = $item->image ?: $mod_default_img_path;
 			endif;
-			$link_url = $custom_link ? $custom_link : JRoute::_(FlexicontentHelperRoute::getItemRoute($item->slug, $item->categoryslug, 0, $item));
+			$link_url = $custom_link ? $custom_link : \Joomla\CMS\Router\Route::_(FlexicontentHelperRoute::getItemRoute($item->slug, $item->categoryslug, 0, $item));
 			$title_encoded = htmlspecialchars($item->title, ENT_COMPAT, 'UTF-8');
 
 			// MICRODATA document type (itemtype) for each item
@@ -488,7 +489,7 @@ if ($leadnum) :
 			?>
 
 			<!-- BOF item -->	
-			<div class="fc-item-block-featured-wrapper<?php echo $do_hlight_feat; ?><?php echo ' '.$oe_class . ($cols_class_feat ? ' '.$cols_class_feat : ''); ?>"
+			<div class="fc-item-block-featured-wrapper<?php echo $do_hlight_feat; ?><?php echo ' '.$oe_class . ($cols_class_feat ? ' '.$cols_class_feat : ''); ?> <?php echo ($force_content_height == 1) ? 'd-flex' : '' ;?>"
 				<?php echo $microdata_itemtype_code; ?>
 				id="fc_newslist_item_<?php echo $i; ?>"
 			>
@@ -761,9 +762,9 @@ if ($leadnum) :
 						<div class="fcitem_readon readmore">
 							<a href="<?php echo $link_url; ?>" class="<?php echo $readon_class; ?>" itemprop="url" <?php echo ($lead_link_to_popup ? 'onclick="var url = jQuery(this).attr(\'href\')+\''.$_tmpl_.'\'; fc_showDialog(url, \'fc_modal_popup_container\', 0, 0, 0, 0, {title: \'\'}); return false;"' : '');?> >
 								<?php
-								$read_more_text = $item->params->get('readmore')  ?  $item->params->get('readmore') : JText::sprintf('FLEXI_READ_MORE', $item->title);
+								$read_more_text = $item->params->get('readmore')  ?  $item->params->get('readmore') : \Joomla\CMS\Language\Text::sprintf('FLEXI_READ_MORE', $item->title);
 								echo $readon_type === 1
-									? '<img src="' . $readon_image . '" alt="' . JText::sprintf('FLEXI_READ_MORE', $item->title) . '" />'
+									? '<img src="' . $readon_image . '" alt="' . \Joomla\CMS\Language\Text::sprintf('FLEXI_READ_MORE', $item->title) . '" />'
 									: '<span class="icon-chevron-right"></span> ' . $read_more_text;
 								?>
 							</a>
@@ -905,7 +906,7 @@ if ($count > $leadnum) :
 
 					if ($img_field)
 					{
-						$src = str_replace(JUri::root(), '', ($img_field->thumbs_src[$img_field_size][0] ?? '') );
+						$src = str_replace(\Joomla\CMS\Uri\Uri::root(), '', ($img_field->thumbs_src[$img_field_size][0] ?? '') );
 						if ( $intro_link_image_to && isset($img_field->value[0]) )
 						{
 							$custom_link = ($v = unserialize($img_field->value[0])) !== false ? @ $v['link'] : ($img_field->value[0]['link'] ?? '');
@@ -929,7 +930,7 @@ if ($count > $leadnum) :
 
 							if ($intro_use_image==1)
 							{
-								$src = str_replace(JUri::root(), '', ($img_field2->thumbs_src[$img_field_size][0] ?? '') );
+								$src = str_replace(\Joomla\CMS\Uri\Uri::root(), '', ($img_field2->thumbs_src[$img_field_size][0] ?? '') );
 							}
 							else
 							{
@@ -957,8 +958,8 @@ if ($count > $leadnum) :
 					$f = in_array( $ext, array('png', 'gif', 'jpeg', 'jpg', 'webp', 'wbmp', 'bmp', 'ico') ) ? '&amp;f='.$ext : '';
 					$conf	= $w . $h . $aoe . $q . $zc . $f;
 
-					$base_url = (!preg_match("#^http|^https|^ftp|^/#i", $src)) ?  JUri::base(true).'/' : '';
-					$item->image = JUri::base(true).'/components/com_flexicontent/librairies/phpthumb/phpThumb.php?src='.$base_url.$src.$conf;
+					$base_url = (!preg_match("#^http|^https|^ftp|^/#i", $src)) ?  \Joomla\CMS\Uri\Uri::base(true).'/' : '';
+					$item->image = \Joomla\CMS\Uri\Uri::base(true).'/components/com_flexicontent/librairies/phpthumb/phpThumb.php?src='.$base_url.$src.$conf;
 
 					$item->image_w = $this->params->get('intro_width', 200);
 					$item->image_h = $this->params->get('intro_height', 200);
@@ -970,7 +971,7 @@ if ($count > $leadnum) :
 				// Instead of empty image
 				$item->image = $item->image ?: $mod_default_img_path;
 			endif;
-			$link_url = $custom_link ? $custom_link : JRoute::_(FlexicontentHelperRoute::getItemRoute($item->slug, $item->categoryslug, 0, $item));
+			$link_url = $custom_link ? $custom_link : \Joomla\CMS\Router\Route::_(FlexicontentHelperRoute::getItemRoute($item->slug, $item->categoryslug, 0, $item));
 			$title_encoded = htmlspecialchars($item->title, ENT_COMPAT, 'UTF-8');
 
 			// MICRODATA document type (itemtype) for each item
@@ -1004,7 +1005,7 @@ if ($count > $leadnum) :
 			?>
 
 			<!-- BOF item -->	
-			<div class="fc-item-block-standard-wrapper<?php echo $do_hlight; ?><?php echo ' '.$oe_class . ($cols_class_std ? ' '.$cols_class_std : ''); ?>"
+			<div class="fc-item-block-standard-wrapper<?php echo $do_hlight; ?><?php echo ' '.$oe_class . ($cols_class_std ? ' '.$cols_class_std : ''); ?> <?php echo ($force_content_height == 1) ? 'd-flex' : '' ;?>"
 				<?php echo $microdata_itemtype_code; ?>
 				id="fc_newslist_item_<?php echo $i; ?>"
 			>
@@ -1276,9 +1277,9 @@ if ($count > $leadnum) :
 						<div class="fcitem_readon readmore">
 							<a href="<?php echo $link_url; ?>" class="<?php echo $readon_class; ?>" itemprop="url" <?php echo ($intro_link_to_popup ? 'onclick="var url = jQuery(this).attr(\'href\')+\''.$_tmpl_.'\'; fc_showDialog(url, \'fc_modal_popup_container\', 0, 0, 0, 0, {title: \'\'}); return false;"' : '');?> >
 								<?php
-								$read_more_text = $item->params->get('readmore')  ?  $item->params->get('readmore') : JText::sprintf('FLEXI_READ_MORE', $item->title);
+								$read_more_text = $item->params->get('readmore')  ?  $item->params->get('readmore') : \Joomla\CMS\Language\Text::sprintf('FLEXI_READ_MORE', $item->title);
 								echo $readon_type === 1
-									? '<img src="' . $readon_image . '" alt="' . JText::sprintf('FLEXI_READ_MORE', $item->title) . '" />'
+									? '<img src="' . $readon_image . '" alt="' . \Joomla\CMS\Language\Text::sprintf('FLEXI_READ_MORE', $item->title) . '" />'
 									: '<span class="icon-chevron-right"></span> ' . $read_more_text;
 								?>
 							</a>

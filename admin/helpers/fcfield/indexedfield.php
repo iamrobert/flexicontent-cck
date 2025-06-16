@@ -47,7 +47,7 @@ class FCIndexedField extends FCField
 	{
 		if ( !in_array($field->field_type, static::$field_types) ) return;
 
-		$field->label = $field->parameters->get('label_form') ? JText::_($field->parameters->get('label_form')) : JText::_($field->label);
+		$field->label = $field->parameters->get('label_form') ? \Joomla\CMS\Language\Text::_($field->parameters->get('label_form')) : \Joomla\CMS\Language\Text::_($field->label);
 
 		// Set field and item objects
 		$this->setField($field);
@@ -71,12 +71,14 @@ class FCIndexedField extends FCField
 		$auto_value = $auto_value === 2 && !$auto_value_code ? 0 : $auto_value;
 
 		// Initialize framework objects and other variables
-		$document = JFactory::getDocument();
-		$cparams  = JComponentHelper::getParams( 'com_flexicontent' );
+		$document = \Joomla\CMS\Factory::getDocument();
+		$cparams  = \Joomla\CMS\Component\ComponentHelper::getParams( 'com_flexicontent' );
 
 		$tooltip_class = 'hasTooltip';
 		$add_on_class    = $cparams->get('bootstrap_ver', 2)==2  ?  'add-on' : 'input-group-addon';
 		$input_grp_class = $cparams->get('bootstrap_ver', 2)==2  ?  'input-append input-prepend' : 'input-group';
+		$btn_item_class  = $cparams->get('bootstrap_ver', 2)==2  ?  'btn' : 'btn';
+		$btn_group_class = $cparams->get('bootstrap_ver', 2)==2  ?  'btn-group' : 'btn-group';
 		$form_font_icons = $cparams->get('form_font_icons', 1);
 		$font_icon_class = $form_font_icons ? ' fcfont-icon' : '';
 		$font_icon_class .= FLEXI_J40GE ? ' icon icon- ' : '';
@@ -91,11 +93,15 @@ class FCIndexedField extends FCField
 		/**
 		 * Number of values
 		 */
-
+		
+		// Ignore multiple setting in fieldgroup
 		$multiple     = $use_ingroup || (int) $field->parameters->get('allow_multiple', 0);
-		$min_values   = $use_ingroup || !static::$valueIsArr ? 0 : (int) $field->parameters->get( 'min_values', 0 ) ;
-		$max_values   = $use_ingroup ? 0 : (int) $field->parameters->get('max_values', 0);
-		$exact_values = $use_ingroup || !static::$valueIsArr ? 0 : (int) $field->parameters->get( 'exact_values', 0 ) ;
+		
+		// Allow per value limitations when in field group, if field is multiple per value 
+		$min_values   = $use_ingroup && !static::$valueIsArr ? 0 : (int) $field->parameters->get('min_values', 0);
+		$max_values   = $use_ingroup && !static::$valueIsArr ? 0 : (int) $field->parameters->get('max_values', 0);
+		$exact_values = $use_ingroup && !static::$valueIsArr ? 0 : (int) $field->parameters->get('exact_values', 0);
+		
 		$required     = (int) $field->parameters->get('required', 0);
 		$add_position = (int) $field->parameters->get('add_position', 3);
 
@@ -296,7 +302,7 @@ class FCIndexedField extends FCField
 			if (static::$valueIsArr)
 			{
 				$add_placeholder = $display_label_form==-1 ? 1 : $field->parameters->get( 'usefirstoption', 1 );
-				$placeholder = $display_label_form==-1 ? $field->label : JText::_($field->parameters->get( 'firstoptiontext', 'FLEXI_SELECT' ));
+				$placeholder = $display_label_form==-1 ? $field->label : \Joomla\CMS\Language\Text::_($field->parameters->get( 'firstoptiontext', 'FLEXI_SELECT' ));
 
 				$attribs .=
 					' multiple="multiple"' . ($size ? ' size="'.$size.'"' : '')
@@ -332,7 +338,7 @@ class FCIndexedField extends FCField
 		// Handle adding the needed JS code to CASCADE (listen to) changes of the dependent master field
 		// *********************************************************************************************
 
-		JText::script('FLEXI_PLEASE_WAIT',true);
+		\Joomla\CMS\Language\Text::script('FLEXI_PLEASE_WAIT',true);
 		$js = "";
 		$css = "";
 
@@ -344,7 +350,7 @@ class FCIndexedField extends FCField
 			{
 				$master_field = $byIds[$cascade_after];
 				$cascade_prompt = $field->parameters->get('cascade_prompt', '');
-				$cascade_prompt = $cascade_prompt ? JText::_($cascade_prompt) : JText::_('FLEXI_PLEASE_SELECT') . ': ' . JText::_($master_field->label);
+				$cascade_prompt = $cascade_prompt ? \Joomla\CMS\Language\Text::_($cascade_prompt) : \Joomla\CMS\Language\Text::_('FLEXI_PLEASE_SELECT') . ': ' . \Joomla\CMS\Language\Text::_($master_field->label);
 
 				$srcELid = 'custom_' . $master_field->name;
 				$trgELid = $elementid;
@@ -405,7 +411,7 @@ class FCIndexedField extends FCField
 			});
 			";
 
-			if ($max_values) JText::script("FLEXI_FIELD_MAX_ALLOWED_VALUES_REACHED", true);
+			if ($max_values) \Joomla\CMS\Language\Text::script("FLEXI_FIELD_MAX_ALLOWED_VALUES_REACHED", true);
 			$js .= "
 			function addField".$field->id."(el, groupval_box, fieldval_box, params)
 			{
@@ -588,18 +594,18 @@ class FCIndexedField extends FCField
 
 			$css .= '';
 
-			$remove_button = '<span class="' . $add_on_class . ' fcfield-delvalue ' . $font_icon_class . '" title="'.JText::_( 'FLEXI_REMOVE_VALUE' ).'" onclick="deleteField'.$field->id.'(this);"></span>';
-			$move2 = '<span class="' . $add_on_class . ' fcfield-drag-handle ' . $font_icon_class . '" title="'.JText::_( 'FLEXI_CLICK_TO_DRAG' ).'"></span>';
+			$remove_button = '<span class="' . $btn_item_class . ' fcfield-delvalue ' . $font_icon_class . '" title="'.\Joomla\CMS\Language\Text::_( 'FLEXI_REMOVE_VALUE' ).'" onclick="deleteField'.$field->id.'(this);"></span>';
+			$move2         = '<span class="' . $btn_item_class . ' fcfield-drag-handle ' . $font_icon_class . '" title="'.\Joomla\CMS\Language\Text::_( 'FLEXI_CLICK_TO_DRAG' ).'"></span>';
 			$add_here = '';
-			$add_here .= $add_position==2 || $add_position==3 ? '<span class="' . $add_on_class . ' fcfield-insertvalue fc_before ' . $font_icon_class . '" onclick="addField'.$field->id.'(null, jQuery(this).closest(\'ul\'), jQuery(this).closest(\'li\'), {insert_before: 1});" title="'.JText::_( 'FLEXI_ADD_BEFORE' ).'"></span> ' : '';
-			$add_here .= $add_position==1 || $add_position==3 ? '<span class="' . $add_on_class . ' fcfield-insertvalue fc_after ' . $font_icon_class . '"  onclick="addField'.$field->id.'(null, jQuery(this).closest(\'ul\'), jQuery(this).closest(\'li\'), {insert_before: 0});" title="'.JText::_( 'FLEXI_ADD_AFTER' ).'"></span> ' : '';
+			$add_here .= $add_position==2 || $add_position==3 ? '<span class="' . $btn_item_class . ' fcfield-insertvalue fc_before ' . $font_icon_class . '" onclick="addField'.$field->id.'(null, jQuery(this).closest(\'ul\'), jQuery(this).closest(\'li\'), {insert_before: 1});" title="'.\Joomla\CMS\Language\Text::_( 'FLEXI_ADD_BEFORE' ).'"></span> ' : '';
+			$add_here .= $add_position==1 || $add_position==3 ? '<span class="' . $btn_item_class . ' fcfield-insertvalue fc_after ' . $font_icon_class . '"  onclick="addField'.$field->id.'(null, jQuery(this).closest(\'ul\'), jQuery(this).closest(\'li\'), {insert_before: 0});" title="'.\Joomla\CMS\Language\Text::_( 'FLEXI_ADD_AFTER' ).'"></span> ' : '';
 		}
 
 		// Field not multi-value
 		else
 		{
 			$remove_button = '';
-			$move2 = '';
+			$move2         = '';
 			$add_here = '';
 			$js .= '';
 			$css .= '';
@@ -732,7 +738,7 @@ class FCIndexedField extends FCField
 						.(!$placeInsideLabel ? $input_fld : '')
 						.'<label for="'.$elementid_no.'" class="'.$label_class.'" style="'.$label_style.'" '.($form_vals_display==1 ? 'title="'.@ $element->label_tip.'"' : '').'>'
 							. ($placeInsideLabel ? $input_fld : '') . ' '
-							.($form_vals_display!=1 ? JText::_($element->text) : '')
+							.($form_vals_display!=1 ? \Joomla\CMS\Language\Text::_($element->text) : '')
 							.($form_vals_display==2 ? ' <br/>' : '')
 							.($form_vals_display >0 ? $element->image_html : '')
 						.'</label>'
@@ -767,18 +773,18 @@ class FCIndexedField extends FCField
 				$field->html[] = '
 					'.($display_as_select ?
 						$opentag
-						. JHtml::_('select.genericlist', $options, $fieldname_n, $attribs . $this_val_attribs . ' class="'.$input_classes.'" data-uniqueRowNum="'.$n.'"', 'value', 'text', $value, $elementid_n)
-						. ($auto_value ? '<span class="fc-mssg-inline fc-info fc-nobgimage">' . JText::_('FLEXI_AUTO') . '</span>' : '')
+						. \Joomla\CMS\HTML\HTMLHelper::_('select.genericlist', $options, $fieldname_n, $attribs . $this_val_attribs . ' class="'.$input_classes.'" data-uniqueRowNum="'.$n.'"', 'value', 'text', $value, $elementid_n)
+						. ($auto_value ? '<span class="fc-mssg-inline fc-info fc-nobgimage">' . \Joomla\CMS\Language\Text::_('FLEXI_AUTO') . '</span>' : '')
 						. $closetag :
 						'<div id="'.$elementid_n.'" class="' . ($use_jslib === 3 ? 'group-fcset ' : '') . 'fc_input_set">
 							' . $form_field . '
-							'.($auto_value ? '<span class="fc-mssg-inline fc-info fc-nobgimage">' . JText::_('FLEXI_AUTO') . '</span>' : '').'
+							'.($auto_value ? '<span class="fc-mssg-inline fc-info fc-nobgimage">' . \Joomla\CMS\Language\Text::_('FLEXI_AUTO') . '</span>' : '').'
 						</div>'
 					).'
 					'.($cascade_after ? '<span class="field_cascade_loading"></span>' : '').'
 					'.($use_ingroup   ? '<input type="hidden" class="fcfield_value_holder" name="'.$valueholder_nm.'['.$n.']" id="'.$valueholder_id.'_'.$n.'" value="-">' : '').'
 				'.(!$add_ctrl_btns || $auto_value ? '' : '
-				<div class="'.$input_grp_class.' fc-xpended-btns">
+				<div class="'.$btn_group_class.' fc-xpended-btns">
 					'.$move2.'
 					'.$remove_button.'
 					'.(!$add_position ? '' : $add_here).'
@@ -802,7 +808,7 @@ class FCIndexedField extends FCField
 			// Rendering field via AJAX call
 			else
 			{
-				$field->html = !$display_as_select ? $form_field : JHtml::_('select.options', $options, 'value', 'text', $value, $translate = false);
+				$field->html = !$display_as_select ? $form_field : \Joomla\CMS\HTML\HTMLHelper::_('select.options', $options, 'value', 'text', $value, $translate = false);
 			}
 
 			$n++;
@@ -834,9 +840,9 @@ class FCIndexedField extends FCField
 				'</li>';
 			$field->html = '<ul class="fcfield-sortables" id="sortables_'.$field->id.'">' .$field->html. '</ul>';
 			if (!$add_position) $field->html .= '
-				<div class="input-append input-prepend fc-xpended-btns">
-					<span class="fcfield-addvalue ' . $font_icon_class . ' fccleared" onclick="addField'.$field->id.'(jQuery(this).closest(\'.fc-xpended-btns\').get(0));" title="'.JText::_( 'FLEXI_ADD_TO_BOTTOM' ).'">
-						'.JText::_( 'FLEXI_ADD_VALUE' ).'
+				<div class="'.$btn_group_class.' fc-xpended-btns">
+					<span class="fcfield-addvalue ' . $font_icon_class . ' ' . $btn_item_class . '" onclick="addField'.$field->id.'(jQuery(this).closest(\'.fc-xpended-btns\').get(0));" title="'.\Joomla\CMS\Language\Text::_( 'FLEXI_ADD_TO_BOTTOM' ).'">
+						'.\Joomla\CMS\Language\Text::_( 'FLEXI_ADD_VALUE' ).'
 					</span>
 				</div>';
 		}
@@ -853,9 +859,9 @@ class FCIndexedField extends FCField
 		{
 			// Add message box about allowed # values
 			if ($exact_values) {
-				$values_msg = '<div class="alert alert-info fc-small fc-iblock">'.JText::sprintf('FLEXI_FIELD_NUM_VALUES_EXACTLY', $exact_values) .'</div><div class="fcclear"></div>';
+				$values_msg = '<div class="alert alert-info fc-small fc-iblock">'.\Joomla\CMS\Language\Text::sprintf('FLEXI_FIELD_NUM_VALUES_EXACTLY', $exact_values) .'</div><div class="fcclear"></div>';
 			} else if ($max_values || $min_values > 1) {
-				$values_msg = '<div class="alert alert-info fc-small fc-iblock">'.JText::sprintf('FLEXI_FIELD_NUM_VALUES_BETWEEN', $min_values, $max_values) .'</div><div class="fcclear"></div>';
+				$values_msg = '<div class="alert alert-info fc-small fc-iblock">'.\Joomla\CMS\Language\Text::sprintf('FLEXI_FIELD_NUM_VALUES_BETWEEN', $min_values, $max_values) .'</div><div class="fcclear"></div>';
 			}
 
 			// Add VALUE message to every value if inside field group
@@ -882,7 +888,7 @@ class FCIndexedField extends FCField
 		}
 
 		// Add sort message to every value if inside field group
-		$sortable_msg = $sortable ? '<div style="display: inline-block; vertical-align: middle; padding: 0px 4px 0px 8px;"><span class="icon-info hasTooltip" title="'.JText::_('FLEXI_FIELD_ALLOW_SORTABLE_INFO').'"></span>' . JText::_('FLEXI_ORDER') . '</div> ' : '';
+		$sortable_msg = $sortable ? '<div style="display: inline-block; vertical-align: middle; padding: 0px 4px 0px 8px;"><span class="icon-info hasTooltip" title="'.\Joomla\CMS\Language\Text::_('FLEXI_FIELD_ALLOW_SORTABLE_INFO').'"></span>' . \Joomla\CMS\Language\Text::_('FLEXI_ORDER') . '</div> ' : '';
 		if ( !empty($sortable_msg) )
 		{
 			if (!$use_ingroup) {
@@ -913,7 +919,7 @@ class FCIndexedField extends FCField
 			$master_field = $_fields[$cascade_after];
 			FlexicontentFields::loadFieldConfig($master_field, $item);
 
-			$cascade_prompt = $cascade_prompt ?: JText::_('FLEXI_PLEASE_SELECT') . ' ' . JText::_('FLEXI_ABOVE');
+			$cascade_prompt = $cascade_prompt ?: \Joomla\CMS\Language\Text::_('FLEXI_PLEASE_SELECT') . ' ' . \Joomla\CMS\Language\Text::_('FLEXI_ABOVE');
 
 			$single_master = ! $master_field->parameters->get('use_ingroup', 0) && !$master_field->parameters->get('multiple', 0);
 			$valgrps = $ajax || $single_master ? $field->valgrps : (isset($field->valgrps[$i]) ? $field->valgrps[$i] : null);
@@ -938,7 +944,7 @@ class FCIndexedField extends FCField
 				$elements = array();
 				if (!$ajax)
 				{
-					//$prompt = JHtml::_('select.option', (static::$valueIsArr ? '_field_selection_prompt_' : ''), $cascade_prompt, 'value', 'text', (static::$valueIsArr ? 'disabled' : null));
+					//$prompt = \Joomla\CMS\HTML\HTMLHelper::_('select.option', (static::$valueIsArr ? '_field_selection_prompt_' : ''), $cascade_prompt, 'value', 'text', (static::$valueIsArr ? 'disabled' : null));
 					$prompt = (object) array(
 						'value' => (static::$valueIsArr ? '_field_selection_prompt_' : ''),
 						'text' => $cascade_prompt,
@@ -961,7 +967,7 @@ class FCIndexedField extends FCField
 			if ($cascade_after)
 			{
 				// Filter out values not in the the value group, this is done by modifying the SQL query
-				$db = JFactory::getDbo();
+				$db = \Joomla\CMS\Factory::getDbo();
 				$_elements = array();
 				foreach($valgrps as & $vg) $vg = $db->Quote($vg);
 				unset($vg);
@@ -977,10 +983,10 @@ class FCIndexedField extends FCField
 			$elements = FlexicontentFields::indexedField_getElements($field, $item, static::$extra_props, $item_pros, false, $and_clause);
 			if ( !is_array($elements) )
 			{
-				//$prompt = JHtml::_('select.option', (static::$valueIsArr ? '_field_selection_prompt_' : ''), JText::_('FLEXI_FIELD_INVALID_QUERY'), 'value', 'text', (static::$valueIsArr ? 'disabled' : null));
+				//$prompt = \Joomla\CMS\HTML\HTMLHelper::_('select.option', (static::$valueIsArr ? '_field_selection_prompt_' : ''), \Joomla\CMS\Language\Text::_('FLEXI_FIELD_INVALID_QUERY'), 'value', 'text', (static::$valueIsArr ? 'disabled' : null));
 				$prompt = (object) array(
 					'value' => (static::$valueIsArr ? '_field_selection_prompt_' : ''),
-					'text' => JText::_('FLEXI_FIELD_INVALID_QUERY'),
+					'text' => \Joomla\CMS\Language\Text::_('FLEXI_FIELD_INVALID_QUERY'),
 					'disable' => (static::$valueIsArr ? true : null),
 					'isprompt' => 'fcpadded alert alert-important'
 				);
@@ -994,10 +1000,10 @@ class FCIndexedField extends FCField
 			$elements = FlexicontentFields::indexedField_getElements($field, $item, static::$extra_props);
 			if ( !is_array($elements) )
 			{
-				//$prompt = JHtml::_('select.option', (static::$valueIsArr ? '_field_selection_prompt_' : ''), JText::_('FLEXI_FIELD_INVALID_ELEMENTS'), 'value', 'text', (static::$valueIsArr ? 'disabled' : null));
+				//$prompt = \Joomla\CMS\HTML\HTMLHelper::_('select.option', (static::$valueIsArr ? '_field_selection_prompt_' : ''), \Joomla\CMS\Language\Text::_('FLEXI_FIELD_INVALID_ELEMENTS'), 'value', 'text', (static::$valueIsArr ? 'disabled' : null));
 				$prompt = (object) array(
 					'value' => (static::$valueIsArr ? '_field_selection_prompt_' : ''),
-					'text' => JText::_('FLEXI_FIELD_INVALID_ELEMENTS'),
+					'text' => \Joomla\CMS\Language\Text::_('FLEXI_FIELD_INVALID_ELEMENTS'),
 					'disable' => (static::$valueIsArr ? true : null),
 					'isprompt' => 'fcpadded alert alert-important'
 				);
@@ -1074,10 +1080,10 @@ class FCIndexedField extends FCField
 		// ***
 		if (empty($elements))
 		{
-			//$prompt = JHtml::_('select.option', (static::$valueIsArr ? '_field_selection_prompt_' : ''), 'No data found', 'value', 'text', (static::$valueIsArr ? 'disabled' : null));
+			//$prompt = \Joomla\CMS\HTML\HTMLHelper::_('select.option', (static::$valueIsArr ? '_field_selection_prompt_' : ''), 'No data found', 'value', 'text', (static::$valueIsArr ? 'disabled' : null));
 			$prompt = (object) array(
 				'value' => (static::$valueIsArr ? '_field_selection_prompt_' : ''),
-				'text' => JText::_('FLEXI_FIELD_NO_DATA_FOUND'),
+				'text' => \Joomla\CMS\Language\Text::_('FLEXI_FIELD_NO_DATA_FOUND'),
 				'disable' => (static::$valueIsArr ? true : null),
 				'isprompt' => 'fcpadded alert alert-warning'
 			);
@@ -1091,11 +1097,11 @@ class FCIndexedField extends FCField
 		// ***
 		$display_label_form = (int) $field->parameters->get( 'display_label_form', 1 ) ;
 		$usefirstoption  = $display_label_form==-1 ? 1 : $field->parameters->get( 'usefirstoption', $display_as_select ? 1 : 0 );
-		$firstoptiontext = $display_label_form==-1 ? $field->label : JText::_($field->parameters->get( 'firstoptiontext', 'FLEXI_SELECT' ));
+		$firstoptiontext = $display_label_form==-1 ? $field->label : \Joomla\CMS\Language\Text::_($field->parameters->get( 'firstoptiontext', 'FLEXI_SELECT' ));
 
 		if ($usefirstoption)   // Add selection prompt
 		{
-			//prompt = JHtml::_('select.option', (static::$valueIsArr ? '_field_selection_prompt_' : ''), $firstoptiontext, 'value', 'text', (static::$valueIsArr ? 'disabled' : null));
+			//prompt = \Joomla\CMS\HTML\HTMLHelper::_('select.option', (static::$valueIsArr ? '_field_selection_prompt_' : ''), $firstoptiontext, 'value', 'text', (static::$valueIsArr ? 'disabled' : null));
 			$prompt = (object) array(
 				'value' => (static::$valueIsArr ? '_field_selection_prompt_' : ''),
 				'text' => $firstoptiontext,
@@ -1118,7 +1124,7 @@ class FCIndexedField extends FCField
 			if ($image_type==0)
 			{
 				$imagedir = preg_replace('#^(/)*#', '', $field->parameters->get( 'imagedir' ) );
-				$imgpath  = JUri::root(true) .'/'. $imagedir;
+				$imgpath  = \Joomla\CMS\Uri\Uri::root(true) .'/'. $imagedir;
 				$imgfolder = JPATH_SITE .DS. $imagedir;
 			}
 			else {
@@ -1149,7 +1155,7 @@ class FCIndexedField extends FCField
 	// Method called via AJAX to get dependent values
 	function getCascadedField()
 	{
-		$jinput = JFactory::getApplication()->input;
+		$jinput = \Joomla\CMS\Factory::getApplication()->input;
 
 		$field_id = $jinput->getInt('field_id', 0);
 		$item_id  = $jinput->getInt('item_id', 0);
@@ -1164,7 +1170,7 @@ class FCIndexedField extends FCField
 		$field->valindex = $valindex;
 
 		// Load item
-		$item = JTable::getInstance( $_type = 'flexicontent_items', $_prefix = '', $_config = array() );
+		$item = \Joomla\CMS\Table\Table::getInstance( $_type = 'flexicontent_items', $_prefix = '', $_config = array() );
 		$item->load( $item_id );
 
 		// Get field configuration
@@ -1189,7 +1195,7 @@ class FCIndexedField extends FCField
 	{
 		if ( !in_array($field->field_type, static::$field_types) ) return;
 
-		$field->label = JText::_($field->label);
+		$field->label = \Joomla\CMS\Language\Text::_($field->label);
 
 		// Set field and item objects
 		$this->setField($field);
@@ -1208,8 +1214,8 @@ class FCIndexedField extends FCField
 		{
 			$initialized = 1;
 
-			$app       = JFactory::getApplication();
-			$document  = JFactory::getDocument();
+			$app       = \Joomla\CMS\Factory::getApplication();
+			$document  = \Joomla\CMS\Factory::getDocument();
 			$option    = $app->input->getCmd('option', '');
 			$format    = $app->input->getCmd('format', 'html');
 			$realview  = $app->input->getCmd('view', '');
@@ -1269,7 +1275,7 @@ class FCIndexedField extends FCField
 		if (static::$usesImages)
 		{
 			$imagedir = preg_replace('#^(/)*#', '', $field->parameters->get( 'imagedir' ) );
-			$imgpath  = JUri::root(true) .'/'. $imagedir;
+			$imgpath  = \Joomla\CMS\Uri\Uri::root(true) .'/'. $imagedir;
 
 			$image_type = (int)$field->parameters->get( 'image_type', 0 ) ;
 			$icon_size = (int)$field->parameters->get( 'icon_size', $field->parameters->get( 'icon_size_form') ) ;
@@ -1294,8 +1300,8 @@ class FCIndexedField extends FCField
 		if (!$elements)
 		{
 			$error_text = $sql_mode
-				? JText::_('FLEXI_FIELD_INVALID_QUERY')
-				: JText::_('FLEXI_FIELD_INVALID_ELEMENTS');
+				? \Joomla\CMS\Language\Text::_('FLEXI_FIELD_INVALID_QUERY')
+				: \Joomla\CMS\Language\Text::_('FLEXI_FIELD_INVALID_ELEMENTS');
 
 			$field->{$prop}       = $is_ingroup ? array($error_text) : $error_text;
 			$field->display_index = $is_ingroup ? array() : '';
@@ -1395,7 +1401,7 @@ class FCIndexedField extends FCField
 
 		$max_values = $use_ingroup ? 0 : (int) $field->parameters->get( 'max_values', 0 ) ;
 		$multiple   = $use_ingroup || (int) $field->parameters->get( 'allow_multiple', 0 ) ;
-		$is_importcsv = JFactory::getApplication()->get('task', '', 'cmd') == 'importcsv';
+		$is_importcsv = \Joomla\CMS\Factory::getApplication()->get('task', '', 'cmd') == 'importcsv';
 		$field->use_suborder = $multiple && static::$valueIsArr;
 
 		// Make sure posted data is an array
@@ -1417,7 +1423,7 @@ class FCIndexedField extends FCField
 		if ( $use_ingroup )
 		{
 			$empty_value = static::$valueIsArr ? array() : null;
-			$custom = JFactory::getApplication()->input->get('custom', array(), 'array');
+			$custom = \Joomla\CMS\Factory::getApplication()->input->get('custom', array(), 'array');
 
 			if (isset($custom['_fcfield_valueholder_'][$field->name]))
 			{
@@ -1486,7 +1492,7 @@ class FCIndexedField extends FCField
 		}
 		$post = $newpost;
 
-		//if ($use_ingroup) JFactory::getApplication()->enqueueMessage( print_r($post, true), 'warning');
+		//if ($use_ingroup) \Joomla\CMS\Factory::getApplication()->enqueueMessage( print_r($post, true), 'warning');
 	}
 
 
@@ -1518,7 +1524,7 @@ class FCIndexedField extends FCField
 
 		if (!self::$fcProPlg)
 		{
-			JFactory::getApplication()->enqueueMessage('Automatic field value for field  \'' . $field->label . '\' is only supported by FLEXIcontent PRO version, please disable this feature in field configuration', 'notice');
+			\Joomla\CMS\Factory::getApplication()->enqueueMessage('Automatic field value for field  \'' . $field->label . '\' is only supported by FLEXIcontent PRO version, please disable this feature in field configuration', 'notice');
 			return;
 		}
 
@@ -1579,7 +1585,7 @@ class FCIndexedField extends FCField
 			{
 				// image specific variables
 				$imagedir = preg_replace('#^(/)*#', '', $filter->parameters->get( 'imagedir' ) );
-				$imgpath  = JUri::root(true) .'/'. $imagedir;
+				$imgpath  = \Joomla\CMS\Uri\Uri::root(true) .'/'. $imagedir;
 				foreach($elements as $element) {
 					$element->image_url = $imgpath . $element->image;
 				}
@@ -1591,11 +1597,11 @@ class FCIndexedField extends FCField
 			$filter->html = '';
 			$sql_mode = $filter->parameters->get( 'sql_mode', 0 );  // must retrieve variable here, and not before retrieving elements !
 			if ($sql_mode && $item_pros > 0)
-				$filter->html = sprintf( JText::_('FLEXI_FIELD_ITEM_SPECIFIC_AS_FILTERABLE'), $filter->label );
+				$filter->html = sprintf( \Joomla\CMS\Language\Text::_('FLEXI_FIELD_ITEM_SPECIFIC_AS_FILTERABLE'), $filter->label );
 			else if ($sql_mode)
-				$filter->html = JText::_('FLEXI_FIELD_INVALID_QUERY');
+				$filter->html = \Joomla\CMS\Language\Text::_('FLEXI_FIELD_INVALID_QUERY');
 			else
-				$filter->html = JText::_('FLEXI_FIELD_INVALID_ELEMENTS');
+				$filter->html = \Joomla\CMS\Language\Text::_('FLEXI_FIELD_INVALID_ELEMENTS');
 			return;
 		}
 
@@ -1667,7 +1673,7 @@ class FCIndexedField extends FCField
 
 		if (!class_exists($class_name))
 		{
-			JPluginHelper::getPlugin('flexicontent_fields', $this->field->field_type);
+			\Joomla\CMS\Plugin\PluginHelper::getPlugin('flexicontent_fields', $this->field->field_type);
 		}
 
 		$value_usage = (int) $this->field->parameters->get('default_value_use', 0);

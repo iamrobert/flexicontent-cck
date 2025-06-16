@@ -25,7 +25,7 @@ jimport('joomla.filesystem.file');
 /**
  * HTML View class for the Category View
  */
-class FlexicontentViewItems extends JViewLegacy
+class FlexicontentViewItems extends \Joomla\CMS\MVC\View\HtmlView
 {
 	/**
 	 * Creates the page's display
@@ -48,9 +48,9 @@ class FlexicontentViewItems extends JViewLegacy
 		$item_count         = 0;
 
 		// Initialize framework variables
-		$user    = JFactory::getUser();
-		$aid     = JAccess::getAuthorisedViewLevels($user->id);
-		$app     = JFactory::getApplication();
+		$user    = \Joomla\CMS\Factory::getUser();
+		$aid     = \Joomla\CMS\Access\Access::getAuthorisedViewLevels($user->id);
+		$app     = \Joomla\CMS\Factory::getApplication();
 		$jinput  = $app->input;
 
 
@@ -66,7 +66,7 @@ class FlexicontentViewItems extends JViewLegacy
 		 * For backend this is component parameters only
 		 * For frontend this category parameters as VIEW's parameters (category parameters are merged parameters in order: layout(template-manager)/component/ancestors-cats/category/author/menu)
 		 */
-		$cparams = JComponentHelper::getParams('com_flexicontent');
+		$cparams = \Joomla\CMS\Component\ComponentHelper::getParams('com_flexicontent');
 		$params  = $app->isClient('administrator')
 			? $cparams
 			: $model->getCategory()->parameters;
@@ -93,31 +93,31 @@ class FlexicontentViewItems extends JViewLegacy
 
 		if (!$filter_type && $app->isClient('administrator'))
 		{
-			$app->enqueueMessage(JText::_('FLEXI_CSV_EXPORT_PLEASE_FILTER_BY_TYPE'), 'warning');
+			$app->enqueueMessage(\Joomla\CMS\Language\Text::_('FLEXI_CSV_EXPORT_PLEASE_FILTER_BY_TYPE'), 'warning');
 			$app->redirect($this->_getSafeReferer());
 		}
 
 		if (!$csv_header && $app->isClient('administrator'))
 		{
-			$app->enqueueMessage(JText::_('Please select Field name or Field label as header row.'), 'warning');
+			$app->enqueueMessage(\Joomla\CMS\Language\Text::_('Please select Field name or Field label as header row.'), 'warning');
 			$err_count++;
 		}
 
 		if (!$csv_raw_export && $app->isClient('administrator'))
 		{
-			$app->enqueueMessage(JText::_('Please select to export values according to field configuration or to export raw values.'), 'warning');
+			$app->enqueueMessage(\Joomla\CMS\Language\Text::_('Please select to export values according to field configuration or to export raw values.'), 'warning');
 			$err_count++;
 		}
 
 		if (!$csv_all_fields && $app->isClient('administrator'))
 		{
-			$app->enqueueMessage(JText::_('Please select to export all fields or only configured fields'), 'warning');
+			$app->enqueueMessage(\Joomla\CMS\Language\Text::_('Please select to export all fields or only configured fields'), 'warning');
 			$err_count++;
 		}
 
 		if ($err_count)
 		{
-			$app->enqueueMessage(JText::_('(Set this inside filters slider)'), 'warning');
+			$app->enqueueMessage(\Joomla\CMS\Language\Text::_('(Set this inside filters slider)'), 'warning');
 			$app->redirect($this->_getSafeReferer());
 		}
 
@@ -152,7 +152,7 @@ class FlexicontentViewItems extends JViewLegacy
 			
 		);
 
-		$has_pro    = JPluginHelper::isEnabled($extfolder = 'system', $extname = 'flexisyspro');
+		$has_pro    = \Joomla\CMS\Plugin\PluginHelper::isEnabled($extfolder = 'system', $extname = 'flexisyspro');
 		$export_all = $has_pro && $app->isClient('administrator') && $jinput->getCmd('items_set', '') === 'all';
 
 		if ($export_all)
@@ -160,7 +160,7 @@ class FlexicontentViewItems extends JViewLegacy
 			// Create plugin instance
 			$className   = 'plg' . ucfirst($extfolder) . $extname;
 			$dispatcher  = JEventDispatcher::getInstance();
-			$plg_db_data = JPluginHelper::getPlugin($extfolder, $extname);
+			$plg_db_data = \Joomla\CMS\Plugin\PluginHelper::getPlugin($extfolder, $extname);
 
 			$plg = new $className($dispatcher, array(
 				'type'   => $extfolder,
@@ -170,7 +170,7 @@ class FlexicontentViewItems extends JViewLegacy
 
 			if (!method_exists($plg, 'getItemsSet'))
 			{
-				$app->enqueueMessage(JText::_('FLEXI_PRO_VERSION_OUTDATED'), 'warning');
+				$app->enqueueMessage(\Joomla\CMS\Language\Text::_('FLEXI_PRO_VERSION_OUTDATED'), 'warning');
 				$app->redirect($this->_getSafeReferer());
 			}
 		}
@@ -223,7 +223,7 @@ class FlexicontentViewItems extends JViewLegacy
 		// Abort if no fields were configured for CSV export
 		if ($total_fields === 0)
 		{
-			$app->enqueueMessage(JText::_('FLEXI_CSV_EXPORT_ZERO_FIELDS_CONFIGURED_FOR_CSV_EXPORT'), 'warning');
+			$app->enqueueMessage(\Joomla\CMS\Language\Text::_('FLEXI_CSV_EXPORT_ZERO_FIELDS_CONFIGURED_FOR_CSV_EXPORT'), 'warning');
 			$app->redirect($this->_getSafeReferer());
 		}
 
@@ -265,7 +265,11 @@ class FlexicontentViewItems extends JViewLegacy
 			$delim = $field_sep;
 			$total_fields++;
 		}
-		echo "\n";
+		if ($cparams->get("csv_export_item_record_sep", "\n") == '\n'){
+			echo "\n";
+		}else{
+			echo $cparams->get("csv_export_item_record_sep", "\n");
+		}
 
 
 		// Try to create CSV export with all items
@@ -291,10 +295,17 @@ class FlexicontentViewItems extends JViewLegacy
 				foreach($item0->fields as $field_name => $field)
 				{
 					$is_coreprops_form_field = $field->field_type === 'coreprops' && substr($field->name, 0 , 5) === 'form_';
-					$include_in_csv_export = (int) $field->parameters->get('include_in_csv_export', 0);
-					$include_in_csv_export = $csv_all_fields !== 2 ? $include_in_csv_export : ($is_coreprops_form_field ? 0 : 1);
 
-					$csv_strip_html = (int) $field->parameters->get('csv_strip_html', 0);
+					$include_in_csv_export = (int) $field->parameters->get('include_in_csv_export', 0);
+					$csv_strip_html = (int) $cparams->get('csv_strip_html', 0);
+
+					$include_in_csv_export = $csv_all_fields !== 2
+						? $include_in_csv_export
+						: ($is_coreprops_form_field ? 0 : 1);
+
+					$csv_strip_html = $csv_all_fields !== 2
+						? $csv_strip_html
+						: 1;
 
 					if (!$include_in_csv_export)
 					{
@@ -350,26 +361,31 @@ class FlexicontentViewItems extends JViewLegacy
 					// CASE 3: RAW value display !
 					elseif (isset($item->fieldvalues[$field->id]))
 					{
-						if (is_array(reset($item->fieldvalues[$field->id])))
-						{
-							$vals = array();
-
-							foreach ($item->fieldvalues[$field->id] as $v)
-							{
-								$vals = implode(' | ', $v);
-							}
-						}
-
-						else
-						{
-							$vals = $item->fieldvalues[$field->id];
-						}
+						$vals = $item->fieldvalues[$field->id];
 					}
 
-					echo $this->_encodeCSVField( is_array($vals) ? implode(', ', $vals ) : $vals );
+					// Make sure that $vals is array of strings
+					if (is_array($vals) && (is_array(reset($vals)) || is_object(reset($vals))))
+					{
+						$_vals = [];
+						foreach ($vals as $v)
+						{
+							$v = (array) $v;
+							foreach($v as $k => $v2)
+							{
+								$v[$k] = is_string($v2) ? $v2 : json_encode($v2);
+							}
+							$_vals[] = implode($cparams->get('csv_export_field_mprop_sep', '!!'), $v);
+						}
+						$vals = $_vals;
+					}
+					echo $this->_encodeCSVField( is_array($vals) ? implode($cparams->get('csv_export_field_multivalue_sep', '%%'), $vals ) : $vals );
 				}
-
-				echo "\n";
+				if ($cparams->get("csv_export_item_record_sep", "\n") == '\n'){
+					echo "\n";
+				}else{
+					echo $cparams->get("csv_export_item_record_sep", "\n");
+				}
 			}
 
 			/**
@@ -427,6 +443,6 @@ class FlexicontentViewItems extends JViewLegacy
 		$referer = !empty($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : null;
 		return flexicontent_html::is_safe_url($referer)
 			? $referer
-			: JUri::base();
+			: \Joomla\CMS\Uri\Uri::base();
 	}
 }

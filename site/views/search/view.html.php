@@ -20,6 +20,10 @@
 defined( '_JEXEC' ) or die( 'Restricted access' );
 
 jimport('legacy.view.legacy');
+
+use Joomla\CMS\Filter\InputFilter;
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
 use Joomla\String\StringHelper;
 use Joomla\Utilities\ArrayHelper;
 
@@ -33,7 +37,7 @@ require_once (JPATH_SITE.DS.'components'.DS.'com_flexicontent'.DS.'helpers'.DS.'
  * @subpackage FLEXIcontent
  * @since 1.0
  */
-class FLEXIcontentViewSearch extends JViewLegacy
+class FLEXIcontentViewSearch extends \Joomla\CMS\MVC\View\HtmlView
 {
 	/**
 	 * Creates the page's display
@@ -43,17 +47,17 @@ class FLEXIcontentViewSearch extends JViewLegacy
 	function display( $tpl = null )
 	{
 		// Initialize variables
-		$app      = JFactory::getApplication();
-		$jinput   = JFactory::getApplication()->input;
+		$app      = \Joomla\CMS\Factory::getApplication();
+		$jinput   = \Joomla\CMS\Factory::getApplication()->input;
 
 		$option = $jinput->getCmd('option', '');
 		$view   = $jinput->getCmd('view', '');
 
-		$document = JFactory::getDocument();
-		$db       = JFactory::getDbo();
+		$document = \Joomla\CMS\Factory::getDocument();
+		$db       = \Joomla\CMS\Factory::getDbo();
 		$menus    = $app->getMenu();
 		$menu     = $menus->getActive();
-		$uri      = JUri::getInstance();
+		$uri      = \Joomla\CMS\Uri\Uri::getInstance();
 		$pathway  = $app->getPathway();
 
 		// Get view's Model
@@ -77,6 +81,8 @@ class FLEXIcontentViewSearch extends JViewLegacy
 		$searchword     = $state->get('keyword');
 		$searchphrase   = $state->get('match');
 		$searchordering = $state->get('ordering');
+
+		$selectors_display_as = $params->get('selectors_display_as', 'select');
 
 
 		/**
@@ -110,9 +116,9 @@ class FLEXIcontentViewSearch extends JViewLegacy
 		{
 			$document->addStyleSheet($this->baseurl.'/components/com_flexicontent/assets/css/flexicontent.css', array('version' => FLEXI_VHASH));
 			$document->addStyleSheet($this->baseurl.'/components/com_flexicontent/assets/css/flexi_filters.css', array('version' => FLEXI_VHASH));
-			!JFactory::getLanguage()->isRtl()
-				? $document->addStyleSheet(JUri::base(true).'/components/com_flexicontent/assets/css/' . (FLEXI_J40GE ? 'j4x.css' : 'j3x.css'), array('version' => FLEXI_VHASH))
-				: $document->addStyleSheet(JUri::base(true).'/components/com_flexicontent/assets/css/' . (FLEXI_J40GE ? 'j4x_rtl.css' : 'j3x_rtl.css'), array('version' => FLEXI_VHASH));
+			!\Joomla\CMS\Factory::getLanguage()->isRtl()
+				? $document->addStyleSheet(\Joomla\CMS\Uri\Uri::base(true).'/components/com_flexicontent/assets/css/' . (FLEXI_J40GE ? 'j4x.css' : 'j3x.css'), array('version' => FLEXI_VHASH))
+				: $document->addStyleSheet(\Joomla\CMS\Uri\Uri::base(true).'/components/com_flexicontent/assets/css/' . (FLEXI_J40GE ? 'j4x_rtl.css' : 'j3x_rtl.css'), array('version' => FLEXI_VHASH));
 		}
 
 		if (FLEXI_J40GE && file_exists(JPATH_SITE.DS.'media/templates/site'.DS.$app->getTemplate().DS.'css'.DS.'flexicontent.css'))
@@ -124,6 +130,23 @@ class FLEXIcontentViewSearch extends JViewLegacy
 			$document->addStyleSheet($this->baseurl.'/templates/'.$app->getTemplate().'/css/flexicontent.css', array('version' => FLEXI_VHASH));
 		}
 
+		// Auto-disable "Flexicontent" search AREA if no type are clicked
+		// NOTE: if zero search areas are posted then search model will search in ALL areas (including flexicontent)
+		$document->addScriptDeclaration("
+			var _toggle_content_area = function() {
+				let count = 0;
+				let contenttypes_filter_list = jQuery('#contenttypes_filter_list');
+				if (contenttypes_filter_list.length) {
+					contenttypes_filter_list.find('input').each(function() {
+						if (jQuery(this).prop('checked')) count++;
+					});
+					console.log(count);
+					!count
+						? jQuery('#area_flexicontent').attr('disabled', 'disabled')
+						: jQuery('#area_flexicontent').removeAttr('disabled');
+				}
+			}
+		");
 
 		/**
 		 * Calculate a (browser window) page title and a page heading
@@ -160,7 +183,7 @@ class FLEXIcontentViewSearch extends JViewLegacy
 
 			// Calculate default page heading (=called page title in J1.5), which in turn will be document title below !! ...
 			// meta_params->get('page_title') is meant for <title> but let's use as ... default page heading
-			$default_heading = JText::_( 'FLEXI_SEARCH' );
+			$default_heading = Text::_( 'FLEXI_SEARCH' );
 
 			// Decide to show page heading (=J1.5 page title), this default to no
 			$show_default_heading = 0;
@@ -190,10 +213,10 @@ class FLEXIcontentViewSearch extends JViewLegacy
 		// Check and prepend or append site name to page title
 		if ( $doc_title != $app->getCfg('sitename') ) {
 			if ($app->getCfg('sitename_pagetitles', 0) == 1) {
-				$doc_title = JText::sprintf('JPAGETITLE', $app->getCfg('sitename'), $doc_title);
+				$doc_title = Text::sprintf('JPAGETITLE', $app->getCfg('sitename'), $doc_title);
 			}
 			elseif ($app->getCfg('sitename_pagetitles', 0) == 2) {
-				$doc_title = JText::sprintf('JPAGETITLE', $doc_title, $app->getCfg('sitename'));
+				$doc_title = Text::sprintf('JPAGETITLE', $doc_title, $app->getCfg('sitename'));
 			}
 		}
 
@@ -248,10 +271,10 @@ class FLEXIcontentViewSearch extends JViewLegacy
 		$params->set('canseltypes', $canseltypes);  // SET "type selection FLAG" back into parameters
 
 		// Type data and configuration (parameters), if no content types specified then all will be retrieved
-		$typeData = flexicontent_db::getTypeData($contenttypes);
+		$typeData = flexicontent_db::getTypeData($contenttypes, 1);
 		$contenttypes = array();
 
-		foreach($typeData as $tdata)
+		foreach($typeData as $i => $tdata)
 		{
 			$contenttypes[] = $tdata->id;
 		}
@@ -462,12 +485,12 @@ class FLEXIcontentViewSearch extends JViewLegacy
 
 			if ($show_filters)
 			{
-				$types[] = JHtml::_('select.option', '', JText::_('FLEXI_PLEASE_SELECT'));
+				$types[] = HTMLHelper::_('select.option', '', Text::_('FLEXI_PLEASE_SELECT'));
 			}
 
 			foreach($typeData as $type)
 			{
-				$types[] = JHtml::_('select.option', $type->id, JText::_($type->name));
+				$types[] = HTMLHelper::_('select.option', $type->id, Text::_($type->name));
 			}
 
 			$attrs = array();
@@ -484,48 +507,54 @@ class FLEXIcontentViewSearch extends JViewLegacy
 				 $attrs['multiple'] = "multiple";
 			}
 			$attrs['size'] = "5";
-			$attrs['data-placeholder']    = htmlspecialchars(JText::_('FLEXI_CLICK_TO_LIST', ENT_QUOTES, 'UTF-8'));
-			$attrs['data-fc_prompt_text'] = htmlspecialchars(JText::_('FLEXI_TYPE_TO_FILTER', ENT_QUOTES, 'UTF-8'));
+			$attrs['data-placeholder']    = htmlspecialchars(Text::_('FLEXI_CLICK_TO_LIST', ENT_QUOTES, 'UTF-8'));
+			$attrs['data-fc_prompt_text'] = htmlspecialchars(Text::_('FLEXI_TYPE_TO_FILTER', ENT_QUOTES, 'UTF-8'));
 
-			$lists['contenttypes'] = JHtml::_('select.genericlist',
-				$types,
-				'contenttypes[]',
-				$attrs,
-				'value',
-				'text',
-				(empty($form_contenttypes) ? '' : $form_contenttypes),
-				'contenttypes'
-			);
-
-			/*
-			$checked = !count($form_contenttypes) || !strlen($form_contenttypes[0]);
-			$checked_attr = $checked ? 'checked="checked"' : '';
-			$checked_class = $checked ? 'fc_highlight' : '';
-
-			$lists['contenttypes']  = '<ul class="fc_field_filter fc_checkradio_group">';
-			$lists['contenttypes'] .= ' <li class="fc_checkradio_option fc_checkradio_special">';
-			$lists['contenttypes'] .= '  <input href="javascript:;" onclick="fc_toggleClass(this, \'fc_highlight\', 1);" ';
-			$lists['contenttypes'] .= '    id="_contenttypes_0" type="checkbox" name="contenttypes[0]" ';
-			$lists['contenttypes'] .= '    value="" '.$checked_attr.' class="fc_checkradio" />';
-			$lists['contenttypes'] .= '  <label class="'.$checked_class.'" for="_contenttypes_0">';
-			$lists['contenttypes'] .= '   -'.JText::_('FLEXI_ALL').'-';
-			$lists['contenttypes'] .= '  </label>';
-			$lists['contenttypes'] .= ' </li>';
-			foreach($typeData as $type) {
-				$checked = in_array($type->value, $form_contenttypes);
-				$checked_attr = $checked ? 'checked=checked' : '';
-				$checked_class = $checked ? ' fc_highlight' : '';
-				$lists['contenttypes'] .= ' <li class="fc_checkradio_option">';
-				$lists['contenttypes'] .= '  <input href="javascript:;" onclick="fc_toggleClass(this, \'fc_highlight\');" ';
-				$lists['contenttypes'] .= '    id="_contenttypes_'.$type->value.'" type="checkbox" name="contenttypes[]" ';
-				$lists['contenttypes'] .= '    value="'.$type->value.'" '.$checked_attr.' class="fc_checkradio" />';
-				$lists['contenttypes'] .= '  <label class="'.$checked_class.'" for="_contenttypes_'.$type->value.'">';
-				$lists['contenttypes'] .= '   '.JText::_($type->text);
-				$lists['contenttypes'] .= '  </label>';
-				$lists['contenttypes'] .= ' </li>';
+			if ($selectors_display_as == 'select')
+			{
+				$lists['contenttypes'] = HTMLHelper::_('select.genericlist',
+					$types,
+					'contenttypes[]',
+					$attrs,
+					'value',
+					'text',
+					(empty($form_contenttypes) ? '' : $form_contenttypes),
+					'contenttypes'
+				);
 			}
-			$lists['contenttypes'] .= '</ul>';
-			*/
+			else {
+				$lists['contenttypes']  = '<ul id="contenttypes_filter_list" class="fc_field_filter fc_checkradio_group">';
+				$extra_js = '';
+				if (!$params->get('show_searchareas', 0)) {
+					$checked = empty($form_contenttypes);
+					$checked_attr = $checked ? 'checked="checked"' : '';
+					$checked_class = $checked ? 'fc_highlight' : '';
+					$lists['contenttypes'] .= ' <li class="fc_checkradio_option fc_checkradio_special">';
+					$lists['contenttypes'] .= '  <input href="javascript:;" onclick="fc_toggleClass(this, \'fc_highlight\', 1);" ';
+					$lists['contenttypes'] .= '    id="_contenttypes_0" type="checkbox" name="contenttypes[0]" ';
+					$lists['contenttypes'] .= '    value="" '.$checked_attr.' class="fc_checkradio" />';
+					$lists['contenttypes'] .= '  <label class="'.$checked_class.'" for="_contenttypes_0">';
+					$lists['contenttypes'] .= '   -'.Text::_('FLEXI_ALL').'-';
+					$lists['contenttypes'] .= '  </label>';
+					$lists['contenttypes'] .= ' </li>';
+				} else {
+					$extra_js = "_toggle_content_area();";
+				}
+				foreach($types as $type) {
+					$checked = in_array($type->value, $form_contenttypes);
+					$checked_attr = $checked ? 'checked=checked' : '';
+					$checked_class = $checked ? ' fc_highlight' : '';
+					$lists['contenttypes'] .= ' <li class="fc_checkradio_option">';
+					$lists['contenttypes'] .= '  <input href="javascript:;" onclick="fc_toggleClass(this, \'fc_highlight\'); '.$extra_js.'"';
+					$lists['contenttypes'] .= '    id="_contenttypes_'.$type->value.'" type="checkbox" name="contenttypes[]" ';
+					$lists['contenttypes'] .= '    value="'.$type->value.'" '.$checked_attr.' class="fc_checkradio" />';
+					$lists['contenttypes'] .= '  <label class="'.$checked_class.'" for="_contenttypes_'.$type->value.'">';
+					$lists['contenttypes'] .= '   '.Text::_($type->text);
+					$lists['contenttypes'] .= '  </label>';
+					$lists['contenttypes'] .= ' </li>';
+				}
+				$lists['contenttypes'] .= '</ul>';
+			}
 		}
 
 
@@ -541,19 +570,19 @@ class FLEXIcontentViewSearch extends JViewLegacy
 			{
 				foreach ($form_txtflds as $i => $form_txtfld)
 				{
-					$form_txtflds[$i] = JFilterInput::getInstance()->clean($form_txtfld, 'string');
+					$form_txtflds[$i] = InputFilter::getInstance()->clean($form_txtfld, 'string');
 				}
 			}
 
-			$lists['txtflds'] = JHtml::_('select.genericlist',
+			$lists['txtflds'] = HTMLHelper::_('select.genericlist',
 				$fields_text,
 				'txtflds[]',
 				array(
 					'multiple' => 'multiple',
 					'size' => '5',
 					'class' => 'fc_field_filter use_select2_lib fc_prompt_internal fc_is_selmultiple',
-					'data-placeholder' => htmlspecialchars(JText::_('FLEXI_CLICK_TO_LIST', ENT_QUOTES, 'UTF-8')),
-					'data-fc_prompt_text' => htmlspecialchars(JText::_('FLEXI_TYPE_TO_FILTER', ENT_QUOTES, 'UTF-8')),
+					'data-placeholder' => htmlspecialchars(Text::_('FLEXI_CLICK_TO_LIST', ENT_QUOTES, 'UTF-8')),
+					'data-fc_prompt_text' => htmlspecialchars(Text::_('FLEXI_TYPE_TO_FILTER', ENT_QUOTES, 'UTF-8')),
 				),
 				'name',
 				'label',
@@ -572,7 +601,7 @@ class FLEXIcontentViewSearch extends JViewLegacy
 			$lists['txtflds'] .= '    id="_txtflds_0" type="checkbox" name="txtflds[0]" value="" ';
 			$lists['txtflds'] .= '    value="" '.$checked_attr.' class="fc_checkradio" />';
 			$lists['txtflds'] .= '  <label class="'.$checked_class.'" for="_txtflds_0">';
-			$lists['txtflds'] .= '   -'.JText::_('FLEXI_ALL').'-';
+			$lists['txtflds'] .= '   -'.Text::_('FLEXI_ALL').'-';
 			$lists['txtflds'] .= '  </label>';
 			$lists['txtflds'] .= ' </li>';
 			foreach($fields_text as $field) {
@@ -584,7 +613,7 @@ class FLEXIcontentViewSearch extends JViewLegacy
 				$lists['txtflds'] .= '    id="_txtflds_'.$field->id.'" type="checkbox" name="txtflds[]" ';
 				$lists['txtflds'] .= '    value="'.$field->name.'" '.$checked_attr.' class="fc_checkradio" />';
 				$lists['txtflds'] .= '  <label class="class=""'.$checked_class.'" for="_txtflds_'.$field->id.'">';
-				$lists['txtflds'] .= '   '.JText::_($field->label);
+				$lists['txtflds'] .= '   '.Text::_($field->label);
 				$lists['txtflds'] .= '  </label>';
 				$lists['txtflds'] .= ' </li>';
 			}
@@ -608,12 +637,12 @@ class FLEXIcontentViewSearch extends JViewLegacy
 		{
 			// built select lists
 			$orders = array();
-			$orders[] = JHtml::_('select.option',  'newest', JText::_( 'FLEXI_ADV_NEWEST_FIRST' ) );
-			$orders[] = JHtml::_('select.option',  'oldest', JText::_( 'FLEXI_ADV_OLDEST_FIRST' ) );
-			$orders[] = JHtml::_('select.option',  'popular', JText::_( 'FLEXI_ADV_MOST_POP' ) );
-			$orders[] = JHtml::_('select.option',  'alpha', JText::_( 'FLEXI_ADV_ALPHA' ) );
-			$orders[] = JHtml::_('select.option',  'category', JText::_( 'FLEXI_ADV_SEARCH_SEC_CAT' ) );
-			$lists['ordering'] = JHtml::_('select.genericlist', $orders, 'o',
+			$orders[] = HTMLHelper::_('select.option',  'newest', Text::_( 'FLEXI_ADV_NEWEST_FIRST' ) );
+			$orders[] = HTMLHelper::_('select.option',  'oldest', Text::_( 'FLEXI_ADV_OLDEST_FIRST' ) );
+			$orders[] = HTMLHelper::_('select.option',  'popular', Text::_( 'FLEXI_ADV_MOST_POP' ) );
+			$orders[] = HTMLHelper::_('select.option',  'alpha', Text::_( 'FLEXI_ADV_ALPHA' ) );
+			$orders[] = HTMLHelper::_('select.option',  'category', Text::_( 'FLEXI_ADV_SEARCH_SEC_CAT' ) );
+			$lists['ordering'] = HTMLHelper::_('select.genericlist', $orders, 'o',
 				'class="fc_field_filter use_select2_lib"', 'value', 'text', $searchordering, 'ordering' );
 		}
 
@@ -638,22 +667,27 @@ class FLEXIcontentViewSearch extends JViewLegacy
 				$_obj->text  = $searchphrase_name;
 				$phrases[] = $_obj;
 			}
-			$lists['searchphrase'] = JHtml::_('select.genericlist', $phrases, 'p',
-				'class="fc_field_filter use_select2_lib fc_field_searchphrase"', 'value', 'text', $searchphrase, 'searchphrase', $_translate=true);
 
-			/*$lists['searchphrase']  = '<ul class="fc_field_filter fc_checkradio_group">';
-			foreach ($searchphrase_names as $searchphrase_value => $searchphrase_name) {
-				$lists['searchphrase'] .= ' <li class="fc_checkradio_option fc_checkradio_special">';
-				$checked = $searchphrase_value == $searchphrase;
-				$checked_attr = $checked ? 'checked=checked' : '';
-				$checked_class = $checked ? 'fc_highlight' : '';
-				$lists['searchphrase'] .= '  <input href="javascript:;" onclick="fc_toggleClassGrp(this.parentNode, \'fc_highlight\');" id="searchphrase_'.$searchphrase_value.'" type="radio" name="p" value="'.$searchphrase_value.'" '.$checked_attr.' />';
-				$lists['searchphrase'] .= '  <label class="'.$checked_class.'" style="display:inline-block; white-space:nowrap;" for="searchphrase_'.$searchphrase_value.'">';
-				$lists['searchphrase'] .=     JText::_($searchphrase_name);
-				$lists['searchphrase'] .= '  </label>';
-				$lists['searchphrase'] .= ' </li>';
+			if ($selectors_display_as == 'select')
+			{
+				$lists['searchphrase'] = HTMLHelper::_('select.genericlist', $phrases, 'p',
+					'class="fc_field_filter use_select2_lib fc_field_searchphrase"', 'value', 'text', $searchphrase, 'searchphrase', $_translate=true);
 			}
-			$lists['searchphrase']  .= '</ul>';*/
+			else {
+				$lists['searchphrase']  = '<ul class="fc_field_filter fc_checkradio_group">';
+				foreach ($searchphrase_names as $searchphrase_value => $searchphrase_name) {
+					$lists['searchphrase'] .= ' <li class="fc_checkradio_option fc_checkradio_special">';
+					$checked = $searchphrase_value == $searchphrase;
+					$checked_attr = $checked ? 'checked=checked' : '';
+					$checked_class = $checked ? 'fc_highlight' : '';
+					$lists['searchphrase'] .= '  <input href="javascript:;" onclick="fc_toggleClassGrp(this.parentNode, \'fc_highlight\');" id="searchphrase_'.$searchphrase_value.'" type="radio" name="p" value="'.$searchphrase_value.'" '.$checked_attr.' />';
+					$lists['searchphrase'] .= '  <label class="'.$checked_class.'" style="display:inline-block; white-space:nowrap;" for="searchphrase_'.$searchphrase_value.'">';
+					$lists['searchphrase'] .=     Text::_($searchphrase_name);
+					$lists['searchphrase'] .= '  </label>';
+					$lists['searchphrase'] .= ' </li>';
+				}
+				$lists['searchphrase']  .= '</ul>';
+			}
 		}
 		else
 		{
@@ -668,9 +702,9 @@ class FLEXIcontentViewSearch extends JViewLegacy
 			$default_filtersop = $params->get('default_filtersop', 'all');
 			$filtersop = $jinput->getCmd('filtersop', $default_filtersop);
 			$filtersop_arr		= array();
-			$filtersop_arr[] = JHtml::_('select.option',  'all', JText::_( 'FLEXI_SEARCH_ALL' ) );
-			$filtersop_arr[] = JHtml::_('select.option',  'any', JText::_( 'FLEXI_SEARCH_ANY' ) );
-			$lists['filtersop']= JHtml::_('select.radiolist',  $filtersop_arr, 'filtersop', '', 'value', 'text', $filtersop );
+			$filtersop_arr[] = HTMLHelper::_('select.option',  'all', Text::_( 'FLEXI_SEARCH_ALL' ) );
+			$filtersop_arr[] = HTMLHelper::_('select.option',  'any', Text::_( 'FLEXI_SEARCH_ANY' ) );
+			$lists['filtersop']= HTMLHelper::_('select.radiolist',  $filtersop_arr, 'filtersop', '', 'value', 'text', $filtersop );
 		}
 		*/
 
@@ -687,53 +721,59 @@ class FLEXIcontentViewSearch extends JViewLegacy
 			{
 				foreach ($form_areas as $i => $area)
 				{
-					$form_areas[$i] = JFilterInput::getInstance()->clean($area, 'cmd');
+					$form_areas[$i] = InputFilter::getInstance()->clean($area, 'cmd');
 				}
 			}
 
-			$checked = empty($form_areas) || !count($form_areas);
-			$checked_attr = $checked ? 'checked="checked"' : '';
-			$checked_class = $checked ? 'fc_highlight' : '';
-
-			// Create array of area options
-			$options = array();
-
-			foreach($areas['search'] as $area => $label)
+			// Create an array of area options
+			$lists['areas'] = '';
+			$area_options = array();
+			foreach($areas['search'] as $area_name => $area_label)
 			{
 				$_area = new stdClass();
-				$_area->text = $label;
-				$_area->value = $area;
-				$options[] = $_area;
-			}
-			$attribs  = ' multiple="multiple" size="5" class="fc_field_filter use_select2_lib fc_prompt_internal fc_is_selmultiple"';  // class="... fc_label_internal" data-fc_label_text="..."
-			$attribs .= ' data-placeholder="'.htmlspecialchars(JText::_('FLEXI_CLICK_TO_LIST', ENT_QUOTES, 'UTF-8')).'"';
-			$attribs .= ' data-fc_prompt_text="'.htmlspecialchars(JText::_('FLEXI_TYPE_TO_FILTER', ENT_QUOTES, 'UTF-8')).'"';
-			$lists['areas'] = JHtml::_('select.genericlist', $options, 'areas[]', $attribs, 'value', 'text', $form_areas, 'areas', $do_jtext=true);
-			/*
-			$lists['areas']  = '<ul class="fc_field_filter fc_checkradio_group">';
-			$lists['areas'] .= ' <li class="fc_checkradio_option fc_checkradio_special">';
-			$lists['areas'] .= '  <input href="javascript:;" onclick="fc_toggleClass(this, \'fc_highlight\', 1);" ';
-			$lists['areas'] .= '    id="area_0" type="checkbox" name="area[0]" ';
-			$lists['areas'] .= '    value="" '.$checked_attr.' class="fc_checkradio" />';
-			$lists['areas'] .= '  <label class="'.$checked_class.'" for="_txtflds_0">';
-			$lists['areas'] .= '   -'.JText::_('FLEXI_CONTENT_ONLY').'-';
-			$lists['areas'] .= '  </label>';
-			$lists['areas'] .= ' </li>';
-			foreach($areas['search'] as $area_name => $area_label) {
+				$_area->text = $area_label;
+				$_area->value = $area_name;
+
+				// Force flexicontent search area and hide it if FC types are selectable
 				$checked = in_array($area_name, $form_areas);
 				$checked_attr = $checked ? 'checked=checked' : '';
-				$checked_class = $checked ? ' fc_highlight' : '';
-				$lists['areas'] .= ' <li class="fc_checkradio_option">';
-				$lists['areas'] .= '  <input href="javascript:;" onclick="fc_toggleClass(this, \'fc_highlight\');" ';
-				$lists['areas'] .= '    id="area_'.$area_name.'" type="checkbox" name="areas[]" ';
-				$lists['areas'] .= '    value="'.$area_name.'" '.$checked_attr.' class="fc_checkradio" />';
-				$lists['areas'] .= '  <label class="'.$checked_class.'" for="area_'.$area_name.'">';
-				$lists['areas'] .= '  '.JText::_($area_label);
-				$lists['areas'] .= '  </label>';
-				$lists['areas'] .= ' </li>';
+				if ($canseltypes && $area_name == 'flexicontent') {
+					$lists['areas'] .= '<input type="hidden" id="area_' . $area_name . '" name="areas[]" value="' . $area_name . '" '.$checked_attr.' />';
+					continue;
+				}
+				// Otherwise just display the area
+				$area_options[] = $_area;
 			}
-			$lists['areas'] .= '</ul>';
-			*/
+
+			if ($area_options && $selectors_display_as == 'select')
+			{
+				$attribs  = ' onchange="_toggle_content_area();" multiple="multiple" size="5" class="fc_field_filter use_select2_lib fc_prompt_internal fc_is_selmultiple"';  // class="... fc_label_internal" data-fc_label_text="..."
+				$attribs .= ' data-placeholder="'.htmlspecialchars(Text::_('FLEXI_CLICK_TO_LIST', ENT_QUOTES, 'UTF-8')).'"';
+				$attribs .= ' data-fc_prompt_text="'.htmlspecialchars(Text::_('FLEXI_TYPE_TO_FILTER', ENT_QUOTES, 'UTF-8')).'"';
+				$lists['areas'] .= HTMLHelper::_('select.genericlist', $area_options, 'areas[]', $attribs, 'value', 'text', $form_areas, 'areas', $do_jtext=true);
+			}
+			elseif ($area_options)
+			{
+				$lists['areas'] .= '<ul class="fc_field_filter fc_checkradio_group">';
+				foreach($area_options as $area_option)
+				{
+					$area_name  = $area_option->value;
+					$area_label = $area_option->text;
+
+					$checked = in_array($area_name, $form_areas);
+					$checked_attr = $checked ? 'checked=checked' : '';
+					$checked_class = $checked ? ' fc_highlight' : '';
+					$lists['areas'] .= ' <li class="fc_checkradio_option">';
+					$lists['areas'] .= '  <input href="javascript:;" onclick="fc_toggleClass(this, \'fc_highlight\'); _toggle_content_area();"  ';
+					$lists['areas'] .= '    id="area_'.$area_name.'" type="checkbox" name="areas[]" ';
+					$lists['areas'] .= '    value="'.$area_name.'" '.$checked_attr.' class="fc_checkradio" />';
+					$lists['areas'] .= '  <label class="'.$checked_class.'" for="area_'.$area_name.'">';
+					$lists['areas'] .= '  '.Text::_($area_label);
+					$lists['areas'] .= '  </label>';
+					$lists['areas'] .= ' </li>';
+				}
+				$lists['areas'] .= '</ul>';
+			}
 		}
 
 		// Log the search
@@ -746,13 +786,13 @@ class FLEXIcontentViewSearch extends JViewLegacy
 
 		if (FLEXIadvsearchHelper::limitSearchWord($searchword, $min, $max))
 		{
-			$error = JText::sprintf( 'FLEXI_SEARCH_MESSAGE', $min, $max );
+			$error = Text::sprintf( 'FLEXI_SEARCH_MESSAGE', $min, $max );
 		}
 
 		// Sanitise searchword
 		if (FLEXIadvsearchHelper::santiseSearchWord($searchword, $state->get('match'), $min))
 		{
-			$error = JText::_( 'IGNOREKEYWORD' );
+			$error = Text::_( 'IGNOREKEYWORD' );
 		}
 
 		// Put the filtered results back into the model
@@ -826,7 +866,7 @@ class FLEXIcontentViewSearch extends JViewLegacy
 				}
 			}
 
-			$_sh404sef = defined('SH404SEF_IS_RUNNING') && JFactory::getConfig()->get('sef');
+			$_sh404sef = defined('SH404SEF_IS_RUNNING') && \Joomla\CMS\Factory::getConfig()->get('sef');
 			if ($_sh404sef)
 			{
 				$pageNav->setAdditionalUrlParam('limit', $model->getState('limit'));
@@ -883,7 +923,7 @@ class FLEXIcontentViewSearch extends JViewLegacy
 					 */
 					if ($filter_word_like_any
 						&& in_array(flexicontent_html::getUserCurrentLang(), array('zh', 'jp', 'ja', 'th'))
-						&& ! FlexicontentFields::getLangHandler(JFactory::getLanguage()->getTag(), $_hasHandlerOnly = true)
+						&& ! FlexicontentFields::getLangHandler(\Joomla\CMS\Factory::getLanguage()->getTag(), $_hasHandlerOnly = true)
 					)
 					{
 						// Do not highlight too small words, since we do not consider spaces
@@ -909,15 +949,15 @@ class FLEXIcontentViewSearch extends JViewLegacy
 
 					// Add some message about matches
 					/*if ( $state->get('match')=='any' ) {
-						$text_search_header = "<u><b>".JText::sprintf('Text Search matched at least %d %% (%d out of %d words)', $replace_count_total/count($searchwords) * 100, $replace_count_total, count($searchwords)).": </b></u><br/>";
+						$text_search_header = "<u><b>".Text::sprintf('Text Search matched at least %d %% (%d out of %d words)', $replace_count_total/count($searchwords) * 100, $replace_count_total, count($searchwords)).": </b></u><br/>";
 					} else if ( $state->get('match')=='all' ) {
-						$text_search_header = "<u><b>".JText::sprintf('Text Search (all %d words required)', count($searchwords)).": </b></u><br/>";
+						$text_search_header = "<u><b>".Text::sprintf('Text Search (all %d words required)', count($searchwords)).": </b></u><br/>";
 					} else if ( $state->get('match')=='exact' ) {
-						$text_search_header = "<u><b>".JText::_('Text Search (exact phrase)').": </b></u><br/>";
+						$text_search_header = "<u><b>".Text::_('Text Search (exact phrase)').": </b></u><br/>";
 					} else if ( $state->get('match')=='natural_expanded' ) {
-						$text_search_header = "<u><b>".JText::_('Text Search (phrase, guessing related)').": </b></u><br/>";
+						$text_search_header = "<u><b>".Text::_('Text Search (phrase, guessing related)').": </b></u><br/>";
 					} else if ( $state->get('match')=='natural' ) {
-						$text_search_header = "<u><b>".JText::_('Text Search (phrase)').": </b></u><br/>";
+						$text_search_header = "<u><b>".Text::_('Text Search (phrase)').": </b></u><br/>";
 					}
 					$result->text = $text_search_header . $result->text;*/
 				} else {
@@ -926,7 +966,7 @@ class FLEXIcontentViewSearch extends JViewLegacy
 				}
 
 				/*if ( !empty($result->fields_text) ) {
-					$result->text .= "<br/><u><b>".JText::_('Attribute filters matched')." : </b></u>";
+					$result->text .= "<br/><u><b>".Text::_('Attribute filters matched')." : </b></u>";
 					$result->fields_text = str_replace('[span=highlight]', '<span class="highlight">', $result->fields_text);
 					$result->fields_text = str_replace('[/span]', '</span>', $result->fields_text);
 					$result->fields_text = str_replace('[br /]', '<br />', $result->fields_text);
@@ -935,11 +975,11 @@ class FLEXIcontentViewSearch extends JViewLegacy
 				$result->text = str_replace('[[[', '<', $result->text);
 				$result->text = str_replace(']]]', '>', $result->text);
 
-				$result->created	= $result->created ? JHtml::Date( $result->created ) : '';
+				$result->created	= $result->created ? HTMLHelper::Date( $result->created ) : '';
 				$result->count		= $i + 1;
 			}
 		}
-		$this->result	= JText::sprintf( 'FLEXI_TOTALRESULTSFOUND', $total );
+		$this->result	= Text::sprintf( 'FLEXI_TOTALRESULTSFOUND', $total );
 
 
 		/**
@@ -977,7 +1017,7 @@ class FLEXIcontentViewSearch extends JViewLegacy
 		//echo "<pre>"; print_r($_GET); exit;
 
 		// Create links
-		$link = JRoute::_(FlexicontentHelperRoute::getSearchRoute(0, $menu_matches ? $menu->id : 0));
+		$link = \Joomla\CMS\Router\Route::_(FlexicontentHelperRoute::getSearchRoute(0, $menu_matches ? $menu->id : 0));
 
     $curr_url   = str_replace('&', '&amp;', $_SERVER['REQUEST_URI']);
     $print_link = $curr_url .(strstr($curr_url, '?') ? '&amp;'  : '?').'pop=1&amp;tmpl=component&amp;print=1';

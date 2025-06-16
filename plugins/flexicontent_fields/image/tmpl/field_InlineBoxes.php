@@ -1,12 +1,16 @@
 <?php
 
-$use_myfiles = 1;
-$per_value_js = "";
-$i = -1;  // Count DB values (may contain invalid entries)
-$n = 0;   // Count sortable records added (the verified values or a single empty record if no good values)
-$count_vals = 0;  // Count non-empty sortable records added
-$image_added = false;
-$skipped_vals = array();
+use Joomla\CMS\Component\ComponentHelper;
+use Joomla\CMS\Language\Text;
+use Joomla\Component\QuantumManager\Administrator\Field\QuantumuploadField;
+
+$use_myfiles     = 1;
+$per_value_js    = "";
+$i               = -1;  // Count DB values (may contain invalid entries)
+$n               = 0;   // Count sortable records added (the verified values or a single empty record if no good values)
+$count_vals      = 0;  // Count non-empty sortable records added
+$image_added     = false;
+$skipped_vals    = array();
 $uploadLimitsTxt = $this->getUploadLimitsTxt($field);
 
 // Handle file-ids as values
@@ -111,7 +115,7 @@ foreach ($field->value as $index => $value)
 	{
 		$fc_preview_msg = '
 			<span class="fc_preview_msg" id="'.$elementid_n.'_fc_preview_msg" name="'.$elementid_n.'_fc_preview_msg" title="'.htmlspecialchars(($value['isURL'] ? $image_subpath : ''), ENT_COMPAT, 'UTF-8').'">' . (
-				$value['isURL'] ? JText::_('FLEXI_FIELD_MEDIA_URL') : $image_subpath
+			$value['isURL'] ? Text::_('FLEXI_FIELD_MEDIA_URL') : $image_subpath
 			) . '</span>
 		';
 	}
@@ -121,7 +125,7 @@ foreach ($field->value as $index => $value)
 	$select_existing = '';
 	$pick_existing = '';
 	$addExistingURL = sprintf($filesElementURL, $elementid_n);
-	$addExistingURL_onclick = "fcfield_image.dialog_handle['".$field_name_js."'] = fc_field_dialog_handle_".$field->id." = fc_showDialog(jQuery(this).attr('data-href'), 'fc_modal_popup_container', 0, 0, 0, 0, {title: '".JText::_('FLEXI_SELECT_IMAGE', true)."', paddingW: 10, paddingH: 16});";
+	$addExistingURL_onclick = "fcfield_image.dialog_handle['".$field_name_js."'] = fc_field_dialog_handle_".$field->id." = fc_showDialog(jQuery(this).attr('data-href'), 'fc_modal_popup_container', 0, 0, 0, 0, {title: '".Text::_('FLEXI_SELECT_IMAGE', true)."', paddingW: 10, paddingH: 16});";
 
 	if ($image_source >= 0)
 	{
@@ -138,9 +142,9 @@ foreach ($field->value as $index => $value)
 		{
 			$mm_id = $elementid_n.'_existingname';
 			$img_path = $image_subpath;
-			$img_src  = ($img_path && file_exists(JPATH_ROOT . '/' . $img_path))  ?  JUri::root() . $img_path  :  '';
+			$img_src  = ($img_path && file_exists(JPATH_ROOT . '/' . $img_path))  ?  \Joomla\CMS\Uri\Uri::root() . $img_path  :  '';
 			$img_attr = array('id' => $mm_id . '_preview', 'class' => 'media-preview', 'style' => ' style="max-width:480px; max-height:360" ');
-			$img = JHtml::image($img_src ?: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=', JText::_('JLIB_FORM_MEDIA_PREVIEW_ALT'), $img_attr);
+			$img = \Joomla\CMS\HTML\HTMLHelper::image($img_src ?: 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=', Text::_('JLIB_FORM_MEDIA_PREVIEW_ALT'), $img_attr);
 
 			$previewImg = '
 			<div id="' . $mm_id . '_preview_img"' . ($img_src ? '' : ' style="display:none"') . '>
@@ -148,29 +152,29 @@ foreach ($field->value as $index => $value)
 			</div>';
 			$previewImgEmpty = '
 			<div id="' . $mm_id . '_preview_empty"' . ($img_src ? ' style="display:none"' : '') . '>
-				' . JText::_('JLIB_FORM_MEDIA_PREVIEW_EMPTY') . '
+				' . Text::_('JLIB_FORM_MEDIA_PREVIEW_EMPTY') . '
 			</div>';
 
 			$tooltip = $previewImgEmpty . $previewImg;
 			$tooltip_options = array(
-				'title' => JText::_('JLIB_FORM_MEDIA_PREVIEW_SELECTED_IMAGE'),
+				'title' => Text::_('JLIB_FORM_MEDIA_PREVIEW_SELECTED_IMAGE'),
 				'text' => '<span class="icon-eye" aria-hidden="true"></span><span class="icon-image" aria-hidden="true">',
 				'class' => 'hasTipPreview'
 			);
 
-			$mm_link = 'index.php?option=com_media&amp;view=images&amp;layout=default_fc&amp;tmpl=component&amp;asset=com_flexicontent&amp;author=&amp;fieldid=\'+mm_id+\'&amp;folder=';
+			$mm_link = 'index.php?option=com_media&amp;view=images&amp;folder='.$jmedia_subpath.'layout=default_fc&amp;tmpl=component&amp;asset=com_flexicontent&amp;author=&amp;fieldid=\'+mm_id+\'&amp;folder=';
 			$select_existing = '
 			<div class="'.$input_grp_class.'">
 				<div class="media-preview ' . $add_on_class . ' ">
-					'.JHtml::tooltip($tooltip, $tooltip_options).'
+					'.\Joomla\CMS\HTML\HTMLHelper::tooltip($tooltip, $tooltip_options).'
 				</div>
 				<input type="text" name="'.$fieldname_n.'[existingname]" id="'.$mm_id.'" value="'.htmlspecialchars($img_path, ENT_COMPAT, 'UTF-8').'" readonly="readonly"
-					class="existingname input-large field-media-input hasTipImgpath" onchange="fcfield_image.update_path_tip(this);" title="'.htmlspecialchars('<span id="TipImgpath"></span>', ENT_COMPAT, 'UTF-8').'" data-basepath="'.JUri::root().'"
+					class="existingname input-large field-media-input hasTipImgpath" onchange="fcfield_image.update_path_tip(this);" title="'.htmlspecialchars('<span id="TipImgpath"></span>', ENT_COMPAT, 'UTF-8').'" data-basepath="'.\Joomla\CMS\Uri\Uri::root().'"
 				/>
-				<a class="fc_image_field_mm_modal btn '.$tooltip_class.'" title="'.JText::_('FLEXI_SELECT_IMAGE').'" onclick="var mm_id=jQuery(this).parent().find(\'.existingname\').attr(\'id\'); fcfield_image.currElement[\''.$field_name_js.'\']=mm_id; SqueezeBox.open(\''.$mm_link.'\', {size:{x: ((window.innerWidth-120) > 1360 ? 1360 : (window.innerWidth-120)), y: ((window.innerHeight-220) > 800 ? 800 : (window.innerHeight-220))}, handler: \'iframe\', onClose: function() { fcfield_image.incrementValCnt(\''.$field_name_js.'\'); } });  return false;">
-					'.JText::_('FLEXI_SELECT').'
+				<a class="fc_image_field_mm_modal btn '.$tooltip_class.'" title="'.Text::_('FLEXI_SELECT_IMAGE').'" onclick="var mm_id=jQuery(this).parent().find(\'.existingname\').attr(\'id\'); fcfield_image.currElement[\''.$field_name_js.'\']=mm_id; SqueezeBox.open(\''.$mm_link.'\', {size:{x: ((window.innerWidth-120) > 1360 ? 1360 : (window.innerWidth-120)), y: ((window.innerHeight-220) > 800 ? 800 : (window.innerHeight-220))}, handler: \'iframe\', onClose: function() { fcfield_image.incrementValCnt(\''.$field_name_js.'\'); } });  return false;">
+					'.Text::_('FLEXI_SELECT').'
 				</a>
-				<a class="btn '.$tooltip_class.'" href="javascript:;" title="'.JText::_('FLEXI_CLEAR').'" onclick="var mm_id=jQuery(this).parent().find(\'.existingname\').attr(\'id\'); fcfield_image.clearField(this, {}, \''.$field_name_js.'\'); jInsertFieldValue(\'\', mm_id); return false;" >
+				<a class="btn '.$tooltip_class.'" href="javascript:;" title="'.Text::_('FLEXI_CLEAR').'" onclick="var mm_id=jQuery(this).parent().find(\'.existingname\').attr(\'id\'); fcfield_image.clearField(this, {}, \''.$field_name_js.'\'); jInsertFieldValue(\'\', mm_id); return false;" >
 					<i class="icon-remove"></i>
 				</a>
 			</div>
@@ -180,38 +184,78 @@ foreach ($field->value as $index => $value)
 		{
 			$jfvalue = str_replace('\\', '/', !empty($value['originalname'])  ?  $value['originalname']  :  '');
 
-			$quantum_fieldupload_path = JPATH_ROOT . '/libraries/lib_fields/fields/quantumuploadimage/quantumuploadimage.php';
-			$use_quantum = file_exists($quantum_fieldupload_path) && JComponentHelper::isEnabled('com_quantummanager');
+			// J3 sub-path inside JPATH_ROOT/images
+			// J4 sub-path inside JPATH_ROOT/top-level-directory, default is JPATH_ROOT/media
+			$directory_with_adapter = (version_compare(\Joomla\CMS\Version::MAJOR_VERSION, '4', 'lt')
+				? $jmedia_subpath
+				: 'local-' . $jmedia_topdir .  ':/' . $jmedia_subpath);
+
+			// Currently for quantum, specifying subpath only works properly if subpath is inside 'images'
+			$use_quantum = ComponentHelper::isEnabled('com_quantummanager')
+				//&& ($jmedia_topdir === 'images' && $jmedia_subpath === '')
+			;
 
 			if ($use_quantum)
 			{
-				JLoader::register('JFormFieldQuantumuploadImage', $quantum_fieldupload_path);
-				$xml_field = '<field name="'.$fieldname_n.'[existingname]" id="'.$elementid_n.'_existingname" type="QuantumUploadImage" dropAreaHidden="false" '
-					// . 'preview_width="'.(int)$thumb_size_default.'" preview_height="'.(int)$thumb_size_default.'" '
+				$quantum_fieldupload_path = JPATH_ROOT . '/libraries/lib_fields/fields/quantumuploadimage/quantumuploadimage.php';
+				if (file_exists($quantum_fieldupload_path)) {
+					$media_field_prefix = "\\Joomla\\CMS\\Form";
+					$media_field_class  = 'FormFieldQuantumuploadImage';
+				} else {
+					$quantum_fieldupload_path = JPATH_ROOT . '/libraries/lib_fields/fields/QuantumUploadImage/QuantumuploadimageField.php';
+					$media_field_prefix = "\\JPATHRU\\Libraries\\Fields\\QuantumUploadImage";
+					$media_field_class = 'QuantumuploadimageField';
+				}
+				require_once $quantum_fieldupload_path;
+
+				$xml_field = '<field name="'.$fieldname_n.'[existingname]" id="'.$elementid_n.'_existingname" '
+          . ' addfieldprefix="'.$media_field_prefix.'" type="QuantumUploadImage" dropAreaHidden="true" copy="false" '
+					. ' directory="'.$jmedia_subpath.'" '
+					//. ' preview_width="'.(int)$thumb_size_default.'" preview_height="'.(int)$thumb_size_default.'" '
 					. ' class="existingname" />';
 			}
 			else
 			{
+
 				$xml_field = '<field name="'.$fieldname_n.'[existingname]" id="'.$elementid_n.'_existingname" type="media" preview="true" '
 					. ' preview_width="'.(int)$thumb_size_default.'" preview_height="'.(int)$thumb_size_default.'" '
+					. ' directory="'.$directory_with_adapter.'" '
 					. ' class="existingname" />';
 			}
 
 			$xml_form = '<form><fields name="attribs"><fieldset name="attribs">'.$xml_field.'</fieldset></fields></form>';
-			$jform = new JForm('flexicontent_field.image', array('control' => '' /*'custom'*/, 'load_data' => true));
+			$jform = new \Joomla\CMS\Form\Form('flexicontent_field.image', array('control' => '' /*'custom'*/, 'load_data' => true));
 			$jform->load($xml_form);
 
 			if ($use_quantum)
 			{
-				$jfield = new JFormFieldQuantumUploadImage($jform);
+				if (class_exists('J'.$media_field_class))
+					$media_field_class_path = 'J'.$media_field_class;
+				else
+					$media_field_class_path = $media_field_prefix . '\\' . $media_field_class;
+				$jfield = new $media_field_class_path($jform);
 			}
 			else
 			{
-				$jfield = new JFormFieldMedia($jform);
+				$jfield = new \Joomla\CMS\Form\Field\MediaField($jform);
 			}
-			
+
 			$jfield->setup(new SimpleXMLElement($xml_field), $jfvalue, '');
 			$select_existing = $jfield->input;
+
+			// Workaround field clearing the value but not clearing the value attribute
+			$select_existing = str_replace('button-clear"', 'button-clear" onclick="jQuery(this).parent().find(\'input\').attr(\'value\', \'\');"', $select_existing);
+
+			if ($use_quantum)
+			{
+				// Workaround for Quantum not setting the default folder, we will use custom JS
+				$select_existing = str_replace('class="quantumuploadimage-input', ' data-default-scope="'.$jmedia_topdir.'" data-default-subpath="'.$jmedia_subpath.'" class="quantumuploadimage-input', $select_existing);
+				// Bug with Quantum not setting the correct path for the preview image when Joomla is installed in a subdirectory
+				if (JUri::root(true) !== '') {
+					$select_existing = str_replace('<img src="/', '<img src="', $select_existing);
+				}
+			}
+
 		}
 	}
 
@@ -223,7 +267,7 @@ foreach ($field->value as $index => $value)
 	if ($image_source === -2 || $image_source === -1)
 	{
 		$img_link = false;
-		//$img_link  = JUri::root(true).'/'.$image_subpath;
+		//$img_link  = \Joomla\CMS\Uri\Uri::root(true).'/'.$image_subpath;
 	}
 
 	// $image_source >= 0, if 'existingname' is set then it is propably a form reload
@@ -237,7 +281,7 @@ foreach ($field->value as $index => $value)
 
 		$rel_url_base = str_replace(JPATH_SITE, '', $_src_path);
 		$rel_url_base = ltrim(str_replace('\\', '/', $rel_url_base), '/');
-		$abs_url_base = JUri::root(true) . '/' . $rel_url_base;
+		$abs_url_base = \Joomla\CMS\Uri\Uri::root(true) . '/' . $rel_url_base;
 
 		$img_link = rawurlencode($abs_url_base . $image_subpath);
 
@@ -247,12 +291,12 @@ foreach ($field->value as $index => $value)
 			$f = in_array( $ext, array('png', 'gif', 'jpeg', 'jpg', 'webp', 'wbmp', 'bmp', 'ico') ) ? '&f='.$ext : '';
 			$img_link = str_replace('\\', '/', $img_link);
 
-			/*$img_link = JUri::root().'components/com_flexicontent/librairies/phpthumb/phpThumb.php?src=' .
+			/*$img_link = \Joomla\CMS\Uri\Uri::root().'components/com_flexicontent/librairies/phpthumb/phpThumb.php?src=' .
 				htmlspecialchars($img_link . '&w='.$preview_thumb_w . '&h=' . $preview_thumb_h . '&zc=1&q=95&ar=x' . $f);*/
 
 			$img_link = htmlspecialchars(phpThumbURL(
 				'src=' . $img_link . '&w=' . $preview_thumb_w . '&h=' . $preview_thumb_h . '&zc='.($thumb_method ? 1: 0).'&q=95&ar=x' . $f,
-				JUri::root(true) . '/components/com_flexicontent/librairies/phpthumb/phpThumb.php'
+				\Joomla\CMS\Uri\Uri::root(true) . '/components/com_flexicontent/librairies/phpthumb/phpThumb.php'
 			));
 		}
 	}
@@ -292,61 +336,59 @@ foreach ($field->value as $index => $value)
 
 
 	if ($linkto_url) $urllink =
-		'<tr>
-			<!--td class="key"><label class="fc-prop-lbl">'.JText::_( 'FLEXI_FIELD_LINKTO_URL' ).'</label></td-->
-			<td><input class="imgurllink" size="40" name="'.$fieldname_n.'[urllink]" value="'.htmlspecialchars(isset($value['urllink']) ? $value['urllink'] : '', ENT_COMPAT, 'UTF-8').'" type="text" placeholder="'.htmlspecialchars(JText::_( 'FLEXI_FIELD_LINKTO_URL' ), ENT_COMPAT, 'UTF-8').'"/></td>
-		</tr>';
+		'<div>
+			<!--label class="fc-prop-lbl">'.Text::_( 'FLEXI_FIELD_LINKTO_URL' ).'</label-->
+			<input class="imgurllink" size="40" name="'.$fieldname_n.'[urllink]" value="'.htmlspecialchars(isset($value['urllink']) ? $value['urllink'] : '', ENT_COMPAT, 'UTF-8').'" type="text" placeholder="'.htmlspecialchars(Text::_( 'FLEXI_FIELD_LINKTO_URL' ), ENT_COMPAT, 'UTF-8').'"/>
+		</div>';
 	if ($usemediaurl)
 	{
 		$placeholder = htmlspecialchars(($usemediaurl === 1
 			? 'Youtube / Vimeo URL'
-			: JText::_('FLEXI_FIELD_MEDIA_URL')
+			: Text::_('FLEXI_FIELD_MEDIA_URL')
 		), ENT_COMPAT, 'UTF-8');
 		$mediaurl =
-		'<tr>
-			<td>
+			'<div>
 				<div class="fcfield-image-mediaurl-box" ' . (empty($value['mediaurl']) ? ' style="display: none;" ' : '') . '>
 					<input class="img_mediaurl" size="40" name="'.$fieldname_n.'[mediaurl]" id="'.$elementid_n.'_mediaurl" value="'.htmlspecialchars(isset($value['mediaurl']) ? $value['mediaurl'] : $default_mediaurl, ENT_COMPAT, 'UTF-8').'" type="text" placeholder="'. $placeholder .'"/>
 					<br>
 					<div class="' . $input_grp_class . ' fcfield-image-mediaurl-btns">
-						<a href="javascript:;" class="'. $tooltip_class .' btn btn-primary btn-small img_fetch_btn" title="'.JText::_('FLEXI_FETCH').'" onclick="fcfield_image.fetchData(\''.$elementid_n.'\', \''.$field_name_js.'\'); return false;">
-							<i class="icon-loop"></i> ' . JText::_('FLEXI_FETCH') . '
+						<a href="javascript:;" class="'. $tooltip_class .' btn btn-primary btn-small img_fetch_btn" title="'.Text::_('FLEXI_FETCH').'" onclick="fcfield_image.fetchData(\''.$elementid_n.'\', \''.$field_name_js.'\'); return false;">
+							<i class="icon-loop"></i> ' . Text::_('FLEXI_FETCH') . '
 						</a>
-						<a href="javascript:;" class="'. $tooltip_class .' btn btn-warning btn-small img_clear_btn" id="'.$elementid_n.'_clear_btn" title="'.JText::_('FLEXI_CLEAR').'" onclick="fcfield_image.clearData(\''.$elementid_n.'\', \''.$field_name_js.'\'); return false;" >
-							<i class="icon-cancel"></i> ' . JText::_('FLEXI_CLEAR') . '
+						<a href="javascript:;" class="'. $tooltip_class .' btn btn-warning btn-small img_clear_btn" id="'.$elementid_n.'_clear_btn" title="'.Text::_('FLEXI_CLEAR').'" onclick="fcfield_image.clearData(\''.$elementid_n.'\', \''.$field_name_js.'\'); return false;" >
+							<i class="icon-cancel"></i> ' . Text::_('FLEXI_CLEAR') . '
 						</a>
 					</div>
 					<div class="fcfield_message_box" id="fcfield_message_box_'.$elementid_n.'"></div>
 				</div>
-			</td>
-		</tr>
+		</div>
 		';
 	}
 	if ($usealt) $alt =
-		'<tr>
-			<!--td class="key"><label class="fc-prop-lbl">'.JText::_( 'FLEXI_FIELD_ALT' ).'</label></td-->
-			<td><input class="imgalt" size="40" name="'.$fieldname_n.'[alt]" value="'.htmlspecialchars(isset($value['alt']) ? $value['alt'] : $default_alt, ENT_COMPAT, 'UTF-8').'" type="text" placeholder="'.htmlspecialchars(JText::_( 'FLEXI_FIELD_ALT' ), ENT_COMPAT, 'UTF-8').'"/></td>
-		</tr>';
+		'<div>
+			<!--label class="fc-prop-lbl">'.Text::_( 'FLEXI_FIELD_ALT' ).'</label-->
+			<input class="imgalt" size="40" name="'.$fieldname_n.'[alt]" value="'.htmlspecialchars(isset($value['alt']) ? $value['alt'] : $default_alt, ENT_COMPAT, 'UTF-8').'" type="text" placeholder="'.htmlspecialchars(Text::_( 'FLEXI_FIELD_ALT' ), ENT_COMPAT, 'UTF-8').'"/>
+		</div>';
 	if ($usetitle) $title =
-		'<tr>
-			<!--td class="key"><label class="fc-prop-lbl">'.JText::_( 'FLEXI_FIELD_TITLE' ).' <br/>('.JText::_('FLEXI_FIELD_TOOLTIP').')</label></td-->
-			<td><input class="imgtitle" size="40" name="'.$fieldname_n.'[title]" value="'.htmlspecialchars(isset($value['title']) ? $value['title'] : $default_title, ENT_COMPAT, 'UTF-8').'" type="text" placeholder="'.htmlspecialchars(JText::_( 'FLEXI_FIELD_TITLE' ), ENT_COMPAT, 'UTF-8').'"/></td>
-		</tr>';
+		'<div>
+			<!--label class="fc-prop-lbl">'.Text::_( 'FLEXI_FIELD_TITLE' ).' <br/>('.Text::_('FLEXI_FIELD_TOOLTIP').')</label-->
+			<input class="imgtitle" size="40" name="'.$fieldname_n.'[title]" value="'.htmlspecialchars(isset($value['title']) ? $value['title'] : $default_title, ENT_COMPAT, 'UTF-8').'" type="text" placeholder="'.htmlspecialchars(Text::_( 'FLEXI_FIELD_TITLE' ), ENT_COMPAT, 'UTF-8').'"/>
+		</div>';
 	if ($usedesc) $desc =
-		'<tr>
-			<!--td class="key"><label class="fc-prop-lbl">'.JText::_( 'FLEXI_FIELD_DESC' ).' <br/>('.JText::_('FLEXI_FIELD_TOOLTIP').')</label></td-->
-			<td><textarea class="imgdesc" name="'.$fieldname_n.'[desc]" rows="3" cols="24" placeholder="'.htmlspecialchars(JText::_( 'FLEXI_FIELD_DESC' ), ENT_COMPAT, 'UTF-8').'">'.(isset($value['desc']) ? $value['desc'] : $default_desc).'</textarea></td>
-		</tr>';
+		'<div>
+			<!--label class="fc-prop-lbl">'.Text::_( 'FLEXI_FIELD_DESC' ).' <br/>('.Text::_('FLEXI_FIELD_TOOLTIP').')</label-->
+			<textarea class="imgdesc" name="'.$fieldname_n.'[desc]" rows="3" cols="24" placeholder="'.htmlspecialchars(Text::_( 'FLEXI_FIELD_DESC' ), ENT_COMPAT, 'UTF-8').'">'.(isset($value['desc']) ? $value['desc'] : $default_desc).'</textarea>
+		</div>';
 	if ($usecust1) $cust1 =
-		'<tr>
-			<!--td class="key"><label class="fc-prop-lbl">'.JText::_( 'FLEXI_FIELD_IMG_CUST1' ).'</label></td-->
-			<td><input class="imgcust1" size="40" name="'.$fieldname_n.'[cust1]" value="'.htmlspecialchars(isset($value['cust1']) ? $value['cust1'] : $default_cust1, ENT_COMPAT, 'UTF-8').'" type="text" placeholder="'.htmlspecialchars(JText::_( 'FLEXI_FIELD_IMG_CUST1' ), ENT_COMPAT, 'UTF-8').'"/></td>
-		</tr>';
+		'<div>
+			<!--label class="fc-prop-lbl">'.Text::_( 'FLEXI_FIELD_IMG_CUST1' ).'</label-->
+			<input class="imgcust1" size="40" name="'.$fieldname_n.'[cust1]" value="'.htmlspecialchars(isset($value['cust1']) ? $value['cust1'] : $default_cust1, ENT_COMPAT, 'UTF-8').'" type="text" placeholder="'.htmlspecialchars(Text::_( 'FLEXI_FIELD_IMG_CUST1' ), ENT_COMPAT, 'UTF-8').'"/>
+		</div>';
 	if ($usecust2) $cust2 =
-		'<tr>
-			<!--td class="key"><label class="fc-prop-lbl">'.JText::_( 'FLEXI_FIELD_IMG_CUST2' ).'</label></td-->
-			<td><input class="imgcust2" size="40" name="'.$fieldname_n.'[cust2]" value="'.htmlspecialchars(isset($value['cust2']) ? $value['cust2'] : $default_cust2, ENT_COMPAT, 'UTF-8').'" type="text" placeholder="'.htmlspecialchars(JText::_( 'FLEXI_FIELD_IMG_CUST2' ), ENT_COMPAT, 'UTF-8').'"/></td>
-		</tr>';
+		'<div>
+			<!--label class="fc-prop-lbl">'.Text::_( 'FLEXI_FIELD_IMG_CUST2' ).'</label-->
+			<input class="imgcust2" size="40" name="'.$fieldname_n.'[cust2]" value="'.htmlspecialchars(isset($value['cust2']) ? $value['cust2'] : $default_cust2, ENT_COMPAT, 'UTF-8').'" type="text" placeholder="'.htmlspecialchars(Text::_( 'FLEXI_FIELD_IMG_CUST2' ), ENT_COMPAT, 'UTF-8').'"/>
+		</div>';
 
 	// DB-mode needs a 'pick_existing_n'
 	if ($image_source === 0)
@@ -363,63 +405,66 @@ foreach ($field->value as $index => $value)
 
 	if ($use_inline_uploaders)
 	{
-		$uploader_html = $uploader_html_arr[$n] = JHtml::_('fcuploader.getUploader', $field, $u_item_id, null, $n,
+		$uploader_html = $uploader_html_arr[$n] = \Joomla\CMS\HTML\HTMLHelper::_('fcuploader.getUploader', $field, $u_item_id, null, $n,
 			array(
-			'container_class' => (1 || $multiple ? 'fc_inline_uploader fc_uploader_thumbs_view fc-box' : '') . ' fc_compact_uploader fc_auto_uploader thumb_'.$thumb_size_default,
-			'upload_maxcount' => 1,
-			'autostart_on_select' => true,
-			'refresh_on_complete' => false,
-			'thumb_size_default' => $thumb_size_default,
-			'toggle_btn' => array(
-				'class' => ($file_btns_position ? $add_on_class : '') . ' fcfield-uploadvalue dropdown-item' . $font_icon_class,
-				'text' => (!$file_btns_position ? '&nbsp; ' . JText::_('FLEXI_UPLOAD') : ''),
-				'onclick' => $toggleUploader_onclick,
-				'action' => null
-			),
-			'thumb_size_slider_cfg' => ($thumb_size_resizer ? $thumb_size_slider_cfg : 0),
-			'resize_cfg' => ($thumb_size_resizer ? $resize_cfg : 0),
-			'handle_FileFiltered' => 'fcfield_FileFiltered_'.$field->id,
-			'handle_FileUploaded' => 'fcfield_FileUploaded_'.$field->id
+				'container_class' => (1 || $multiple ? 'fc_inline_uploader fc_uploader_thumbs_view fc-box' : '') . ' fc_compact_uploader fc_auto_uploader thumb_'.$thumb_size_default,
+				'upload_maxcount' => 1,
+				'autostart_on_select' => true,
+				'refresh_on_complete' => false,
+				'thumb_size_default' => $thumb_size_default,
+				'toggle_btn' => array(
+					'class' => ($file_btns_position ? 'dropdown-item' : '') . ' ' . $btn_item_class,
+					'text' => '<span class="fcfield-uploadvalue fcfont-icon-inline '.$font_icon_class.'"></span>' . (!$file_btns_position ? '&nbsp; ' . Text::_('FLEXI_UPLOAD') : ''),
+					'onclick' => $toggleUploader_onclick,
+					'action' => null
+				),
+				'thumb_size_slider_cfg' => ($thumb_size_resizer ? $thumb_size_slider_cfg : 0),
+				'resize_cfg' => ($thumb_size_resizer ? $resize_cfg : 0),
+				'handle_FileFiltered' => 'fcfield_FileFiltered_'.$field->id,
+				'handle_FileUploaded' => 'fcfield_FileUploaded_'.$field->id
 			)
 		);
 
 		$multi_icon = $form_font_icons ? ' <span class="icon-stack"></span>' : '<span class="pages_stack"></span>';
-		$btn_classes = 'fc-files-modal-link ' . ($file_btns_position ? $add_on_class : '') . ' ' . $font_icon_class;
+		$btn_classes = ($file_btns_position ? 'dropdown-item' : '') . ' ' . $btn_item_class;
 		$uploader_html->multiUploadBtn = '';  /*'
-			<span data-href="'.$addExistingURL.'" onclick="'.$addExistingURL_onclick.'" class="'.$btn_classes.' fc-up fcfield-uploadvalue multi dropdown-item" id="'.$elementid_n.'_mul_uploadvalue">
-				&nbsp; ' . $multi_icon . ' ' . (!$file_btns_position || $file_btns_position==2 ? JText::_('FLEXI_UPLOAD') : '') . '
+			<span data-href="'.$addExistingURL.'" onclick="'.$addExistingURL_onclick.'" class="'.$btn_classes.' fc-up fcfield-uploadvalue multi" id="'.$elementid_n.'_mul_uploadvalue">
+				&nbsp; ' . $multi_icon . ' ' . (!$file_btns_position || $file_btns_position==2 ? Text::_('FLEXI_UPLOAD') : '') . '
 			</span>';*/
 		$uploader_html->myFilesBtn = '
-			<span data-href="'.$addExistingURL.'" onclick="'.$addExistingURL_onclick.'" class="'.$btn_classes.' fc-sel fcfield-selectvalue multi dropdown-item" data-rowno="'.$n.'" id="'.$elementid_n.'_selectvalue">
-				' .  ($file_btns_position ? $multi_icon : '') . ' ' . (!$file_btns_position || $file_btns_position==2 ? '&nbsp; ' . JText::_('FLEXI_MY_FILES') : '') . ' ' . (!$file_btns_position ? $multi_icon : '') .'
+			<span data-href="'.$addExistingURL.'" onclick="'.$addExistingURL_onclick.'" class="'.$btn_classes.'" data-rowno="'.$n.'" id="'.$elementid_n.'_selectvalue">
+				<span class="fc-files-modal-link  fc-sel fcfield-selectvalue multi fcfont-icon-inline ' . $font_icon_class . '"></span>
+				' .  ($file_btns_position ? $multi_icon : '') . ' ' . (!$file_btns_position || $file_btns_position==2 ? '&nbsp; ' . Text::_('FLEXI_MY_FILES') : '') . ' ' .'
 			</span>';
 		$uploader_html->mediaUrlBtn = !$usemediaurl ? '' : '
-			<span class="' . ($file_btns_position ? $add_on_class : '') . ' fcfield-medialurlvalue ' . $font_icon_class . ' dropdown-item" onclick="fcfield_image.toggleMediaURL(\''.$elementid_n.'\', \''.$field_name_js.'\'); return false;">
-				' . (!$file_btns_position || $file_btns_position==2 ? '&nbsp; ' . JText::_('FLEXI_FIELD_MEDIA_URL') : '') . '
+			<span class="' . ($file_btns_position ? 'dropdown-item' : '') . ' ' . $btn_item_class .'" onclick="fcfield_image.toggleMediaURL(\''.$elementid_n.'\', \''.$field_name_js.'\'); return false;">
+				<span class="fcfield-medialurlvalue fcfont-icon-inline ' . $font_icon_class . '"></span>
+				' . (!$file_btns_position || $file_btns_position==2 ? '&nbsp; ' . Text::_('FLEXI_FIELD_MEDIA_URL') : '') . '
 			</span>';
 		$uploader_html->clearBtn = '
-			<span class="' . $add_on_class . ' fcfield-clearvalue ' . $font_icon_class . '" title="'.JText::_('FLEXI_CLEAR').'" onclick="fcfield_image.clearField(this, {}, \''.$field_name_js.'\');">
+			 <span class="' . $btn_item_class . ' fcfield-clearvalue ' . $font_icon_class . '" title="'.Text::_('FLEXI_CLEAR').'" onclick="fcfield_image.clearField(this, {}, \''.$field_name_js.'\');">
 			</span>';
 	}
 
 	$drop_btn_class =
 		(FLEXI_J40GE
-			? 'btn btn-sm toolbar dropdown-toggle dropdown-toggle-split'
-			: 'btn btn-small toolbar dropdown-toggle'
+			? 'toolbar dropdown-toggle dropdown-toggle-split'
+			: 'toolbar dropdown-toggle'
 		);
+	$drop_btn_style = 'padding: 0.4rem; box-sizing: border-box; max-height: 100%; margin: 0; height: 100%;';
 
 	$field->html[] = '
 		'.($multiple && !$none_props ? '<div class="fcclear"></div>' : '').'
 		'.(!$add_ctrl_btns ? '' : '
-		<div class="'.$input_grp_class.' fc-xpended-btns">
+		<div class="'.$btn_group_class.' fc-xpended-btns">
 			'.$move2.'
 			'.$remove_button.'
 			'.(!$add_position ? '' : $add_here)
 			.($use_inline_uploaders && !$file_btns_position ?'
-			<div class="buttons btn-group fc-iblock ' . (FLEXI_J40GE ? ' dropdown ' : '') . '">
-				<span role="button" class="' . $drop_btn_class . ' fcfield-addvalue ' . $font_icon_class . '" data-toggle="dropdown" data-bs-toggle="dropdown">
+			<div class="buttons '.$btn_item_class.' fc-iblock ' . (FLEXI_J40GE ? ' dropdown ' : '') . '" style="padding:0 !important;">
+				<div role="button" class="' . $drop_btn_class . ' fcfield-addvalue ' . $font_icon_class . '" data-toggle="dropdown" data-bs-toggle="dropdown" style="'.$drop_btn_style.'">
 					<span class="caret"></span>
-				</span>
+				</div>
 				<ul class="dropdown-menu dropdown-menu-right" role="menu">
 					<li>'.$uploader_html->toggleBtn.'</li>
 					<li>'.$uploader_html->multiUploadBtn.'</li>
@@ -427,34 +472,35 @@ foreach ($field->value as $index => $value)
 					<li>'.$uploader_html->mediaUrlBtn.'</li>
 				</ul>
 			</div>
+			<span class="btn fcfont-icon icon icon-pencil fas fa-info-circle image-option" onclick="jQuery(\'.fcimg_value_props[data-name=' . $elementid_n . ']\').toggle(150);"></span>
 			'.$uploader_html->clearBtn.'
 			' : '') . '
 		</div>
 		'.($fields_box_placing ? '<div class="fcclear"></div>' : '').'
 		').'
+					
+					'.$originalname.'
+					'.$existingname.'
 
 		<div class="fc-field-props-box" ' . (!$multiple ? 'style="width: 80%; max-width: 1000px; position: relative;"' : ''). '>
 
 			'.($use_inline_uploaders && ($file_btns_position || !$add_ctrl_btns) ? '
 			<div class="fcclear"></div>
 			<div class="btn-group" style="margin: 4px 0 16px 0; display: inline-block;">
-				<div class="'.$input_grp_class.' fc-xpended-btns">
+				<div class="'.$btn_group_class.' fc-xpended-btns">
 					'.$uploader_html->toggleBtn.'
 					'.$uploader_html->multiUploadBtn.'
 					' . ($use_myfiles > 0 ? $uploader_html->myFilesBtn : '') . '
 					'.$uploader_html->mediaUrlBtn.'
 					'.$uploader_html->clearBtn.'
+					<span class="btn fcfont-icon icon icon-pencil fas fa-info-circle image-option" onclick="jQuery(\'.fcimg_value_props[data-name=' . $elementid_n . ']\').toggle(150);"></span>
 				</div>
 			</div>
 			' : '') . '
-			'.$fc_preview_msg.'
-			'.$originalname.'
-			'.$existingname.'
-
-			<div class="fc-field-value-properties-box">
+			<div class="fc-field-value-properties-box" style="flex-direction: column;">
 
 				'.($image_source === -2 || $image_source === -1  ?  // Do not add image preview box if using Joomla Media Manager (or intro/full mode)
-					$select_existing.'
+			$select_existing.'
 					<div class="fcclear"></div>
 				' : '
 					'.(empty($uploader_html) ? '' : '
@@ -470,10 +516,12 @@ foreach ($field->value as $index => $value)
 				').'
 				'
 
-				.(($linkto_url || $usemediaurl || $usealt || $usetitle || $usedesc || $usecust1 || $usecust2) ?
-				'
-				<div class="fcimg_value_props">
-					<table class="fc-form-tbl fcinner fccompact">
+		.(($linkto_url || $usemediaurl || $usealt || $usetitle || $usedesc || $usecust1 || $usecust2) ?
+			'
+
+				<div class="fcimg_value_props" data-name="'.$elementid_n.'">
+    						'.$fc_preview_msg.'
+					<div class="fc-form-tbl fcinner fccompact">
 						' . @ $urllink . '
 						' . @ $mediaurl . '
 						' . @ $alt . '
@@ -481,9 +529,10 @@ foreach ($field->value as $index => $value)
 						' . @ $desc . '
 						' . @ $cust1 . '
 						' . @ $cust2 . '
-					</table>
-				</div>'
-				: '') .'
+					</div>
+				</div>
+				'
+			: '') .'
 
 			</div><!-- EOF class="fc-field-value-properties-box" -->
 		</div><!-- EOF class="fc-field-props-box" -->
@@ -504,7 +553,7 @@ foreach ($field->value as $index => $value)
 
 //document.addEventListener('DOMContentLoaded', function()
 $js = ""
-. (!$per_value_js ? "" : "
+	. (!$per_value_js ? "" : "
 	jQuery(document).ready(function()
 	{
 		" . $per_value_js . "
@@ -512,4 +561,3 @@ $js = ""
 ");
 
 if ($js) $document->addScriptDeclaration($js);
-

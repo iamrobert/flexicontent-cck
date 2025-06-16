@@ -11,11 +11,14 @@
 
 defined('_JEXEC') or die;
 
+use Joomla\Filesystem\Path;
 use Joomla\String\StringHelper;
 use Joomla\Utilities\ArrayHelper;
 
 jimport('legacy.controller.legacy');
 JLoader::register('FlexicontentControllerItems', JPATH_BASE.DS.'components'.DS.'com_flexicontent'.DS.'controllers'.DS.'items.php');  // we use JPATH_BASE since controller exists in frontend too
+
+#[AllowDynamicProperties] //php8.2 compatibility
 
 /**
  * FLEXIcontent Component Controller
@@ -24,7 +27,8 @@ JLoader::register('FlexicontentControllerItems', JPATH_BASE.DS.'components'.DS.'
  * @subpackage FLEXIcontent
  * @since 1.0
  */
-class FlexicontentController extends JControllerLegacy
+
+class FlexicontentController extends \Joomla\CMS\MVC\Controller\BaseController
 {
 	var $records_dbtbl  = 'content';
 	var $records_jtable = 'flexicontent_items';
@@ -49,15 +53,17 @@ class FlexicontentController extends JControllerLegacy
 		/**
 		 * Register task aliases
 		 */
+
 		$this->registerTask('apply_type',   'save');
 		$this->registerTask('save_a_preview', 'save');
 
-		if (JFactory::getApplication()->isClient('site'))
+		if (\Joomla\CMS\Factory::getApplication()->isClient('site'))
 		{
 			$this->registerTask('download_tree',  'download');
 			$this->registerTask('download_file',  'download');
+			$this->registerTask('download_files',  'download');
 
-			$this->input  = empty($this->input) ? JFactory::getApplication()->input : $this->input;
+			$this->input  = empty($this->input) ? \Joomla\CMS\Factory::getApplication()->input : $this->input;
 			$this->option = $this->input->get('option', '', 'cmd');
 			$this->task   = $this->input->get('task', '', 'cmd');
 			$this->view   = $this->input->get('view', '', 'cmd');
@@ -66,7 +72,7 @@ class FlexicontentController extends JControllerLegacy
 			// Get referer URL from HTTP request and validate it
 			$this->refererURL = !empty($_SERVER['HTTP_REFERER']) && flexicontent_html::is_safe_url($_SERVER['HTTP_REFERER'])
 				? $_SERVER['HTTP_REFERER']
-				: JUri::base();
+				: \Joomla\CMS\Uri\Uri::base();
 
 			// Get return URL from HTTP request and validate it
 			$this->returnURL = $this->_getReturnUrl();
@@ -93,8 +99,8 @@ class FlexicontentController extends JControllerLegacy
 	function getsefurl()
 	{
 		// Initialize variables
-		$app  = JFactory::getApplication();
-		$db   = JFactory::getDbo();
+		$app  = \Joomla\CMS\Factory::getApplication();
+		$db   = \Joomla\CMS\Factory::getDbo();
 
 		$view = $this->input->get('view', '', 'cmd');
 		$cid  = $this->input->get('cid', 0, 'int');
@@ -106,7 +112,7 @@ class FlexicontentController extends JControllerLegacy
 				.' WHERE c.id = '.$cid;
 			$db->setQuery( $query );
 			$categoryslug = $db->loadResult();
-			echo JRoute::_(FlexicontentHelperRoute::getCategoryRoute($categoryslug), false);
+			echo \Joomla\CMS\Router\Route::_(FlexicontentHelperRoute::getCategoryRoute($categoryslug), false);
 		}
 		jexit();
 	}
@@ -121,7 +127,7 @@ class FlexicontentController extends JControllerLegacy
 		$CLIENT_CACHEABLE_PUBLIC = 1;
 		$CLIENT_CACHEABLE_PRIVATE = 2;
 
-		$userid = JFactory::getUser()->get('id');
+		$userid = \Joomla\CMS\Factory::getUser()->get('id');
 		$cc     = $this->input->get('cc', null);
 		$view   = $this->input->get('view', '', 'cmd');
 		$layout = $this->input->get('layout', '', 'cmd');
@@ -192,7 +198,7 @@ class FlexicontentController extends JControllerLegacy
 			$safeurlparams = array();
 
 			// (1) Add menu URL variables
-			$menu = JFactory::getApplication()->getMenu()->getActive();
+			$menu = \Joomla\CMS\Factory::getApplication()->getMenu()->getActive();
 			if ($menu)
 			{
 				// Add menu Itemid to make sure that the menu items with --different-- parameter values, will display differently
@@ -229,19 +235,19 @@ class FlexicontentController extends JControllerLegacy
 
 		// If component is serving different pages to logged users, this will avoid
 		// having users seeing same page after login/logout when conservative caching is used
-		if ( $userid = JFactory::getUser()->get('id') )
+		if ( $userid = \Joomla\CMS\Factory::getUser()->get('id') )
 		{
 			$this->input->set('__fc_user_id__', $userid);
 			$safeurlparams['__fc_user_id__'] = 'STRING';
 		}
 
-		$cparams = JComponentHelper::getParams( 'com_flexicontent' );
+		$cparams = \Joomla\CMS\Component\ComponentHelper::getParams( 'com_flexicontent' );
 		$use_mobile_layouts  = $cparams->get('use_mobile_layouts', 0);
 		$tabletSameAsDesktop = $cparams->get('force_desktop_layout', 0) == 1;
 
 		// If component is serving different pages for mobile devices, this will avoid
 		// having users seeing the same page regardless of being on desktop or mobile
-		$mobileDetector = flexicontent_html::getMobileDetector();  //$client = JFactory::getApplication()->client; $isMobile = $client->mobile;
+		$mobileDetector = flexicontent_html::getMobileDetector();  //$client = \Joomla\CMS\Factory::getApplication()->client; $isMobile = $client->mobile;
 		$isMobile = $mobileDetector->isMobile();
 		$isTablet = $mobileDetector->isTablet();
 		if ( $use_mobile_layouts && $isMobile && (!$isTablet || !$tabletSameAsDesktop) )
@@ -273,7 +279,7 @@ class FlexicontentController extends JControllerLegacy
 	function vote()
 	{
 		// Initialize variables
-		$app     = JFactory::getApplication();
+		$app     = \Joomla\CMS\Factory::getApplication();
 
 		$id   = $this->input->get('id', 0, 'int');
 		$cid  = $this->input->get('cid', 0, 'int');
@@ -284,12 +290,12 @@ class FlexicontentController extends JControllerLegacy
 		{
 			if ($url)
 			{
-				$dolog = JComponentHelper::getParams( 'com_flexicontent' )->get('print_logging_info');
-				if ( $dolog ) JFactory::getApplication()->enqueueMessage( 'refused redirection to possible unsafe URL: '.$url, 'notice' );
+				$dolog = \Joomla\CMS\Component\ComponentHelper::getParams( 'com_flexicontent' )->get('print_logging_info');
+				if ( $dolog ) \Joomla\CMS\Factory::getApplication()->enqueueMessage( 'refused redirection to possible unsafe URL: '.$url, 'notice' );
 			}
 			global $globalcats;
 			$Itemid = $this->input->get('Itemid', 0, 'int');  // maintain current menu item if this was given
-			$url = JRoute::_(FlexicontentHelperRoute::getItemRoute($id, $globalcats[$cid]->slug, $Itemid));
+			$url = \Joomla\CMS\Router\Route::_(FlexicontentHelperRoute::getItemRoute($id, $globalcats[$cid]->slug, $Itemid));
 		}
 
 		// Finally store the vote
@@ -308,10 +314,10 @@ class FlexicontentController extends JControllerLegacy
 	 */
 	function ajaxfav()
 	{
-		$app     = JFactory::getApplication();
-		$user    = JFactory::getUser();
-		//$db      = JFactory::getDbo();
-		//$cparams = JComponentHelper::getParams( 'com_flexicontent' );
+		$app     = \Joomla\CMS\Factory::getApplication();
+		$user    = \Joomla\CMS\Factory::getUser();
+		//$db      = \Joomla\CMS\Factory::getDbo();
+		//$cparams = \Joomla\CMS\Component\ComponentHelper::getParams( 'com_flexicontent' );
 
 		$id   = $this->input->get('id', 0, 'int');
 		$type = $this->input->get('type', 'item', 'cmd');
@@ -323,7 +329,7 @@ class FlexicontentController extends JControllerLegacy
 
 		// Get Favourites field configuration
 		$favs_field = reset(FlexicontentFields::getFieldsByIds(array(12)));
-		$favs_field->parameters = new JRegistry($favs_field->attribs);
+		$favs_field->parameters = new \Joomla\Registry\Registry($favs_field->attribs);
 
 		$usercount = (int) $favs_field->parameters->get('display_favoured_usercount', 0);
 		$allow_guests_favs = $favs_field->parameters->get('allow_guests_favs', 1);
@@ -383,9 +389,9 @@ class FlexicontentController extends JControllerLegacy
 	 */
 	function getreviewform()
 	{
-		$app  = JFactory::getApplication();
-		$user = JFactory::getUser();
-		$db   = JFactory::getDbo();
+		$app  = \Joomla\CMS\Factory::getApplication();
+		$user = \Joomla\CMS\Factory::getUser();
+		$db   = \Joomla\CMS\Factory::getDbo();
 
 		$html_tagid  = $this->input->get('tagid', '', 'cmd');
 		$content_id  = $this->input->get('content_id', 0, 'int');
@@ -474,7 +480,7 @@ class FlexicontentController extends JControllerLegacy
 
 						<tr class="fcvote_review_form_title_row">
 							<td class="key">
-								<label class="fc-prop-lbl" for="fcvote_review_form_' . $item->id . '_title">' . JText::_('FLEXI_VOTE_REVIEW_TITLE') . '</label>
+								<label class="fc-prop-lbl" for="fcvote_review_form_' . $item->id . '_title">' . \Joomla\CMS\Language\Text::_('FLEXI_VOTE_REVIEW_TITLE') . '</label>
 							</td>
 							<td>
 								<input type="text" name="title" size="200"
@@ -486,7 +492,7 @@ class FlexicontentController extends JControllerLegacy
 
 						<tr class="fcvote_review_form_email_row">
 							<td class="key">
-								<label class="fc-prop-lbl" for="fcvote_review_form_' . $item->id . '_email">' . JText::_('FLEXI_VOTE_REVIEW_EMAIL') . '</label>
+								<label class="fc-prop-lbl" for="fcvote_review_form_' . $item->id . '_email">' . \Joomla\CMS\Language\Text::_('FLEXI_VOTE_REVIEW_EMAIL') . '</label>
 							</td>
 							<td>' . ($user->id ? '<span class=badge>' . $user->email . '</span>' : '
 								<input required type="text" name="email" size="200"
@@ -498,7 +504,7 @@ class FlexicontentController extends JControllerLegacy
 
 						<tr class="fcvote_review_form_text_row">
 							<td class="key">
-								<label class="fc-prop-lbl" for="fcvote_review_form_' . $item->id . '_text">'.JText::_('FLEXI_VOTE_REVIEW_TEXT').'</label>
+								<label class="fc-prop-lbl" for="fcvote_review_form_' . $item->id . '_text">'.\Joomla\CMS\Language\Text::_('FLEXI_VOTE_REVIEW_TEXT').'</label>
 							</td>
 							<td class="top">
 								<textarea required name="text" rows="4" cols="200" id="fcvote_review_form_' . $item->id . '_text" >' . ($review ? $review->text : '') . '</textarea>
@@ -510,7 +516,7 @@ class FlexicontentController extends JControllerLegacy
 							<td class="top">
 								<input type="button" class="btn btn-success fcvote_review_form_submit_btn"
 									onclick="fcvote_submit_review_form(\'' . $html_tagid . '\', this.form); return false;"
-									value="' . JText::_('FLEXI_VOTE_REVIEW_SUMBIT') . '"
+									value="' . \Joomla\CMS\Language\Text::_('FLEXI_VOTE_REVIEW_SUMBIT') . '"
 								/>
 							</td>
 						</tr>
@@ -526,9 +532,9 @@ class FlexicontentController extends JControllerLegacy
 
 	function storereviewform()
 	{
-		$app  = JFactory::getApplication();
-		$user = JFactory::getUser();
-		$db   = JFactory::getDbo();
+		$app  = \Joomla\CMS\Factory::getApplication();
+		$user = \Joomla\CMS\Factory::getUser();
+		$db   = \Joomla\CMS\Factory::getDbo();
 
 		$review_id   = $this->input->get('review_id', 0, 'int');
 		$content_id  = $this->input->get('content_id', 0, 'int');
@@ -594,8 +600,8 @@ class FlexicontentController extends JControllerLegacy
 
 		if (!count($errors))
 		{
-			// Get a 'flexicontent_reviews' JTable instance
-			$review = JTable::getInstance($type = 'flexicontent_reviews', $prefix = '', $config = array());
+			// Get a 'flexicontent_reviews' \Joomla\CMS\Table\Table instance
+			$review = \Joomla\CMS\Table\Table::getInstance($type = 'flexicontent_reviews', $prefix = '', $config = array());
 
 			$review_props = array('content_id' => $content_id, 'user_id' => $user->id, 'type' => $review_type);
 
@@ -673,16 +679,16 @@ class FlexicontentController extends JControllerLegacy
 	 */
 	private function reviewPrepare($content_id, & $item = null, & $field = null, $errors = null, $checkSubmit = true)
 	{
-		$app  = JFactory::getApplication();
-		$user = JFactory::getUser();
-		$db   = JFactory::getDbo();
+		$app  = \Joomla\CMS\Factory::getApplication();
+		$user = \Joomla\CMS\Factory::getUser();
+		$db   = \Joomla\CMS\Factory::getDbo();
 
 
 		/**
 		 * Load content item related to the review
 		 */
 
-		$item = JTable::getInstance($type = 'flexicontent_items', $prefix = '', $config = array());
+		$item = \Joomla\CMS\Table\Table::getInstance($type = 'flexicontent_items', $prefix = '', $config = array());
 
 		if (!$item->load($content_id))
 		{
@@ -703,8 +709,8 @@ class FlexicontentController extends JControllerLegacy
 		FlexicontentFields::loadFieldConfig($field, $item);
 
 		// Load field's language files
-		JFactory::getLanguage()->load('plg_flexicontent_fields_core', JPATH_ADMINISTRATOR, 'en-GB', true);
-		JFactory::getLanguage()->load('plg_flexicontent_fields_core', JPATH_ADMINISTRATOR, null, true);
+		\Joomla\CMS\Factory::getLanguage()->load('plg_flexicontent_fields_core', JPATH_ADMINISTRATOR, 'en-GB', true);
+		\Joomla\CMS\Factory::getLanguage()->load('plg_flexicontent_fields_core', JPATH_ADMINISTRATOR, null, true);
 
 		// Get needed parameters
 		$allow_reviews = (int) $field->parameters->get('allow_reviews', 0);
@@ -728,7 +734,7 @@ class FlexicontentController extends JControllerLegacy
 				$logged_no_acc_msg = $field->parameters->get('logged_no_acc_msg', '');
 				$guest_no_acc_msg  = $field->parameters->get('guest_no_acc_msg', '');
 				$no_acc_msg = $user->id ? $logged_no_acc_msg : $guest_no_acc_msg;
-				$no_acc_msg = $no_acc_msg ? JText::_($no_acc_msg) : '';
+				$no_acc_msg = $no_acc_msg ? \Joomla\CMS\Language\Text::_($no_acc_msg) : '';
 
 				// Message not set create a Default Message
 				if (!$no_acc_msg)
@@ -745,7 +751,7 @@ class FlexicontentController extends JControllerLegacy
 						}
 					}
 
-					$no_acc_msg = JText::sprintf( 'FLEXI_NO_ACCESS_TO_VOTE' , $acclvl_name);
+					$no_acc_msg = \Joomla\CMS\Language\Text::sprintf( 'FLEXI_NO_ACCESS_TO_VOTE' , $acclvl_name);
 				}
 
 				$errors[] = 'You are not authorized to submit reviews';
@@ -777,7 +783,7 @@ class FlexicontentController extends JControllerLegacy
 	function addtag()
 	{
 		// Check for request forgeries
-		JSession::checkToken('request') or die(JText::_('JINVALID_TOKEN'));
+		\Joomla\CMS\Session\Session::checkToken('request') or die(\Joomla\CMS\Language\Text::_('JINVALID_TOKEN'));
 
 		$name = $this->input->get('name', null, 'string');
 		$cid  = $this->input->get('id', array(0), 'array');
@@ -807,7 +813,7 @@ class FlexicontentController extends JControllerLegacy
 
 		if (!FlexicontentHelperPerm::getPerm()->CanCreateTags)
 		{
-			echo "0|".JText::_('FLEXI_NO_AUTH_CREATE_NEW_TAGS');
+			echo "0|".\Joomla\CMS\Language\Text::_('FLEXI_NO_AUTH_CREATE_NEW_TAGS');
 			jexit();
 		}
 
@@ -860,11 +866,11 @@ class FlexicontentController extends JControllerLegacy
 		// Import and Initialize some joomla API variables
 		jimport('joomla.filesystem.file');
 
-		$app   = JFactory::getApplication();
-		$db    = JFactory::getDbo();
-		$user  = JFactory::getUser();
-		$session = JFactory::getSession();
-		$cparams = JComponentHelper::getParams( 'com_flexicontent' );
+		$app   = \Joomla\CMS\Factory::getApplication();
+		$db    = \Joomla\CMS\Factory::getDbo();
+		$user  = \Joomla\CMS\Factory::getUser();
+		$session = \Joomla\CMS\Factory::getSession();
+		$cparams = \Joomla\CMS\Component\ComponentHelper::getParams( 'com_flexicontent' );
 
 
 		$task   = $this->input->get('task', 'download', 'cmd');
@@ -876,6 +882,9 @@ class FlexicontentController extends JControllerLegacy
 			die('unknown download method:' . $method);
 		}
 
+		// Get a target path for the creating the zip file for tasks that require it
+		$tmp_ffname = 'fcmd_uid_'.$user->id.'_'.date('Y-m-d__H-i-s');
+		$targetpath = \Joomla\CMS\Filesystem\Path::clean($app->get('tmp_path') .DS. $tmp_ffname);
 
 		/**
 		 * Single file download (via HTTP request) or multi-file downloaded (via a folder structure in session or in DB table)
@@ -921,10 +930,6 @@ class FlexicontentController extends JControllerLegacy
 				return;
 			}
 
-			$app = JFactory::getApplication();
-			$tmp_ffname = 'fcmd_uid_'.$user->id.'_'.date('Y-m-d__H-i-s');
-			$targetpath = JPath::clean($app->getCfg('tmp_path') .DS. $tmp_ffname);
-
 			$tree_files = $this->_traverseFileTree($nodes, $targetpath);
 			//echo "<pre>"; print_r($tree_files); jexit();
 
@@ -936,12 +941,11 @@ class FlexicontentController extends JControllerLegacy
 			}
 		}
 
-		else//if ($task === 'download' || $task === 'download_file')
+		else // $task === 'download' || $task === 'download_file' || $task === 'download_files'
 		{
 			$file_node = new stdClass();
 			$file_node->fieldid   = $this->input->get('fid', 0, 'int');
 			$file_node->contentid = $this->input->get('cid', 0, 'int');
-			$file_node->fileid    = $this->input->get('id', 0, 'int');
 
 			$coupon_id    = $this->input->get('conid', 0, 'int');
 			$coupon_token = $this->input->get('contok', '', 'string');
@@ -976,8 +980,27 @@ class FlexicontentController extends JControllerLegacy
 				$file_node->coupon = !empty($coupon) ? $coupon : false;
 			}
 
-			$tree_files = array($file_node);
+			// Check for multi file download or single file download
+			$tree_files = [];
+			if ($task === 'download_files')
+			{
+				$fileids = $this->input->get('id', '', 'string');
+				$fileids = explode(',', $fileids);
+				$fileids = array_map('intval', $fileids);
+				foreach ($fileids as $fileid)
+				{
+					if (!$fileid) continue;
+					$file_node->fileid = $fileid;
+					$tree_files[] = clone $file_node;
+				}
+			}
+			else
+			{
+				$file_node->fileid = $this->input->get('id', 0, 'int');
+				$tree_files[] = $file_node;
+			}
 		}
+		//echo '<pre>'; print_r($tree_files); jexit();
 
 
 		/**
@@ -995,7 +1018,7 @@ class FlexicontentController extends JControllerLegacy
 			// note CURRENTLY multi-download feature does not use coupons
 			$access_clauses = $this->_createFieldItemAccessClause(
 				$get_select_access = true,
-				$include_file = ($task === 'download_file' ? 'fileaccess_only' : true)
+				$include_file = ($task === 'download_file' || $task === 'download_files' ? 'fileaccess_only' : true)
 			);
 		}
 
@@ -1016,18 +1039,19 @@ class FlexicontentController extends JControllerLegacy
 			$content_id = (int) $file_node->contentid;
 			$file_id    = (int) $file_node->fileid;
 
-			if (!isset($fields_conf[$field_id]))
+			// Try to load field configuration if a field id was given
+			if ($field_id && !isset($fields_conf[$field_id]))
 			{
 				$q = 'SELECT attribs, name, field_type FROM #__flexicontent_fields WHERE id = '.(int) $field_id;
 				$db->setQuery($q);
 				$fld = $db->loadObject();
-				$fields_conf[$field_id] = new JRegistry($fld->attribs);
+				$fields_conf[$field_id] = new \Joomla\Registry\Registry($fld->attribs);
 				$fields_props[$field_id] = $fld;
 			}
-			$field_type = $fields_props[$field_id]->field_type;
+			$field_type = $field_id ? $fields_props[$field_id]->field_type : '';
 
 			$query  = 'SELECT DISTINCT f.id, f.filename, f.filename_original, f.altname, f.secure, f.url, f.hits, f.stamp, f.size'
-					.($task !== 'download_file'
+					.($task !== 'download_file' && $task !== 'download_files'
 						? ', u.email as item_owner_email' .
 							', i.title as item_title, i.introtext as item_introtext, i.fulltext as item_fulltext' .
 							', i.language as item_language, ie.type_id as item_type_id, i.access as item_access' .
@@ -1039,25 +1063,37 @@ class FlexicontentController extends JControllerLegacy
 					. $access_clauses['select']  // has access
 
 					.' FROM #__flexicontent_files AS f '
-					.($field_type=='file' ? ' LEFT JOIN #__flexicontent_fields_item_relations AS rel ON '
+					.($field_type=='file' || $field_type=='mediafile' ? ' LEFT JOIN #__flexicontent_fields_item_relations AS rel ON '
 						. ' rel.field_id = '. $field_id . ' AND rel.value = ' . (int) $file_id . ' AND rel.item_id = ' . (int) $content_id
 						: '')  // Only check value usage for 'file' field
-					.($task !== 'download_file' ? ' LEFT JOIN #__flexicontent_fields AS fi ON fi.id = '. $field_id : '')
-					.($task !== 'download_file' ? ' LEFT JOIN #__content AS i ON i.id = '. $content_id : '')
-					.($task !== 'download_file' ? ' LEFT JOIN #__categories AS c ON c.id = i.catid' : '')
-					.($task !== 'download_file' ? ' LEFT JOIN #__flexicontent_items_ext AS ie ON ie.item_id = i.id' : '')
-					.($task !== 'download_file' ? ' LEFT JOIN #__flexicontent_types AS ty ON ie.type_id = ty.id' : '')
-					.($task !== 'download_file' ? ' LEFT JOIN #__users AS u ON u.id = i.created_by' : '')
+					.($task !== 'download_file' && $task !== 'download_files' ? ' LEFT JOIN #__flexicontent_fields AS fi ON fi.id = '. $field_id : '')
+					.($task !== 'download_file' && $task !== 'download_files' ? ' LEFT JOIN #__content AS i ON i.id = '. $content_id : '')
+					.($task !== 'download_file' && $task !== 'download_files' ? ' LEFT JOIN #__categories AS c ON c.id = i.catid' : '')
+					.($task !== 'download_file' && $task !== 'download_files' ? ' LEFT JOIN #__flexicontent_items_ext AS ie ON ie.item_id = i.id' : '')
+					.($task !== 'download_file' && $task !== 'download_files' ? ' LEFT JOIN #__flexicontent_types AS ty ON ie.type_id = ty.id' : '')
+					.($task !== 'download_file' && $task !== 'download_files' ? ' LEFT JOIN #__users AS u ON u.id = i.created_by' : '')
 					.' LEFT JOIN #__flexicontent_download_history AS dh ON dh.file_id = f.id AND dh.user_id = '. (int)$user->id
 					. $access_clauses['join']
 					.' WHERE 1'
-					.($task !== 'download_file' ? ' AND i.id = ' . $content_id : '')
-					.($task !== 'download_file' ? ' AND fi.id = ' . $field_id : '')
+					.($task !== 'download_file' && $task !== 'download_files' ? ' AND i.id = ' . $content_id : '')
+					.($task !== 'download_file' && $task !== 'download_files' ? ' AND fi.id = ' . $field_id : '')
 					.' AND f.id = ' . $file_id
 					.' AND f.published= 1'
 					. $access_clauses['and']
 					;
 			$file = $db->setQuery($query)->loadObject();
+
+			// Add target path (with target filename) for case we were not provide a custom name like when using download_tree task
+			static $used_names = array();
+			if ($task !== 'download_tree')
+			{
+				$basename = basename($file->filename);
+				if (isset($used_names[$basename]))
+				{
+					$basename = $file->id . '_' . $basename;
+				}
+				$file_node->targetpath = $targetpath . DS . $basename;
+			}
 			//echo "<pre>". print_r($file, true) ."</pre>"; exit;
 
 
@@ -1069,17 +1105,17 @@ class FlexicontentController extends JControllerLegacy
 			{
 				if (empty($file))
 				{
-					$msg = JText::_('FLEXI_FDC_FAILED_TO_FIND_DATA');     // Failed to match DB data to the download URL data
+					$msg = \Joomla\CMS\Language\Text::_('FLEXI_FDC_FAILED_TO_FIND_DATA');     // Failed to match DB data to the download URL data
 				}
 
 				else
 				{
-					$msg = JText::_( 'FLEXI_ALERTNOTAUTH' );
+					$msg = \Joomla\CMS\Language\Text::_( 'FLEXI_ALERTNOTAUTH' );
 
 					if (!empty($file_node->coupon))
 					{
-						if ( $file_node->coupon->has_expired )              $msg .= JText::_('FLEXI_FDC_COUPON_HAS_EXPIRED');         // No access and given coupon has expired
-						else if ( $file_node->coupon->has_reached_limit )   $msg .= JText::_('FLEXI_FDC_COUPON_REACHED_USAGE_LIMIT'); // No access and given coupon has reached download limit
+						if ( $file_node->coupon->has_expired )              $msg .= \Joomla\CMS\Language\Text::_('FLEXI_FDC_COUPON_HAS_EXPIRED');         // No access and given coupon has expired
+						else if ( $file_node->coupon->has_reached_limit )   $msg .= \Joomla\CMS\Language\Text::_('FLEXI_FDC_COUPON_REACHED_USAGE_LIMIT'); // No access and given coupon has reached download limit
 						else $msg = "unreachable code in download coupon handling";
 					}
 
@@ -1087,13 +1123,13 @@ class FlexicontentController extends JControllerLegacy
 					{
 						if (isset($file_node->coupon))
 						{
-							$msg .= "<br/> <small>".JText::_('FLEXI_FDC_COUPON_NO_LONGER_USABLE')."</small>";
+							$msg .= "<br/> <small>".\Joomla\CMS\Language\Text::_('FLEXI_FDC_COUPON_NO_LONGER_USABLE')."</small>";
 						}
 
 						// Redirect unlogged user to login
 						if ($user->guest)
 						{
-							$uri    = JUri::getInstance();
+							$uri    = \Joomla\CMS\Uri\Uri::getInstance();
 							$return	= $uri->toString();
 							$url    = $cparams->get('login_page', 'index.php?option=com_users&view=login');
 							$return = strtr(base64_encode($return), '+/=', '-_,');
@@ -1101,7 +1137,7 @@ class FlexicontentController extends JControllerLegacy
 							$url   .= '&isfcurl=1';
 
 							$app->setHeader('status', 403, true);
-							$app->enqueueMessage(JText::sprintf('FLEXI_LOGIN_TO_ACCESS', $url), 'error');
+							$app->enqueueMessage(\Joomla\CMS\Language\Text::sprintf('FLEXI_LOGIN_TO_ACCESS', $url), 'error');
 							$app->redirect($url);
 						}
 
@@ -1116,22 +1152,22 @@ class FlexicontentController extends JControllerLegacy
 						elseif(!JDEBUG)
 						{
 							$app->setHeader('status', 403, true);
-							$app->enqueueMessage(JText::_('FLEXI_ALERTNOTAUTH_VIEW'), 'error');
+							$app->enqueueMessage(\Joomla\CMS\Language\Text::_('FLEXI_ALERTNOTAUTH_VIEW'), 'error');
 							$app->redirect('index.php');
 						}
 
 						// JDEBUG is ON, output a detailed message
 						$msg .= ''
-							.(!$file->has_content_access ? "<br/><br/> ".JText::_('FLEXI_FDC_NO_ACCESS_TO')
-								." -- ".JText::_('FLEXI_FDC_CONTENT_CONTAINS')." ".JText::_('FLEXI_FDC_WEBLINK')
-								."<br/><small>(".JText::_('FLEXI_FDC_CONTENT_EXPLANATION').")</small>"
+							.(!$file->has_content_access ? "<br/><br/> ".\Joomla\CMS\Language\Text::_('FLEXI_FDC_NO_ACCESS_TO')
+								." -- ".\Joomla\CMS\Language\Text::_('FLEXI_FDC_CONTENT_CONTAINS')." ".\Joomla\CMS\Language\Text::_('FLEXI_FDC_WEBLINK')
+								."<br/><small>(".\Joomla\CMS\Language\Text::_('FLEXI_FDC_CONTENT_EXPLANATION').")</small>"
 								: '')
-							.(!$file->has_field_access ? "<br/><br/> ".JText::_('FLEXI_FDC_NO_ACCESS_TO')
-								." -- ".JText::_('FLEXI_FDC_FIELD_CONTAINS')." ".JText::_('FLEXI_FDC_WEBLINK')
+							.(!$file->has_field_access ? "<br/><br/> ".\Joomla\CMS\Language\Text::_('FLEXI_FDC_NO_ACCESS_TO')
+								." -- ".\Joomla\CMS\Language\Text::_('FLEXI_FDC_FIELD_CONTAINS')." ".\Joomla\CMS\Language\Text::_('FLEXI_FDC_WEBLINK')
 								: '')
-							.(!$file->has_file_access ? "<br/><br/> ".JText::_('FLEXI_FDC_NO_ACCESS_TO') ." -- ".JText::_('FLEXI_FDC_FILE')." " : '')
+							.(!$file->has_file_access ? "<br/><br/> ".\Joomla\CMS\Language\Text::_('FLEXI_FDC_NO_ACCESS_TO') ." -- ".\Joomla\CMS\Language\Text::_('FLEXI_FDC_FILE')." " : '')
 						;
-						$msg .= "<br/><br/> ". JText::sprintf('FLEXI_FDC_FILE_DATA', $file_id, $content_id, $field_id);
+						$msg .= "<br/><br/> ". \Joomla\CMS\Language\Text::sprintf('FLEXI_FDC_FILE_DATA', $file_id, $content_id, $field_id);
 					}
 
 					// Enqueue the final created message
@@ -1139,7 +1175,7 @@ class FlexicontentController extends JControllerLegacy
 				}
 
 				// Only abort further execution for single file download
-				if ($task !== 'download_tree')
+				if ($task !== 'download_tree' && $task !== 'download_files')
 				{
 					$this->setRedirect('index.php', '');
 					return;
@@ -1154,15 +1190,15 @@ class FlexicontentController extends JControllerLegacy
 			if (!$file->url)
 			{
 				$basePath = $file->secure ? COM_FLEXICONTENT_FILEPATH : COM_FLEXICONTENT_MEDIAPATH;
-				$file->abspath = str_replace(DS, '/', JPath::clean($basePath.DS.$file->filename));
+				$file->abspath = str_replace(DS, '/', \Joomla\CMS\Filesystem\Path::clean($basePath.DS.$file->filename));
 
-				if (!JFile::exists($file->abspath))
+				if (!\Joomla\CMS\Filesystem\File::exists($file->abspath))
 				{
-					$msg = JText::_( 'FLEXI_REQUESTED_FILE_DOES_NOT_EXIST_ANYMORE' );
+					$msg = \Joomla\CMS\Language\Text::_( 'FLEXI_REQUESTED_FILE_DOES_NOT_EXIST_ANYMORE' );
 					$app->enqueueMessage($msg, 'notice');
 
 					// Only abort for single file download
-					if ($task !== 'download_tree')
+					if ($task !== 'download_tree' && $task !== 'download_files')
 					{
 						$this->setRedirect('index.php', '');
 						return;
@@ -1172,21 +1208,22 @@ class FlexicontentController extends JControllerLegacy
 			else
 			{
 				/**
-				 * We may need absolute URL path later use JUri::root() !! for media manager Links
+				 * We may need absolute URL path later use \Joomla\CMS\Uri\Uri::root() !! for media manager Links
 				 * we may use readfile(Absolute URL) to force download of a URL link !!
 				 */
-				$file->abspath = $file->url == 2
-					? JUri::root() . $file->filename
-					: $file->filename;
+				$file->abspath = Path::clean($file->url == 2
+					? JPATH_ROOT . '/' . $file->filename
+					: $file->filename
+				);
 			}
 
 
 			/**
-			 * Get item and field JTable records, and then load field's configuration
+			 * Get item and field \Joomla\CMS\Table\Table records, and then load field's configuration
 			 */
 
-			$item = JTable::getInstance($type = 'flexicontent_items', $prefix = '', $config = array());
-			$field = JTable::getInstance($type = 'flexicontent_fields', $prefix = '', $config = array());
+			$item = \Joomla\CMS\Table\Table::getInstance($type = 'flexicontent_items', $prefix = '', $config = array());
+			$field = \Joomla\CMS\Table\Table::getInstance($type = 'flexicontent_fields', $prefix = '', $config = array());
 			$item->load($file_node->contentid);
 			$field->load($file_node->fieldid);
 			FlexicontentFields::loadFieldConfig($field, $item);
@@ -1198,8 +1235,8 @@ class FlexicontentController extends JControllerLegacy
 			 */
 
 			ob_start();
-			JPluginHelper::importPlugin('system');
-			JPluginHelper::importPlugin('flexicontent_fields');
+			\Joomla\CMS\Plugin\PluginHelper::importPlugin('system');
+			\Joomla\CMS\Plugin\PluginHelper::importPlugin('flexicontent_fields');
 			$text = ob_get_contents();
 			ob_end_clean();
 
@@ -1213,7 +1250,7 @@ class FlexicontentController extends JControllerLegacy
 			$value_order = null;
 			$config = array(
 				'fileid' => $file_id,
-				'task' => $task,  // (string) 'download', 'download_tree'
+				'task' => $task,  // (string) 'download', 'download_tree', 'download_files', 'download_file'
 				'method' => $method,  // (string) 'view', 'download'
 				'coupon_id' => $coupon_id,  // int or null
 				'coupon_token' => $coupon_token // string or null
@@ -1236,7 +1273,7 @@ class FlexicontentController extends JControllerLegacy
 			 * Increment hits counter of file, and hits counter of file-user history
 			 */
 
-			$filetable = JTable::getInstance('flexicontent_files', '');
+			$filetable = \Joomla\CMS\Table\Table::getInstance('flexicontent_files', '');
 			$filetable->hit($file_id);
 			if ( empty($file->history_id) )
 			{
@@ -1283,31 +1320,55 @@ class FlexicontentController extends JControllerLegacy
 			{
 				// Check and prefix URL Media manager links too
 				$url = $file->url == 2
-					? JUri::root(true) . '/' . $file->filename
+					? \Joomla\CMS\Uri\Uri::root(true) . '/' . $file->filename
 					: $file->filename;
+				$abs_path = Path::clean($file->url == 2
+					? JPATH_ROOT . '/' . $file->filename
+					: $file->filename);
+
+				// For media manager links, check if the file exists
+				if ($file->url == 2 && !file_exists($abs_path))
+				{
+					$msg = 'File does not exist: ' . $file->filename;
+					if ($task === 'download_tree' || $task === 'download_files') {
+						continue;
+					}
+					else {
+						$app->enqueueMessage($msg, 'error');
+						return false;
+					}
+				}
+
 				$ext = strtolower(flexicontent_upload::getExt($url));
 
 				// Check for empty URL
 				if (empty($url))
 				{
 					$msg = "File URL is empty: ".$file->url;
-					$app->enqueueMessage($msg, 'error');
-					return false;
+					if ($task === 'download_tree' || $task === 'download_files') {
+						continue;
+					}
+					else {
+						$app->enqueueMessage($msg, 'error');
+						return false;
+					}
 				}
 
 				// skip url-based file if downloading multiple files
-				if ($task == 'download_tree')
+				if ($file->url == 1 && ($task === 'download_tree' || $task === 'download_files'))
 				{
 					$msg = "Skipped URL based file: ".$url;
 					$app->enqueueMessage($msg, 'notice');
 					continue;
 				}
-				else
+				elseif ($file->url == 1)
 				{
-					$force_url_download         = (int) $fields_conf[$field_id]->get('force_url_download', 0);
-					$force_url_download_exts    = preg_split("/[\s]*,[\s]*/", strtolower($fields_conf[$field_id]->get('force_url_download_exts', 'bmp,wbmp,gif,jpg,jpeg,png,webp,ico,wav,mp3,aiff')));
-					$force_url_download_exts    = array_flip($force_url_download_exts);
-					$force_url_download_max_kbs = (int) $fields_conf[$field_id]->get('force_url_download_max_kbs', 100000);
+					$force_url_download           = $field_id ? (int) $fields_conf[$field_id]->get('force_url_download', 0) : 0;
+					$force_url_download_exts_defs = 'bmp,wbmp,gif,jpg,jpeg,png,webp,ico,wav,mp3,aiff';
+					$force_url_download_exts      = strtolower($field_id ? $fields_conf[$field_id]->get('force_url_download_exts', $force_url_download_exts_defs) : $force_url_download_exts_defs);
+					$force_url_download_exts      = preg_split("/[\s]*,[\s]*/", $force_url_download_exts);
+					$force_url_download_exts      = array_flip($force_url_download_exts);
+					$force_url_download_max_kbs   = $field_id ? (int) $fields_conf[$field_id]->get('force_url_download_max_kbs', 100000) : 100000;
 
 					if ($force_url_download && isset($force_url_download_exts[$ext]))
 					{
@@ -1332,114 +1393,119 @@ class FlexicontentController extends JControllerLegacy
 				}
 			}
 
-
 			/**
 			 * Set file (tree) node and assign file into valid files for downloading
 			 */
-
 			$file->node = $file_node;
 			$valid_files[$file_id] = $file;
 
-			$file->hits++;
-			$per_downloads = $fields_conf[$field_id]->get('notifications_step', 20);
-
-			// Create current date string according to configuration
-			$current_date = flexicontent_html::getDateFieldDisplay($fields_conf[$field_id], $_date_ = '', 'stamp_');
-
-			$file->header_text = $fields_conf[$field_id]->get('pdf_header_text', '');
-			$file->footer_text = $fields_conf[$field_id]->get('pdf_footer_text', '');
-
-			$result = preg_match_all("/\%\%([^%]+)\%\%/", $file->header_text, $translate_matches);
-			if (!empty($translate_matches[1])) foreach ($translate_matches[1] as $translate_string)
-			{
-				$file->header_text = str_replace('%%'.$translate_string.'%%', JText::_($translate_string), $file->header_text);
-			}
-			$file->header_text = str_replace('{{current_date}}', $current_date, $file->header_text);
-
-			$result = preg_match_all("/\%\%([^%]+)\%\%/", $file->footer_text, $translate_matches);
-			if (!empty($translate_matches[1])) foreach ($translate_matches[1] as $translate_string)
-			{
-				$file->footer_text = str_replace('%%'.$translate_string.'%%', JText::_($translate_string), $file->footer_text);
-			}
-			$file->footer_text = str_replace('{{current_date}}', $current_date, $file->footer_text);
-
 			/**
-			 * Send notifications email about file download if file was download via a field that has these notifications enabled
+			 * Increment hits counter of file, and send notifications email about file download
 			 */
-			if ($task !== 'download_file' && $fields_conf[$field_id]->get('send_notifications') && ($file->hits % $per_downloads == 0) )
+			if ($field_id)
 			{
-				// Calculate (once per file) some text used for notifications
-				$file->__file_title__ = $file->altname && $file->altname != $file->filename
-					? $file->altname . ' ['.$file->filename.']'
-					: $file->filename;
+				$file->hits++;
+				$per_downloads = !$fields_conf[$field_id]->get('notifications_step', 20);
 
-				$item = new stdClass();
-				$item->access = $file->item_access;
-				$item->type_id = $file->item_type_id;
-				$item->language = $file->item_language;
-				$file->__item_url__ = JRoute::_(FlexicontentHelperRoute::getItemRoute($file->itemslug, $file->catslug, 0, $item));
+				// Create current date string according to configuration
+				$current_date = flexicontent_html::getDateFieldDisplay($fields_conf[$field_id], $_date_ = '', 'stamp_');
 
-				// Parse and identify language strings and then make language replacements
-				$notification_tmpl = $fields_conf[$field_id]->get('notification_tmpl');
-				if ( empty($notification_tmpl) )
+				$file->header_text = $fields_conf[$field_id]->get('pdf_header_text', '');
+				$file->footer_text = $fields_conf[$field_id]->get('pdf_footer_text', '');
+
+				$result = preg_match_all("/\%\%([^%]+)\%\%/", $file->header_text, $translate_matches);
+				if (!empty($translate_matches[1])) foreach ($translate_matches[1] as $translate_string)
 				{
-					$notification_tmpl = JText::_('FLEXI_HITS') .": ".$file->hits;
-					$notification_tmpl .= '%%FLEXI_FDN_FILE_NO%% __file_id__:  "__file_title__" '."\n";
-					$notification_tmpl .= '%%FLEXI_FDN_FILE_IN_ITEM%% "__item_title__":' ."\n";
-					$notification_tmpl .= '__item_url__';
+					$file->header_text = str_replace('%%'.$translate_string.'%%', \Joomla\CMS\Language\Text::_($translate_string), $file->header_text);
 				}
+				$file->header_text = str_replace('{{current_date}}', $current_date, $file->header_text);
 
-				$result = preg_match_all("/\%\%([^%]+)\%\%/", $notification_tmpl, $translate_matches);
-				$translate_strings = $result ? $translate_matches[1] : array();
-				foreach ($translate_strings as $translate_string)
+				$result = preg_match_all("/\%\%([^%]+)\%\%/", $file->footer_text, $translate_matches);
+				if (!empty($translate_matches[1])) foreach ($translate_matches[1] as $translate_string)
 				{
-					$notification_tmpl = str_replace('%%'.$translate_string.'%%', JText::_($translate_string), $notification_tmpl);
+					$file->footer_text = str_replace('%%'.$translate_string.'%%', \Joomla\CMS\Language\Text::_($translate_string), $file->footer_text);
 				}
-				$file->notification_tmpl = $notification_tmpl;
+				$file->footer_text = str_replace('{{current_date}}', $current_date, $file->footer_text);
 
-				// Send to hard-coded email list
-				$send_all_to_email = $fields_conf[$field_id]->get('send_all_to_email');
-				if ($send_all_to_email)
+				/**
+				 * Send notifications email about file download if file was download via a field that has these notifications enabled
+				 */
+				if ($task !== 'download_file' && $task !== 'download_files' && $fields_conf[$field_id]->get('send_notifications') && ($file->hits % $per_downloads == 0) )
 				{
-					$emails = preg_split("/[\s]*[;,][\s]*/", $send_all_to_email);
-					foreach($emails as $email)
+					// Calculate (once per file) some text used for notifications
+					$file->__file_title__ = $file->altname && $file->altname != $file->filename
+						? $file->altname . ' ['.$file->filename.']'
+						: $file->filename;
+
+					$item = new stdClass();
+					$item->access = $file->item_access;
+					$item->type_id = $file->item_type_id;
+					$item->language = $file->item_language;
+					$file->__item_url__ = \Joomla\CMS\Router\Route::_(FlexicontentHelperRoute::getItemRoute($file->itemslug, $file->catslug, 0, $item));
+
+					// Parse and identify language strings and then make language replacements
+					$notification_tmpl = $fields_conf[$field_id]->get('notification_tmpl');
+					if ( empty($notification_tmpl) )
 					{
-						$email_recipients[trim($email)][] = $file;
+						$notification_tmpl = \Joomla\CMS\Language\Text::_('FLEXI_HITS') .": ".$file->hits;
+						$notification_tmpl .= '%%FLEXI_FDN_FILE_NO%% __file_id__:  "__file_title__" '."\n";
+						$notification_tmpl .= '%%FLEXI_FDN_FILE_IN_ITEM%% "__item_title__":' ."\n";
+						$notification_tmpl .= '__item_url__';
 					}
-				}
 
-				// Send to item owner
-				$send_to_current_item_owner = (int) $fields_conf[$field_id]->get('send_to_current_item_owner');
-				if ($send_to_current_item_owner)
-				{
-					$email_recipients[$file->item_owner_email][] = $file;
-				}
+					$result = preg_match_all("/\%\%([^%]+)\%\%/", $notification_tmpl, $translate_matches);
+					$translate_strings = $result ? $translate_matches[1] : array();
+					foreach ($translate_strings as $translate_string)
+					{
+						$notification_tmpl = str_replace('%%'.$translate_string.'%%', \Joomla\CMS\Language\Text::_($translate_string), $notification_tmpl);
+					}
+					$file->notification_tmpl = $notification_tmpl;
 
-				// Send to email assigned to email field in same content item
-				$send_to_email_field = (int) $fields_conf[$field_id]->get('send_to_email_field');
-				if ($send_to_email_field) {
-
-					$q  = 'SELECT value '
-						.' FROM #__flexicontent_fields_item_relations '
-						.' WHERE field_id = ' . $send_to_email_field .' AND item_id='.$content_id;
-					$db->setQuery($q);
-					$email_values = $db->loadColumn();
-
-					foreach ($email_values as $i => $email_value) {
-						if ( @unserialize($email_value)!== false || $email_value === 'b:0;' ) {
-							$email_values[$i] = unserialize($email_value);
-						} else {
-							$email_values[$i] = array('addr' => $email_value, 'text' => '');
+					// Send to hard-coded email list
+					$send_all_to_email = $fields_conf[$field_id]->get('send_all_to_email');
+					if ($send_all_to_email)
+					{
+						$emails = preg_split("/[\s]*[;,][\s]*/", $send_all_to_email);
+						foreach($emails as $email)
+						{
+							$email_recipients[trim($email)][] = $file;
 						}
-						$addr = @ $email_values[$i]['addr'];
-						if ( $addr ) {
-							$email_recipients[$addr][] = $file;
+					}
+
+					// Send to item owner
+					$send_to_current_item_owner = (int) $fields_conf[$field_id]->get('send_to_current_item_owner');
+					if ($send_to_current_item_owner)
+					{
+						$email_recipients[$file->item_owner_email][] = $file;
+					}
+
+					// Send to email assigned to email field in same content item
+					$send_to_email_field = (int) $fields_conf[$field_id]->get('send_to_email_field');
+					if ($send_to_email_field) {
+
+						$q  = 'SELECT value '
+							.' FROM #__flexicontent_fields_item_relations '
+							.' WHERE field_id = ' . $send_to_email_field .' AND item_id='.$content_id;
+						$db->setQuery($q);
+						$email_values = $db->loadColumn();
+
+						foreach ($email_values as $i => $email_value) {
+							if ( @unserialize($email_value)!== false || $email_value === 'b:0;' ) {
+								$email_values[$i] = unserialize($email_value);
+							} else {
+								$email_values[$i] = array('addr' => $email_value, 'text' => '');
+							}
+							$addr = @ $email_values[$i]['addr'];
+							if ( $addr ) {
+								$email_recipients[$addr][] = $file;
+							}
 						}
 					}
 				}
 			}
+
 		}
-		//echo "<pre>". print_r($valid_files, true) ."</pre>";
+		//echo "<pre>". print_r($valid_files, true) ."</pre>"; exit;
 		//echo "<pre>". print_r($email_recipients, true) ."</pre>";
 		//jexit();
 
@@ -1447,11 +1513,11 @@ class FlexicontentController extends JControllerLegacy
 		if (!empty($email_recipients))
 		{
 			ob_start();
-			$sendermail	= $app->getCfg('mailfrom');
-			$sendermail	= JMailHelper::cleanAddress($sendermail);
-			$sendername	= $app->getCfg('sitename');
-			$subject    = JText::_('FLEXI_FDN_FILE_DOWNLOAD_REPORT');
-			$message_header = JText::_('FLEXI_FDN_FILE_DOWNLOAD_REPORT_BY') .': '. $user->name .' ['.$user->username .']';
+			$sendermail	= $app->get('mailfrom');
+			$sendermail	= \Joomla\CMS\Mail\MailHelper::cleanAddress($sendermail);
+			$sendername	= $app->get('sitename');
+			$subject    = \Joomla\CMS\Language\Text::_('FLEXI_FDN_FILE_DOWNLOAD_REPORT');
+			$message_header = \Joomla\CMS\Language\Text::_('FLEXI_FDN_FILE_DOWNLOAD_REPORT_BY') .': '. $user->name .' ['.$user->username .']';
 
 
 			/**
@@ -1461,7 +1527,7 @@ class FlexicontentController extends JControllerLegacy
 			// Personalized email per subscribers
 			foreach ($email_recipients as $email_addr => $files_arr)
 			{
-				$to = JMailHelper::cleanAddress($email_addr);
+				$to = \Joomla\CMS\Mail\MailHelper::cleanAddress($email_addr);
 				$_message = $message_header;
 
 				foreach($files_arr as $filedata)
@@ -1474,7 +1540,7 @@ class FlexicontentController extends JControllerLegacy
 					$_mssg_file = str_ireplace('__item_url__', $filedata->__item_url__, $_mssg_file);
 					$count = 0;
 					$_mssg_file = str_ireplace('__file_hits__', $filedata->hits, $_mssg_file, $count);
-					if ($count == 0) $_mssg_file = JText::_('FLEXI_HITS') .": ".$file->hits ."\n". $_mssg_file;
+					if ($count == 0) $_mssg_file = \Joomla\CMS\Language\Text::_('FLEXI_HITS') .": ".$file->hits ."\n". $_mssg_file;
 					$_message .= "\n\n" . $_mssg_file;
 				}
 				//echo "<pre>". $_message ."</pre>";
@@ -1485,7 +1551,7 @@ class FlexicontentController extends JControllerLegacy
 				$html_mode=false; $cc=null; $bcc=null;
 				$attachment=null; $replyto=null; $replytoname=null;
 
-				$send_result = JFactory::getMailer()->sendMail( $from, $fromname, $recipient, $subject, $_message, $html_mode, $cc, $bcc, $attachment, $replyto, $replytoname );
+				$send_result = \Joomla\CMS\Factory::getMailer()->sendMail( $from, $fromname, $recipient, $subject, $_message, $html_mode, $cc, $bcc, $attachment, $replyto, $replytoname );
 			}
 			ob_end_clean();
 		}
@@ -1497,9 +1563,8 @@ class FlexicontentController extends JControllerLegacy
 			ini_set('zlib.output_compression', 'Off');
 		}
 
-
 		// *** Single file download
-		if ($task != 'download_tree')
+		if ($task !== 'download_tree' && $task !== 'download_files')
 		{
 			$dlfile = reset($valid_files);
 		}
@@ -1510,17 +1575,19 @@ class FlexicontentController extends JControllerLegacy
 		else
 		{
 			// Create target (top level) folder
-			JFolder::create($targetpath, 0755);
+			\Joomla\CMS\Filesystem\Folder::create($targetpath, 0755);
 
 			// Copy Files
-			foreach ($valid_files as $file) JFile::copy($file->abspath, $file->node->targetpath);
+			foreach ($valid_files as $file) \Joomla\CMS\Filesystem\File::copy($file->abspath, $file->node->targetpath);
 
 			// Create text/html file with ITEM title / descriptions
 			// TODO replace this with a TEMPLATE file ...
-			$desc_filename = $targetpath .DS. "_descriptions";
-			$handle_txt = fopen($desc_filename.".txt", "w");
-			$handle_htm = fopen($desc_filename.".htm", "w");
-			fprintf($handle_htm, '
+			if ($task === 'download_tree')
+			{
+				$desc_filename = $targetpath .DS. "_descriptions";
+				$handle_txt = fopen($desc_filename.".txt", "w");
+				$handle_htm = fopen($desc_filename.".htm", "w");
+				fprintf($handle_htm, '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-gb" lang="en-gb" dir="ltr" >
 <head>
@@ -1528,24 +1595,25 @@ class FlexicontentController extends JControllerLegacy
 </head>
 <body>
 '
-			);
-			foreach ($valid_files as $file) {
-				fprintf($handle_txt, "%s", $file->item_title."\n\n");
-				fprintf($handle_txt, "%s", flexicontent_html::striptagsandcut($file->item_introtext) ."\n\n" );
-				if ( strlen($file->item_fulltext) ) fprintf($handle_txt, "%s", flexicontent_html::striptagsandcut($file->item_fulltext)."\n\n" );
+				);
+				foreach ($valid_files as $file) {
+					fprintf($handle_txt, "%s", $file->item_title."\n\n");
+					fprintf($handle_txt, "%s", flexicontent_html::striptagsandcut($file->item_introtext) ."\n\n" );
+					if ( strlen($file->item_fulltext) ) fprintf($handle_txt, "%s", flexicontent_html::striptagsandcut($file->item_fulltext)."\n\n" );
 
-				fprintf($handle_htm, "%s", "<h2>".$file->item_title."</h2>");
-				fprintf($handle_htm, "%s", "<blockquote>".$file->item_introtext."</blockquote><br/>");
-				if ( strlen($file->item_fulltext) ) fprintf($handle_htm, "%s", "<blockquote>".$file->item_fulltext."</blockquote><br/>");
-				fprintf($handle_htm, "<hr/><br/>");
+					fprintf($handle_htm, "%s", "<h2>".$file->item_title."</h2>");
+					fprintf($handle_htm, "%s", "<blockquote>".$file->item_introtext."</blockquote><br/>");
+					if ( strlen($file->item_fulltext) ) fprintf($handle_htm, "%s", "<blockquote>".$file->item_fulltext."</blockquote><br/>");
+					fprintf($handle_htm, "<hr/><br/>");
+				}
+				fclose($handle_txt);
+				fclose($handle_htm);
 			}
-			fclose($handle_txt);
-			fclose($handle_htm);
 
 			// Get file list recursively, and calculate archive filename
-			$fileslist   = JFolder::files($targetpath, '.', $recurse=true, $fullpath=true);
+			$fileslist   = \Joomla\CMS\Filesystem\Folder::files($targetpath, '.', $recurse=true, $fullpath=true);
 			$archivename = $tmp_ffname . '.zip';
-			$archivepath = JPath::clean( $app->getCfg('tmp_path').DS.$archivename );
+			$archivepath = \Joomla\CMS\Filesystem\Path::clean( $app->get('tmp_path').DS.$archivename );
 
 
 			/**
@@ -1556,7 +1624,7 @@ class FlexicontentController extends JControllerLegacy
 			$zip_result = $za->open($archivepath, ZipArchive::CREATE);
 			if ($zip_result !== true)
 			{
-				$msg = JText::_('FLEXI_OPERATION_FAILED'). ": compressed archive could not be created";
+				$msg = \Joomla\CMS\Language\Text::_('FLEXI_OPERATION_FAILED'). ": compressed archive could not be created";
 				$app->enqueueMessage($msg, 'notice');
 				$this->setRedirect('index.php', '');
 				return;
@@ -1569,31 +1637,37 @@ class FlexicontentController extends JControllerLegacy
 			 * Remove temporary folder structure
 			 */
 
-			if (!JFolder::delete(($targetpath)) )
+			if (!\Joomla\CMS\Filesystem\Folder::delete(($targetpath)) )
 			{
 				$msg = "Temporary folder ". $targetpath ." could not be deleted";
 				$app->enqueueMessage($msg, 'notice');
 			}
 
 			// Delete old files (they can not be deleted during download time ...)
-			$tmp_path = JPath::clean($app->getCfg('tmp_path'));
-			$matched_files = JFolder::files($tmp_path, 'fcmd_uid_.*', $recurse=false, $fullpath=true);
+			$tmp_path = \Joomla\CMS\Filesystem\Path::clean($app->get('tmp_path'));
+			$matched_files = \Joomla\CMS\Filesystem\Folder::files($tmp_path, 'fcmd_uid_.*', $recurse=false, $fullpath=true);
 
 			foreach ($matched_files as $archive_file)
 			{
 				//echo "Seconds passed:". (time() - filemtime($tmp_folder)) ."<br>". "$filename was last modified: " . date ("F d Y H:i:s.", filemtime($tmp_folder)) . "<br>";
-				if (time() - filemtime($archive_file) > 3600) JFile::delete($archive_file);
+				if (time() - filemtime($archive_file) > 3600) \Joomla\CMS\Filesystem\File::delete($archive_file);
 			}
 
 			// Delete old tmp folder (in case that the some archiving procedures were interrupted thus their tmp folder were not deleted)
-			$matched_folders = JFolder::folders($tmp_path, 'fcmd_uid_.*', $recurse=false, $fullpath=true);
+			$matched_folders = \Joomla\CMS\Filesystem\Folder::folders($tmp_path, 'fcmd_uid_.*', $recurse=false, $fullpath=true);
 			foreach ($matched_folders as $tmp_folder) {
 				//echo "Seconds passed:". (time() - filemtime($tmp_folder)) ."<br>". "$filename was last modified: " . date ("F d Y H:i:s.", filemtime($tmp_folder)) . "<br>";
-				JFolder::delete($tmp_folder);
+				\Joomla\CMS\Filesystem\Folder::delete($tmp_folder);
 			}
 
 			$dlfile = new stdClass();
-			$dlfile->filename = 'cart_files_'.date('m-d-Y_H-i-s'). '.zip';   // a friendly name instead of  $archivename
+			$dlfile->url = 0;
+
+			$archive_file_title = $app->input->getString('item_title', 'files_'.date('m-d-Y_H-i-s')) . '.zip';
+			$archive_file_title = Path::clean($archive_file_title);
+
+			$dlfile->filename_original = $archive_file_title;
+			$dlfile->filename = $archive_file_title;
 			$dlfile->abspath  = $archivepath;
 		}
 
@@ -1631,7 +1705,7 @@ class FlexicontentController extends JControllerLegacy
 		$dlfile->size_tmp = false;
 
 		// Do not try to stamp URLs
-		if (!$dlfile->url && $dlfile->ext == 'pdf' && $fields_conf[$field_id]->get('stamp_pdfs', 0) && $dlfile->stamp)
+		if (!$dlfile->url && $dlfile->ext == 'pdf' && !empty($field_id) && $fields_conf[$field_id]->get('stamp_pdfs', 0) && $dlfile->stamp)
 		{
 			// Create new PDF document (initiate FPDI)
 			$TCPDF_path = JPATH_SITE.DS.'components'.DS.'com_flexicontent'.DS.'librairies'.DS.'TCPDF'.DS.'vendor'.DS.'autoload.php';
@@ -1792,10 +1866,10 @@ class FlexicontentController extends JControllerLegacy
 	function weblink()
 	{
 		// Import and Initialize some joomla API variables
-		$app     = JFactory::getApplication();
-		$db      = JFactory::getDbo();
-		$user    = JFactory::getUser();
-		$cparams = JComponentHelper::getParams( 'com_flexicontent' );
+		$app     = \Joomla\CMS\Factory::getApplication();
+		$db      = \Joomla\CMS\Factory::getDbo();
+		$user    = \Joomla\CMS\Factory::getUser();
+		$cparams = \Joomla\CMS\Component\ComponentHelper::getParams( 'com_flexicontent' );
 
 		// Get HTTP REQUEST variables
 		$field_id    = $this->input->get('fid', 0, 'int');
@@ -1838,7 +1912,7 @@ class FlexicontentController extends JControllerLegacy
 		{
 			if (empty($link_data))
 			{
-				$msg = JText::_('FLEXI_FDC_FAILED_TO_FIND_DATA');     // Failed to match DB data to the download URL data
+				$msg = \Joomla\CMS\Language\Text::_('FLEXI_FDC_FAILED_TO_FIND_DATA');     // Failed to match DB data to the download URL data
 			}
 
 			else
@@ -1846,7 +1920,7 @@ class FlexicontentController extends JControllerLegacy
 				// Redirect unlogged user to login
 				if ($user->guest)
 				{
-					$uri    = JUri::getInstance();
+					$uri    = \Joomla\CMS\Uri\Uri::getInstance();
 					$return	= $uri->toString();
 					$url    = $cparams->get('login_page', 'index.php?option=com_users&view=login');
 					$return = strtr(base64_encode($return), '+/=', '-_,');
@@ -1854,7 +1928,7 @@ class FlexicontentController extends JControllerLegacy
 					$url   .= '&isfcurl=1';
 
 					$app->setHeader('status', 403, true);
-					$app->enqueueMessage(JText::sprintf('FLEXI_LOGIN_TO_ACCESS', $url), 'error');
+					$app->enqueueMessage(\Joomla\CMS\Language\Text::sprintf('FLEXI_LOGIN_TO_ACCESS', $url), 'error');
 					$app->redirect($url);
 				}
 
@@ -1869,22 +1943,22 @@ class FlexicontentController extends JControllerLegacy
 				elseif(!JDEBUG)
 				{
 					$app->setHeader('status', 403, true);
-					$app->enqueueMessage(JText::_('FLEXI_ALERTNOTAUTH_VIEW'), 'error');
+					$app->enqueueMessage(\Joomla\CMS\Language\Text::_('FLEXI_ALERTNOTAUTH_VIEW'), 'error');
 					$app->redirect('index.php');
 				}
 
 				// JDEBUG is ON, output a detailed message
-				$msg  = JText::_('FLEXI_ALERTNOTAUTH');
+				$msg  = \Joomla\CMS\Language\Text::_('FLEXI_ALERTNOTAUTH');
 				$msg .= ""
-					.(!$link_data->has_content_access ? "<br/><br/> ".JText::_('FLEXI_FDC_NO_ACCESS_TO')
-							." -- ".JText::_('FLEXI_FDC_CONTENT_CONTAINS')." ".JText::_('FLEXI_FDC_WEBLINK')
-							."<br/><small>(".JText::_('FLEXI_FDC_CONTENT_EXPLANATION').")</small>"
+					.(!$link_data->has_content_access ? "<br/><br/> ".\Joomla\CMS\Language\Text::_('FLEXI_FDC_NO_ACCESS_TO')
+							." -- ".\Joomla\CMS\Language\Text::_('FLEXI_FDC_CONTENT_CONTAINS')." ".\Joomla\CMS\Language\Text::_('FLEXI_FDC_WEBLINK')
+							."<br/><small>(".\Joomla\CMS\Language\Text::_('FLEXI_FDC_CONTENT_EXPLANATION').")</small>"
 						: '')
-					.(!$link_data->has_field_access ? "<br/><br/> ".JText::_('FLEXI_FDC_NO_ACCESS_TO')
-							." -- ".JText::_('FLEXI_FDC_FIELD_CONTAINS')." ".JText::_('FLEXI_FDC_WEBLINK')
+					.(!$link_data->has_field_access ? "<br/><br/> ".\Joomla\CMS\Language\Text::_('FLEXI_FDC_NO_ACCESS_TO')
+							." -- ".\Joomla\CMS\Language\Text::_('FLEXI_FDC_FIELD_CONTAINS')." ".\Joomla\CMS\Language\Text::_('FLEXI_FDC_WEBLINK')
 						: '')
 				;
-				$msg .= "<br/><br/> ". JText::sprintf('FLEXI_FDC_WEBLINK_DATA', $value_order, $content_id, $field_id);
+				$msg .= "<br/><br/> ". \Joomla\CMS\Language\Text::sprintf('FLEXI_FDC_WEBLINK_DATA', $value_order, $content_id, $field_id);
 			}
 
 			// Enqueue the final created message
@@ -1897,11 +1971,11 @@ class FlexicontentController extends JControllerLegacy
 
 
 		/**
-		 * Get item and field JTable records, and then load field's configuration
+		 * Get item and field \Joomla\CMS\Table\Table records, and then load field's configuration
 		 */
 
-		$item = JTable::getInstance($type = 'flexicontent_items', $prefix = '', $config = array());
-		$field = JTable::getInstance($type = 'flexicontent_fields', $prefix = '', $config = array());
+		$item = \Joomla\CMS\Table\Table::getInstance($type = 'flexicontent_items', $prefix = '', $config = array());
+		$field = \Joomla\CMS\Table\Table::getInstance($type = 'flexicontent_fields', $prefix = '', $config = array());
 		$item->load($content_id);
 		$field->load($field_id);
 		FlexicontentFields::loadFieldConfig($field, $item);
@@ -1913,8 +1987,8 @@ class FlexicontentController extends JControllerLegacy
 		 */
 
 		ob_start();
-		JPluginHelper::importPlugin('system');
-		JPluginHelper::importPlugin('flexicontent_fields');
+		\Joomla\CMS\Plugin\PluginHelper::importPlugin('system');
+		\Joomla\CMS\Plugin\PluginHelper::importPlugin('flexicontent_fields');
 		$text = ob_get_contents();
 		ob_end_clean();
 
@@ -1982,9 +2056,9 @@ class FlexicontentController extends JControllerLegacy
 	function viewtags()
 	{
 		// Check for request forgeries
-		JSession::checkToken('request') or die(JText::_('JINVALID_TOKEN'));
+		\Joomla\CMS\Session\Session::checkToken('request') or die(\Joomla\CMS\Language\Text::_('JINVALID_TOKEN'));
 
-		$app    = JFactory::getApplication();
+		$app    = \Joomla\CMS\Factory::getApplication();
 		$perms  = FlexicontentHelperPerm::getPerm();
 
 		@ob_end_clean();
@@ -2001,7 +2075,7 @@ class FlexicontentController extends JControllerLegacy
 		{
 			$array[] = (object) array(
 				'id' => '0',
-				'name' => JText::_('FLEXI_FIELD_NO_ACCESS')
+				'name' => \Joomla\CMS\Language\Text::_('FLEXI_FIELD_NO_ACCESS')
 			);
 		}
 		else
@@ -2027,7 +2101,7 @@ class FlexicontentController extends JControllerLegacy
 			{
 				$array[] = (object) array(
 					'id' => '0',
-					'name' => JText::_($perms->CanCreateTags ? 'FLEXI_NEW_TAG_ENTER_TO_CREATE' : 'FLEXI_NO_TAGS_FOUND')
+					'name' => \Joomla\CMS\Language\Text::_($perms->CanCreateTags ? 'FLEXI_NEW_TAG_ENTER_TO_CREATE' : 'FLEXI_NO_TAGS_FOUND')
 				);
 			}
 		}
@@ -2038,7 +2112,7 @@ class FlexicontentController extends JControllerLegacy
 
 	function search()
 	{
-		$app = JFactory::getApplication();
+		$app = \Joomla\CMS\Factory::getApplication();
 
 		// Strip characters that will cause errors
 		$badchars = array('#','>','<','\\');
@@ -2063,7 +2137,7 @@ class FlexicontentController extends JControllerLegacy
 		$Itemid = $this->input->get('Itemid', 0, 'int');
 		if (!$Itemid)
 		{
-			$menus = JFactory::getApplication()->getMenu();
+			$menus = \Joomla\CMS\Factory::getApplication()->getMenu();
 			$items = $menus->getItems('link', 'index.php?option=com_flexicontent&view=search');
 
 			if(isset($items[0]))
@@ -2094,7 +2168,7 @@ class FlexicontentController extends JControllerLegacy
 	{
 		$this->input->get('task', '', 'cmd') !== __FUNCTION__ or die(__FUNCTION__ . ' : direct call not allowed');
 
-		$user = JFactory::getUser();
+		$user = \Joomla\CMS\Factory::getUser();
 		$select_access = $joinacc = $andacc = '';
 		$aid_arr = $user->getAuthorisedViewLevels();
 		$aid_list = implode(',', $aid_arr);
@@ -2161,8 +2235,8 @@ class FlexicontentController extends JControllerLegacy
 			// Folder (Parent node)
 			if ($node->isParent)
 			{
-				$targetpath_node = JPath::clean($targetpath.DS.$node->name);
-				JFolder::create($targetpath_node, 0755);
+				$targetpath_node = \Joomla\CMS\Filesystem\Path::clean($targetpath.DS.$node->name);
+				\Joomla\CMS\Filesystem\Folder::create($targetpath_node, 0755);
 
 				// Folder has sub-contents
 				if (!empty($node->children))
@@ -2222,7 +2296,7 @@ class FlexicontentController extends JControllerLegacy
 		// Check return URL if empty or not safe and set a default one
 		if (empty($return) || !flexicontent_html::is_safe_url($return))
 		{
-			$app = JFactory::getApplication();
+			$app = \Joomla\CMS\Factory::getApplication();
 
 			if ($app->isClient('administrator') && ($this->view === $this->record_name || $this->view === $this->record_name_pl))
 			{
@@ -2230,7 +2304,7 @@ class FlexicontentController extends JControllerLegacy
 			}
 			else
 			{
-				$return = $app->isClient('administrator') ? 'index.php?option=com_flexicontent' : JUri::base();
+				$return = $app->isClient('administrator') ? 'index.php?option=com_flexicontent' : \Joomla\CMS\Uri\Uri::base();
 			}
 		}
 
@@ -2250,7 +2324,7 @@ class FlexicontentController extends JControllerLegacy
 	 */
 	protected function _getRecordsQuery($cid, $cols)
 	{
-		$db = JFactory::getDbo();
+		$db = \Joomla\CMS\Factory::getDbo();
 
 		$cid = ArrayHelper::toInteger($cid);
 		$cols_list = implode(',', array_filter($cols, array($db, 'quoteName')));

@@ -55,6 +55,7 @@
 				<option value="3">FLEXI_FIELD_INLINE_BOTH_BTN</option>
 			</field>
 			<field name="max_values" type="text" default="0" size="2" label="FLEXI_FIELD_MAX_VALUES" description="FLEXI_FIELD_MAX_VALUES_DESC" depend_class="fieldgroupoff multivalue-mode" />
+			<field name="showon" type="text" default="" label="FLEXI_FIELD_SHOWON" description="FLEXI_FIELD_SHOWON_DESC" />
 			<field name="required" type="radio" default="0" label="FLEXI_FIELD_REQUIRED" description="FLEXI_FIELD_REQUIRED_DESC" class="btn-group btn-group-yesno">
 				<option value="0">FLEXI_NO</option>
 				<option value="1">FLEXI_YES</option>
@@ -101,12 +102,12 @@
 			</field>
 
 			<field name="" type="separator" default="FLEXI_PREVIEW_THUMBNAILS" description="" level="level2" />
-			<field name="thumb_size_resizer" type="radio" default="2" label="FLEXI_FIELD_THUMB_RESIZER" description="FLEXI_FIELD_THUMB_RESIZER_DESC" class="btn-group btn-group-yesno">
+			<field name="thumb_size_resizer" type="radio" default="0" label="FLEXI_FIELD_THUMB_RESIZER" description="FLEXI_FIELD_THUMB_RESIZER_DESC" class="btn-group btn-group-yesno">
 				<option value="0">FLEXI_DISABLE</option>
 				<option value="1">FLEXI_DISPLAY_AS_DROP_DOWN</option>
 				<option value="2">FLEXI_DISPLAY_AS_SLIDER</option>
 			</field>
-			<field name="thumb_size_default" type="radio" default="120" label="FLEXI_FIELD_THUMB_SIZE_DEFAULT" description="FLEXI_FIELD_THUMB_SIZE_DEFAULT_DESC" class="btn-group group-fcinfo">
+			<field name="thumb_size_default" type="radio" default="250" label="FLEXI_FIELD_THUMB_SIZE_DEFAULT" description="FLEXI_FIELD_THUMB_SIZE_DEFAULT_DESC" class="btn-group group-fcinfo">
 				<option value="90">90</option>
 				<option value="120">120</option>
 				<option value="150">150</option>
@@ -126,6 +127,13 @@
 				<option value="0"  show_list="img-db-mode,img-common-conf,client-resize"  hide_list="img-joomla-if-mode,img-fld-mode,img-joomla-mode">FLEXI_FIELD_REUSABLE_DB_MODE</option>
 				<option value="1"  show_list="img-fld-mode,img-common-conf,client-resize" hide_list="img-joomla-if-mode,img-db-mode,img-joomla-mode">FLEXI_FIELD_ITEM_SPECIFIC_FOLDER_MODE</option>
 			</field>
+
+			<field name="" type="separator" default="About top folder (J4+ only) &lt;br&gt; - You must add this folder in PLUGIN: 'FileSystem - Local', &lt;br&gt; e.g. add folder downloads. &lt;br&gt; - For quantum file manager. This is the scope name &lt;br&gt; NOTE: please add an extra custom-named scope for the folder images !! &lt;br&gt;  e.g. 'imgs' DO NOT change folder name 'images', &lt;br&gt; 'imgs' will be the name of the custom scope" level="level3" depend_class="img-joomla-mode" />
+			<field name="jmedia_topdir" type="text" default="" hint="images" display_useglobal="0"
+				   label="Top folder" description="For native media file manager, this is the folder inside Joomla ROOT (that you added in Filestorage plugin, or for Quantum file manager this will be the custom scope name" depend_class="img-joomla-mode" />
+			<field name="jmedia_subpath" type="text" default="" display_useglobal="0"
+				   label="Sub folder path" hint="e.g. content/news -> JPATH_ROOT/images/content/news" description="Select sub-folder to be opened" depend_class="img-joomla-mode" />
+
 			<field name="autoassign" type="radio" default="1" label="FLEXI_FIELD_AUTO_INSERT_UPLOADED_IMAGES" description="FLEXI_FIELD_AUTO_INSERT_UPLOADED_IMAGES_DESC" depend_class="img-common-conf" class="btn-group btn-group-yesno">
 				<option value="0">FLEXI_NO</option>
 				<option value="1">FLEXI_UPLOADED_FILE_SELECT_N_ASSIGN</option>

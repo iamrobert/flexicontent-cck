@@ -1380,6 +1380,9 @@ input.minicolors-input {
 .field-calendar .btn.btn-secondary {
 	height: var(--ctrls-inp-height) !important;
 }
+.fc-form-tbl.fcinner.fccompact {
+	margin-top: -34px !important;
+}
 body .fc-close {
 	color: #000000;
 	float: right;
@@ -1824,6 +1827,7 @@ body .fc-nowrap-box .nowrap_box .label,
 }
 #flexicontent .fc-xpended-btns {
 	margin: 0 0 0.3rem 0 !important;
+	padding: 0;
 	float: none;
 	display: inline-flex;
 }
@@ -3916,6 +3920,9 @@ table.fc-form-tbl.align-top td.data > * {
 }
 table.fc-form-tbl td {
 	vertical-align: middle;
+	padding: 2px 0px 6px 0px;
+}
+table.fc-form-tbl td:not(:last-child) {
 	padding: 2px 24px 6px 0px;
 }
 table.fc-form-tbl td.fc-nopad-h-cell {
@@ -6038,7 +6045,7 @@ iframe#fc_modal_popup_container_frame {
 }
 button.ui-dialog-titlebar-close:after {
 	content: '\f410';
-	font-family: 'Font Awesome 5 Free';
+	font-family: 'Font Awesome 5 Free', 'Font Awesome 6 Free';
 }
 .col-search .inline-button {
 	display: flex;

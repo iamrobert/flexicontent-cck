@@ -37,7 +37,7 @@ class plgFlexicontent_fieldsFieldgroup extends FCField
 	{
 		if ( !in_array($field->field_type, static::$field_types) ) return;
 
-		$field->label = $field->parameters->get('label_form') ? JText::_($field->parameters->get('label_form')) : JText::_($field->label);
+		$field->label = $field->parameters->get('label_form') ? \Joomla\CMS\Language\Text::_($field->parameters->get('label_form')) : \Joomla\CMS\Language\Text::_($field->label);
 
 		// Set field and item objects
 		$this->setField($field);
@@ -50,19 +50,21 @@ class plgFlexicontent_fieldsFieldgroup extends FCField
 		if ($use_ingroup && empty($field->ingroup)) return;
 		$compact_edit = $field->parameters->get('compact_edit', 0);
 		$form_empty_fields = $field->parameters->get('form_empty_fields', 1);
-		$form_empty_fields_text = JText::_($field->parameters->get('form_empty_fields_text', 'FLEXI_NA'));
+		$form_empty_fields_text = \Joomla\CMS\Language\Text::_($field->parameters->get('form_empty_fields_text', 'FLEXI_NA'));
 
 		// Initialize framework objects and other variables
-		$document = JFactory::getDocument();
-		$cparams  = JComponentHelper::getParams( 'com_flexicontent' );
-		$db   = JFactory::getDbo();
-		$user = JFactory::getUser();
-		$app  = JFactory::getApplication();
+		$document = \Joomla\CMS\Factory::getDocument();
+		$cparams  = \Joomla\CMS\Component\ComponentHelper::getParams( 'com_flexicontent' );
+		$db   = \Joomla\CMS\Factory::getDbo();
+		$user = \Joomla\CMS\Factory::getUser();
+		$app  = \Joomla\CMS\Factory::getApplication();
 		$isAdmin = $app->isClient('administrator');
 
 		$tooltip_class = 'hasTooltip';
-		$add_on_class    = 'btn'; //$cparams->get('bootstrap_ver', 2)==2  ?  'add-on' : 'input-group-addon';
-		$input_grp_class = 'btn-group'; //$cparams->get('bootstrap_ver', 2)==2  ?  'input-append input-prepend' : 'input-group';
+		$add_on_class    = $cparams->get('bootstrap_ver', 2)==2  ?  'add-on' : 'input-group-addon';
+		$input_grp_class = $cparams->get('bootstrap_ver', 2)==2  ?  'input-append input-prepend' : 'input-group';
+		$btn_item_class  = $cparams->get('bootstrap_ver', 2)==2  ?  'btn' : 'btn';
+		$btn_group_class = $cparams->get('bootstrap_ver', 2)==2  ?  'btn-group' : 'btn-group';
 		$form_font_icons = $cparams->get('form_font_icons', 1);
 		$font_icon_class = $form_font_icons ? ' fcfont-icon' : '';
 		$font_icon_class .= FLEXI_J40GE ? ' icon icon- ' : '';
@@ -141,7 +143,7 @@ class plgFlexicontent_fieldsFieldgroup extends FCField
 			."});
 			";
 
-			if ($max_values) JText::script("FLEXI_FIELD_MAX_ALLOWED_VALUES_REACHED", true);
+			if ($max_values) \Joomla\CMS\Language\Text::script("FLEXI_FIELD_MAX_ALLOWED_VALUES_REACHED", true);
 			$js .= "
 			var uniqueRowNum".$field->id."	= ".$max_count.";  // Unique row number incremented only
 			var rowCount".$field->id."	= ".$max_count.";      // Counts existing rows to be able to limit a max number of values
@@ -154,8 +156,9 @@ class plgFlexicontent_fieldsFieldgroup extends FCField
 				if (typeof addField_GRP_FID_ !== 'undefined')
 				{
 					fieldval_box.find('.invalid').removeClass('invalid').attr('aria-invalid', 'false');
-					var newSubLabel = fieldval_box.prev('label.sub_label');
+					var newSubLabel = fieldval_box.closest('.control-fc_subgroup').find('label.fc_sub_label');
 					var newLabelFor = 'custom_%s_'+uniqueRowNum".$field->id.";
+					console.log(newSubLabel);
 					newSubLabel.attr('id', newLabelFor + '-lbl');
 					newSubLabel.attr('for', newLabelFor);
 					newSubLabel.attr('data-for', newLabelFor);
@@ -174,7 +177,7 @@ class plgFlexicontent_fieldsFieldgroup extends FCField
 						// We need to update the current grouped label of the field if this was the last element being re-added
 						var fieldval_box = groupval_box.find('.fcfieldval_container__GRP_FID_');
 						fieldval_box.find('.invalid').removeClass('invalid').attr('aria-invalid', 'false');
-						var newSubLabel = fieldval_box.prev('label.sub_label');
+						var newSubLabel = fieldval_box.closest('.control-fc_subgroup').find('label.fc_sub_label');
 						var newLabelFor = 'custom_%s_'+uniqueRowNum".$field->id.";
 						newSubLabel.attr('for', newLabelFor);
 						newSubLabel.attr('data-for', newLabelFor);
@@ -227,6 +230,18 @@ class plgFlexicontent_fieldsFieldgroup extends FCField
 					this.setAttribute('id', '_duplicated_".$field->id."_'+uniqueRowNum".$field->id."+'_'+nr);
 					nr++;
 				});
+				
+				theControls = newField.find('.control-group');
+				theControls.each(function()
+				{
+					data_showon_pattern = this.hasAttribute('data-showon-pattern') ? this.getAttribute('data-showon-pattern') : '';
+					if (data_showon_pattern)
+					{
+						data_showon_n = data_showon_pattern.replace(/\[__n__\]/g, '['+uniqueRowNum".$field->id."+']');
+						this.setAttribute('data-showon', data_showon_n);
+						this.removeAttribute('data-showon-initialised');
+					}
+				});
 				";
 
 			// Add new field to DOM
@@ -246,9 +261,17 @@ class plgFlexicontent_fieldsFieldgroup extends FCField
 				".$addField_funcs."
 				";
 
-			// Readd prettyCheckable and remove previous if so requested
+			// Remove previous if so requested
 			$js .="
 				if (remove_previous) lastField.remove();
+				";
+
+			// Initialize showon conditions if needed
+			$js .="
+				// Initialise showon conditions if needed
+				if (theControls.length) typeof Joomla.Showon != 'undefined'
+					? Joomla.Showon.initialise(newField[0])
+					: console.log('Joomla.Showon.initialise not found');
 				";
 
 			// Show new field, increment counters
@@ -300,19 +323,19 @@ class plgFlexicontent_fieldsFieldgroup extends FCField
 
 			$css .= '';
 
-			$remove_button = '<span class="' . $add_on_class . ' fcfield-delvalue ' . $font_icon_class . '" title="'.JText::_( 'FLEXI_REMOVE_VALUE' ).'" onclick="deleteField'.$field->id.'(this);"></span>';
-			$move2 = '<span class="' . $add_on_class . ' fcfield-drag-handle ' . $font_icon_class . '" title="'.JText::_( 'FLEXI_CLICK_TO_DRAG' ).'"></span>';
+			$remove_button = '<span class="' . $btn_item_class . ' fcfield-delvalue ' . $font_icon_class . '" title="'.\Joomla\CMS\Language\Text::_( 'FLEXI_REMOVE_VALUE' ).'" onclick="deleteField'.$field->id.'(this);"></span>';
+			$move2         = '<span class="' . $btn_item_class . ' fcfield-drag-handle ' . $font_icon_class . '" title="'.\Joomla\CMS\Language\Text::_( 'FLEXI_CLICK_TO_DRAG' ).'"></span>';
 			$add_here = '';
-			$add_here .= $add_position==2 || $add_position==3 ? '<span class="' . $add_on_class . ' fcfield-insertvalue fc_before ' . $font_icon_class . '" onclick="addField'.$field->id.'(null, jQuery(this).closest(\'ul\'), jQuery(this).closest(\'li\'), {insert_before: 1});" title="'.JText::_( 'FLEXI_ADD_BEFORE' ).'"></span> ' : '';
-			$add_here .= $add_position==1 || $add_position==3 ? '<span class="' . $add_on_class . ' fcfield-insertvalue fc_after ' . $font_icon_class . '"  onclick="addField'.$field->id.'(null, jQuery(this).closest(\'ul\'), jQuery(this).closest(\'li\'), {insert_before: 0});" title="'.JText::_( 'FLEXI_ADD_AFTER' ).'"></span> ' : '';
+			$add_here .= $add_position==2 || $add_position==3 ? '<span class="' . $btn_item_class . ' fcfield-insertvalue fc_before ' . $font_icon_class . '" onclick="addField'.$field->id.'(null, jQuery(this).closest(\'ul\'), jQuery(this).closest(\'li\'), {insert_before: 1});" title="'.\Joomla\CMS\Language\Text::_( 'FLEXI_ADD_BEFORE' ).'"></span> ' : '';
+			$add_here .= $add_position==1 || $add_position==3 ? '<span class="' . $btn_item_class . ' fcfield-insertvalue fc_after ' . $font_icon_class . '"  onclick="addField'.$field->id.'(null, jQuery(this).closest(\'ul\'), jQuery(this).closest(\'li\'), {insert_before: 0});" title="'.\Joomla\CMS\Language\Text::_( 'FLEXI_ADD_AFTER' ).'"></span> ' : '';
 			$_opener = !$compact_edit ? '' : '
-				<span class="fc-toggle-group-down ' . $add_on_class . ' btn-success" style="vertical-align: top; text-shadow: unset; '.($compact_edit==2 ? 'display:none;' :'').' min-width: 120px;" onclick="fc_toggle_box_via_btn(jQuery(this).closest(\'li\').find(\'.fcfieldval_container_outer:not(.fcAlwaysVisibleField)\'), this, \'\', jQuery(this).prev(), 1); jQuery(this).prev().before(jQuery(this)); return false;">
-					<i class="icon-downarrow"></i>'.JText::_( 'FLEXI_FIELD_GROUP_EDIT_DETAILS' ). '
+				<span class="fc-toggle-group-down ' . $btn_item_class . ' btn-success" style="vertical-align: top; text-shadow: unset; '.($compact_edit==2 ? 'display:none;' :'').' min-width: 120px;" onclick="fc_toggle_box_via_btn(jQuery(this).closest(\'li\').find(\'.fcfieldval_container_outer:not(.fcAlwaysVisibleField)\'), this, \'\', jQuery(this).prev(), 1); jQuery(this).prev().before(jQuery(this)); return false;">
+					<i class="icon-downarrow"></i>'.\Joomla\CMS\Language\Text::_( 'FLEXI_FIELD_GROUP_EDIT_DETAILS' ). '
 				</span>
 			';
 			$_closer = !$compact_edit ? '' : '
-				<span class="fc-toggle-group-up ' . $add_on_class . '" style="vertical-align: top; text-shadow: unset; '.($compact_edit==1 ? 'display:none;' :'').' min-width: 120px;" onclick="fc_toggle_box_via_btn(jQuery(this).closest(\'li\').find(\'.fcfieldval_container_outer:not(.fcAlwaysVisibleField)\'), this, \'\', jQuery(this).prev(), 0); jQuery(this).prev().before(jQuery(this)); return false;">
-					<i class="icon-uparrow"></i>'.JText::_( 'FLEXI_FIELD_GROUP_HIDE_DETAILS' ). '
+				<span class="fc-toggle-group-up ' . $btn_item_class . '" style="vertical-align: top; text-shadow: unset; '.($compact_edit==1 ? 'display:none;' :'').' min-width: 120px;" onclick="fc_toggle_box_via_btn(jQuery(this).closest(\'li\').find(\'.fcfieldval_container_outer:not(.fcAlwaysVisibleField)\'), this, \'\', jQuery(this).prev(), 0); jQuery(this).prev().before(jQuery(this)); return false;">
+					<i class="icon-uparrow"></i>'.\Joomla\CMS\Language\Text::_( 'FLEXI_FIELD_GROUP_HIDE_DETAILS' ). '
 				</span>
 			';
 			$togglers = $compact_edit==1 ? $_opener . $_closer : $_closer . $_opener;
@@ -322,7 +345,7 @@ class plgFlexicontent_fieldsFieldgroup extends FCField
 		else
 		{
 			$remove_button = '';
-			$move2 = '';
+			$move2         = '';
 			$togglers = '';
 			$add_here = '';
 			$js .= '';
@@ -407,14 +430,14 @@ class plgFlexicontent_fieldsFieldgroup extends FCField
 			$field->html = '';
 		}
 		if (!$add_position) $field->html .= '
-			<div class="input-append input-prepend fc-xpended-btns">
-				<span class="fcfield-addvalue ' . $font_icon_class . ' fccleared" onclick="jQuery(this).parent().prev().prev().find(\'.fc-show-vals-btn\').data(\'fc_noeffect\', 1).trigger(\'click\'); addField'.$field->id.'(jQuery(this).closest(\'.fc-xpended-btns\').get(0));" title="'.JText::_( 'FLEXI_ADD_TO_BOTTOM' ).'">'.JText::_( 'FLEXI_ADD_VALUE' ).'</span>
+			<div class="'.$btn_group_class.' fc-xpended-btns">
+				<span class="fcfield-addvalue ' . $font_icon_class . ' ' . $btn_item_class . '" onclick="jQuery(this).parent().prev().prev().find(\'.fc-show-vals-btn\').data(\'fc_noeffect\', 1).trigger(\'click\'); addField'.$field->id.'(jQuery(this).closest(\'.fc-xpended-btns\').get(0));" title="'.\Joomla\CMS\Language\Text::_( 'FLEXI_ADD_TO_BOTTOM' ).'">'.\Joomla\CMS\Language\Text::_( 'FLEXI_ADD_VALUE' ).'</span>
 			</div>
 		';
 
 		// Check max allowed version
 		//$manifest_path = JPATH_ADMINISTRATOR .DS. 'components' .DS. 'com_flexicontent' .DS. 'flexicontent.xml';
-		//$com_xml = JInstaller::parseXMLInstallFile( $manifest_path );
+		//$com_xml = \Joomla\CMS\Installer\Installer::parseXMLInstallFile( $manifest_path );
 
 		// Append non value html of fields
 		$field->html =
@@ -426,10 +449,10 @@ class plgFlexicontent_fieldsFieldgroup extends FCField
 			($field->parameters->get('compact_edit_global', 0) ? '
 			<div class="toggle_all_values_buttons_box">
 				<span id="sortables_'.$field->id.'_hide_vals_btn" class="btn fc-hide-vals-btn" onclick="fc_toggle_box_via_btn(jQuery(\'#sortables_outer_'.$field->id.'\'), this, \'\', jQuery(this).next(), 0); return false;">
-					<i class="icon-uparrow"></i>'.JText::_( 'FLEXI_FIELD_GROUP_HIDE_VALUES' ).'
+					<i class="icon-uparrow"></i>'.\Joomla\CMS\Language\Text::_( 'FLEXI_FIELD_GROUP_HIDE_VALUES' ).'
 				</span>
 				<span id="sortables_'.$field->id.'_show_vals_btn" class="btn btn-success fc-show-vals-btn" onclick="fc_toggle_box_via_btn(jQuery(\'#sortables_outer_'.$field->id.'\'), this, \'\', jQuery(this).prev(), 1); return false;" style="display:none;">
-					<i class="icon-downarrow"></i>'.JText::_( 'FLEXI_FIELD_GROUP_SHOW_VALUES' ).'
+					<i class="icon-downarrow"></i>'.\Joomla\CMS\Language\Text::_( 'FLEXI_FIELD_GROUP_SHOW_VALUES' ).'
 				</span>
 			</div>
 				' : '').'
@@ -442,7 +465,7 @@ class plgFlexicontent_fieldsFieldgroup extends FCField
 	{
 		if ( !in_array($field->field_type, static::$field_types) ) return;
 
-		$field->label = JText::_($field->label);
+		$field->label = \Joomla\CMS\Language\Text::_($field->label);
 
 		// Set field and item objects
 		$this->setField($field);
@@ -460,8 +483,8 @@ class plgFlexicontent_fieldsFieldgroup extends FCField
 		{
 			$initialized = 1;
 
-			$app       = JFactory::getApplication();
-			$document  = JFactory::getDocument();
+			$app       = \Joomla\CMS\Factory::getApplication();
+			$document  = \Joomla\CMS\Factory::getDocument();
 			$option    = $app->input->getCmd('option', '');
 			$format    = $app->input->getCmd('format', 'html');
 			$realview  = $app->input->getCmd('view', '');
@@ -538,7 +561,7 @@ class plgFlexicontent_fieldsFieldgroup extends FCField
 		{
 			// Render HTML of fields in the group
 			$method = 'display';
-			$app = JFactory::getApplication();
+			$app = \Joomla\CMS\Factory::getApplication();
 			$view = $app->input->get('flexi_callview', $app->input->get('view', 'item', 'cmd'), 'cmd');
 			foreach($grouped_fields as $_grouped_field)
 			{
@@ -661,7 +684,7 @@ class plgFlexicontent_fieldsFieldgroup extends FCField
 
 		foreach ($translate_strings as $translate_string)
 		{
-			$custom_html = str_replace('%%'.$translate_string.'%%', JText::_($translate_string), $custom_html);
+			$custom_html = str_replace('%%'.$translate_string.'%%', \Joomla\CMS\Language\Text::_($translate_string), $custom_html);
 		}
 
 
@@ -672,7 +695,7 @@ class plgFlexicontent_fieldsFieldgroup extends FCField
 		$_rendered_fields = array();
 		if ( count($gf_names) )
 		{
-			$app = JFactory::getApplication();
+			$app = \Joomla\CMS\Factory::getApplication();
 			$view = $app->input->get('flexi_callview', $app->input->get('view', 'item', 'cmd'), 'cmd');
 			$gf_props = array();
 			foreach($gf_names as $pos => $grp_field_name)
@@ -836,7 +859,7 @@ class plgFlexicontent_fieldsFieldgroup extends FCField
 			return $grouped_fields[$field->id] = array();
 		}
 
-		$db = JFactory::getDbo();
+		$db = \Joomla\CMS\Factory::getDbo();
 		$query = 'SELECT f.* '
 			. ' FROM #__flexicontent_fields AS f '
 			. ' WHERE f.published = 1'
@@ -851,7 +874,7 @@ class plgFlexicontent_fieldsFieldgroup extends FCField
 		{
 			// Create field parameters, if not already created, NOTE: for 'custom' fields loadFieldConfig() is optional
 			if (empty($grouped_field->parameters)) {
-				$grouped_field->parameters = new JRegistry($grouped_field->attribs);
+				$grouped_field->parameters = new \Joomla\Registry\Registry($grouped_field->attribs);
 			}
 
 			// Check if field is not set to participate in a field group and skip it

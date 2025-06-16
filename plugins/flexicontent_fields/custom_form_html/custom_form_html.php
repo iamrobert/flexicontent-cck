@@ -5,7 +5,7 @@
  *
  * @author          Emmanuel Danan, Georgios Papadakis, Yannick Berges, others, see contributor page
  * @link            https://flexicontent.org
- * @copyright       Copyright © 2020, FLEXIcontent team, All Rights Reserved
+ * @copyright       Copyright Â© 2020, FLEXIcontent team, All Rights Reserved
  * @license         http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL
  */
 
@@ -55,6 +55,9 @@ class plgFlexicontent_fieldsCustom_form_html extends FCField
 		$cont_cssclass   = $field->parameters->get( 'cont_cssclass' ) ;
 		$custom_html_sep = $field->parameters->get( 'custom_html_sep' ) ;
 
+		$is_ingroup  = !empty($field->ingroup);
+		$use_ingroup = $field->parameters->get('use_ingroup', 0);
+
 		$field->html = '';
 		switch ($marker_type) {
 			case 'tabset_start':
@@ -68,7 +71,7 @@ class plgFlexicontent_fieldsCustom_form_html extends FCField
 				if (empty($cont_label)) $cont_label = "TAB LABEL NOT SET";
 				if ( !isset($tabCnt[$tabSetCur]) ) $field->html .= "WARNING: TAB-set is misconfigured, TAB OPEN field encountered, before it a TAB-SET START field is needed";
 				$field->html .= " <div class='tabbertab' style='float:left;' id='grpmarker_tabset_".$tabSetCur."_tab_".($tabCnt[$tabSetCur]++)."'>\n";
-				$field->html .= "  <h3 class='tabberheading'>".JText::_( $cont_label )."</h3>\n";   // Current TAB LABEL
+				$field->html .= "  <h3 class='tabberheading'>".\Joomla\CMS\Language\Text::_( $cont_label )."</h3>\n";   // Current TAB LABEL
 				$field->html .= $cont_cssclass? "  <div class='".$cont_cssclass."'>\n" : " <div style='border:0px!important; margin:0px!important; padding:0px!important;'>\n";
 				break;
 			case 'tab_close':
@@ -82,7 +85,7 @@ class plgFlexicontent_fieldsCustom_form_html extends FCField
 			case 'fieldset_open':
 				$field->html .= "<div style='margin-top:24px; width:100%; float:left; clear:both;'></div>\n";
 				$field->html .= "<fieldset class='".$cont_cssclass."' style='margin:0px 1% 0px 1%; min-width:96%; float:left; clear:both;'>\n";
-				$field->html .= " <legend>".JText::_( $cont_label )."</legend>\n";
+				$field->html .= " <legend>".\Joomla\CMS\Language\Text::_( $cont_label )."</legend>\n";
 				$field->html .= $cont_cssclass? " <div class='".$cont_cssclass."'>\n" : " <div style='border:0px!important; margin:0px!important; padding:0px!important;'>\n";
 				break;
 			case 'fieldset_close':
@@ -92,6 +95,11 @@ class plgFlexicontent_fieldsCustom_form_html extends FCField
 			case 'custom_html':
 				$field->html .= $custom_html_sep;
 				break;
+		}
+
+		if ( $is_ingroup )
+		{
+			$field->html = [$field->html];
 		}
 	}
 

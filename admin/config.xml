@@ -419,6 +419,11 @@
 		<field name="" type="separator" default="FLEXI_CATEGORY_BASED_VIEWS" label="" level="level0"/>
 		<field name="" type="separator" default="FLEXI_SUPPORTED_LIST_VIEWS" class="fc-mssg fc-info" />
 
+			<field name="use_list_items_in_any_state_acl" type="multilist" subtype="radio" default="0" label="FLEXI_USE_LIST_ITEMS_IN_ANY_STATE_ACL" description="FLEXI_USE_LIST_ITEMS_IN_ANY_STATE_ACL_DESC" showon="method_states:0" class="btn-group group-fcmethod" inline_text="Please see List " text_class="fc-mssg-inline fc-success fc-small method_any_state_acl_ops">
+				<option value="0">FLEXI_NO</option>
+				<option value="1">FLEXI_YES</option>
+			</field>
+
 			<!--field name="" type="separator" default="FLEXI_PARAMETERS_HANDLING" label="" level="level2" /-->
 			<field name="inheritcid" type="fcradio" default="-1" label="FLEXI_CATS_INHERIT_PARAMS" description="FLEXI_CATS_INHERIT_PARAMS_DESC" class="btn-group group-fcmethod fcoffactive">
 				<option value="0">FLEXI_COMPONENT_ONLY</option>
@@ -593,8 +598,8 @@
 					<option value="10" fcreadonly="{'subcat_opentag':1,'subcat_closetag':1,'subcat_pretext':1,'subcat_posttext':1,'subcat_separatorf':1}" fcconfigs="{'subcat_opentag':'','subcat_closetag':'','subcat_pretext':'&lt;span class=\'badge badge-important\'&gt;','subcat_posttext':'&lt;/span&gt;','subcat_separatorf':'5'}">Badge important</option>
 				</group>
 			</field>
-			<field name="subcat_pretext" type="text" filter="JComponentHelper::filterText" default="" label="FLEXI_RECORD_PREFIX_TEXT" description="FLEXI_RECORD_PREFIX_TEXT_DESC" class="disp_subcats input-xxlarge" />
-			<field name="subcat_posttext" type="text" filter="JComponentHelper::filterText" default="" label="FLEXI_RECORD_SUFFIX_TEXT" description="FLEXI_RECORD_SUFFIX_TEXT_DESC" class="disp_subcats input-xxlarge" />
+			<field name="subcat_pretext" type="text" filter="\Joomla\CMS\Component\ComponentHelper::filterText" default="" label="FLEXI_RECORD_PREFIX_TEXT" description="FLEXI_RECORD_PREFIX_TEXT_DESC" class="disp_subcats input-xxlarge" />
+			<field name="subcat_posttext" type="text" filter="\Joomla\CMS\Component\ComponentHelper::filterText" default="" label="FLEXI_RECORD_SUFFIX_TEXT" description="FLEXI_RECORD_SUFFIX_TEXT_DESC" class="disp_subcats input-xxlarge" />
 			<field name="subcat_separatorf" type="fcradio" default="0" label="FLEXI_RECORD_SEPARATOR" description="FLEXI_RECORD_SEPARATOR_DESC" class="disp_subcats btn-group btn-group-yesno">
 				<option value="0">FLEXI_SPACE</option>
 				<option value="1">FLEXI_LINE_BREAK</option>
@@ -603,8 +608,8 @@
 				<option value="4">FLEXI_CLOSE_OPEN_TEXTS_AS_SEP</option>
 				<option value="5">FLEXI_NOCHAR_EMPTY_SEPARATOR</option>
 			</field>
-			<field name="subcat_opentag" type="text" filter="JComponentHelper::filterText" default="" label="FLEXI_RECORD_LIST_OPENING_TEXT" description="FLEXI_RECORD_LIST_OPENING_TEXT_DESC" class="disp_subcats input-xxlarge" />
-			<field name="subcat_closetag" type="text" filter="JComponentHelper::filterText" default="" label="FLEXI_RECORD_LIST_CLOSING_TEXT" description="FLEXI_RECORD_LIST_CLOSING_TEXT_DESC" class="disp_subcats input-xxlarge" />
+			<field name="subcat_opentag" type="text" filter="\Joomla\CMS\Component\ComponentHelper::filterText" default="" label="FLEXI_RECORD_LIST_OPENING_TEXT" description="FLEXI_RECORD_LIST_OPENING_TEXT_DESC" class="disp_subcats input-xxlarge" />
+			<field name="subcat_closetag" type="text" filter="\Joomla\CMS\Component\ComponentHelper::filterText" default="" label="FLEXI_RECORD_LIST_CLOSING_TEXT" description="FLEXI_RECORD_LIST_CLOSING_TEXT_DESC" class="disp_subcats input-xxlarge" />
 
 
 		<field name="" type="separator" default="FLEXI_PARAMS_PEERCATS_LIST" icon_class="icon-tree-2" level="tab_open" box_type="1" remove_boxes="2" />
@@ -692,8 +697,8 @@
 				<option value="9" fcreadonly="{'peercat_opentag':1,'peercat_closetag':1,'peercat_pretext':1,'peercat_posttext':1,'peercat_separatorf':1}" fcconfigs="{'peercat_opentag':'','peercat_closetag':'','peercat_pretext':'&lt;span class=\'badge bg-warning badge-warning\'&gt;','peercat_posttext':'&lt;/span&gt;','peercat_separatorf':'5'}">Badge warning</option>
 				<option value="10" fcreadonly="{'peercat_opentag':1,'peercat_closetag':1,'peercat_pretext':1,'peercat_posttext':1,'peercat_separatorf':1}" fcconfigs="{'peercat_opentag':'','peercat_closetag':'','peercat_pretext':'&lt;span class=\'badge badge-important\'&gt;','peercat_posttext':'&lt;/span&gt;','peercat_separatorf':'5'}">Badge important</option>
 			</field>
-			<field name="peercat_pretext" type="text" filter="JComponentHelper::filterText" default="" label="FLEXI_RECORD_PREFIX_TEXT" description="FLEXI_RECORD_PREFIX_TEXT_DESC" class="disp_peercats input-xxlarge" />
-			<field name="peercat_posttext" type="text" filter="JComponentHelper::filterText" default="" label="FLEXI_RECORD_SUFFIX_TEXT" description="FLEXI_RECORD_SUFFIX_TEXT_DESC" class="disp_peercats input-xxlarge" />
+			<field name="peercat_pretext" type="text" filter="\Joomla\CMS\Component\ComponentHelper::filterText" default="" label="FLEXI_RECORD_PREFIX_TEXT" description="FLEXI_RECORD_PREFIX_TEXT_DESC" class="disp_peercats input-xxlarge" />
+			<field name="peercat_posttext" type="text" filter="\Joomla\CMS\Component\ComponentHelper::filterText" default="" label="FLEXI_RECORD_SUFFIX_TEXT" description="FLEXI_RECORD_SUFFIX_TEXT_DESC" class="disp_peercats input-xxlarge" />
 			<field name="peercat_separatorf" type="fcradio" default="0" label="FLEXI_RECORD_SEPARATOR" description="FLEXI_RECORD_SEPARATOR_DESC" class="disp_peercats btn-group btn-group-yesno">
 				<option value="0">FLEXI_SPACE</option>
 				<option value="1">FLEXI_LINE_BREAK</option>
@@ -702,8 +707,8 @@
 				<option value="4">FLEXI_CLOSE_OPEN_TEXTS_AS_SEP</option>
 				<option value="5">FLEXI_NOCHAR_EMPTY_SEPARATOR</option>
 			</field>
-			<field name="peercat_opentag" type="text" filter="JComponentHelper::filterText" default="" label="FLEXI_RECORD_LIST_OPENING_TEXT" description="FLEXI_RECORD_LIST_OPENING_TEXT_DESC" class="disp_peercats input-xxlarge" />
-			<field name="peercat_closetag" type="text" filter="JComponentHelper::filterText" default="" label="FLEXI_RECORD_LIST_CLOSING_TEXT" description="FLEXI_RECORD_LIST_CLOSING_TEXT_DESC" class="disp_peercats input-xxlarge" />
+			<field name="peercat_opentag" type="text" filter="\Joomla\CMS\Component\ComponentHelper::filterText" default="" label="FLEXI_RECORD_LIST_OPENING_TEXT" description="FLEXI_RECORD_LIST_OPENING_TEXT_DESC" class="disp_peercats input-xxlarge" />
+			<field name="peercat_closetag" type="text" filter="\Joomla\CMS\Component\ComponentHelper::filterText" default="" label="FLEXI_RECORD_LIST_CLOSING_TEXT" description="FLEXI_RECORD_LIST_CLOSING_TEXT_DESC" class="disp_peercats input-xxlarge" />
 
 
 		<field name="" type="separator" default="FLEXI_LISTS_HEADER_CONF" level="tabset_close" box_type="1" remove_boxes="2" />
@@ -763,10 +768,10 @@
 			<field name="flexi_button_class_reset_custom" type="text" size="20" default="" label="FLEXI_BUTTON_CLASS_RESET_CUSTOM" description="FLEXI_BUTTON_CLASS_RESET_CUSTOM_DESC" class="disp_resetbtn custom_resetclass input-xxlarge" />
 
 			<field name="" type="separator" default="FLEXI_TEXT_SEARCH_FILTER_ENCLOSING" level="level3" />
-			<field name="filter_pretext" type="text" filter="JComponentHelper::filterText" default="" label="FLEXI_RECORD_PREFIX_TEXT" description="FLEXI_RECORD_PREFIX_TEXT_DESC" class="input-xxlarge" />
-			<field name="filter_posttext" type="text" filter="JComponentHelper::filterText" default="" label="FLEXI_RECORD_SUFFIX_TEXT" description="FLEXI_RECORD_SUFFIX_TEXT_DESC" class="input-xxlarge" />
-			<field name="filter_opentag" type="text" filter="JComponentHelper::filterText" default="" label="FLEXI_RECORD_LIST_OPENING_TEXT" description="FLEXI_RECORD_LIST_OPENING_TEXT_DESC" class="input-xxlarge" />
-			<field name="filter_closetag" type="text" filter="JComponentHelper::filterText" default="" label="FLEXI_RECORD_LIST_CLOSING_TEXT" description="FLEXI_RECORD_LIST_CLOSING_TEXT_DESC" class="input-xxlarge" />
+			<field name="filter_pretext" type="text" filter="\Joomla\CMS\Component\ComponentHelper::filterText" default="" label="FLEXI_RECORD_PREFIX_TEXT" description="FLEXI_RECORD_PREFIX_TEXT_DESC" class="input-xxlarge" />
+			<field name="filter_posttext" type="text" filter="\Joomla\CMS\Component\ComponentHelper::filterText" default="" label="FLEXI_RECORD_SUFFIX_TEXT" description="FLEXI_RECORD_SUFFIX_TEXT_DESC" class="input-xxlarge" />
+			<field name="filter_opentag" type="text" filter="\Joomla\CMS\Component\ComponentHelper::filterText" default="" label="FLEXI_RECORD_LIST_OPENING_TEXT" description="FLEXI_RECORD_LIST_OPENING_TEXT_DESC" class="input-xxlarge" />
+			<field name="filter_closetag" type="text" filter="\Joomla\CMS\Component\ComponentHelper::filterText" default="" label="FLEXI_RECORD_LIST_CLOSING_TEXT" description="FLEXI_RECORD_LIST_CLOSING_TEXT_DESC" class="input-xxlarge" />
 			<field name="filter_placement" type="fcradio" default="0" label="FLEXI_ONE_RECORD_PER_ROW" description="FLEXI_ONE_RECORD_PER_ROW_DESC" class="btn-group btn-group-yesno">
 				<option value="0">FLEXI_NO_USE_SEPARATOR</option>
 				<option value="1">FLEXI_YES</option>
@@ -1332,8 +1337,8 @@
 			<field name="" type="separator" default="FLEXI_GENERAL_FORM_BEHAVIOR" icon_class="icon-cog" level="tab_open" box_type="1" remove_boxes="2" />
 
 			<field name="allowbuttons_fe" type="fccheckbox" default=""
-				checkoptions="FLEXI_APPLY_N_RELOAD,FLEXI_APPLY,FLEXI_SAVE_AND_NEW,FLEXI_SAVE_AS_COPY,FLEXI_SAVE_A_PREVIEW,FLEXI_PREVIEW_LATEST"
-				checkvals="apply,apply_ajax,save2new,save2copy,save_preview,preview_latest" defaultvals="apply,save_preview,preview_latest"
+				checkoptions="FLEXI_APPLY_N_RELOAD,FLEXI_APPLY,FLEXI_SAVE_AND_NEW,FLEXI_SAVE_AS_COPY,FLEXI_SAVE_A_PREVIEW,FLEXI_PREVIEW_LATEST,FLEXI_PREVIEW_LATEST_ITEM_ONLY"
+				checkvals="apply,apply_ajax,save2new,save2copy,save_preview,preview_latest,preview_latest_item_only" defaultvals="apply,save_preview,preview_latest"
 				label="FLEXI_MENU_ALLOW_BUTTONS" description="FLEXI_MENU_ALLOW_BUTTONS_DESC" cols="2" />
 			<field name="buttons_placement_fe" type="fcradio" default="0" label="FLEXI_BUTTONS_PLACEMENT" description="FLEXI_BUTTONS_PLACEMENT_DESC" class="btn-group btn-group-yesno">
 				<option value="0">FLEXI_TOP</option>
@@ -1411,6 +1416,10 @@
 				<option value="1">FLEXI_YES</option>
 			</field>
 			<field name="useaccess_fe" type="fcradio" default="1" label="FLEXI_MENU_USE_ACCESS" description="FLEXI_MENU_USE_ACCESS_DESC" class="btn-group btn-group-yesno">
+				<option value="0">FLEXI_NO</option>
+				<option value="1">FLEXI_YES</option>
+			</field>
+			<field name="usefeatured_fe" type="fcradio" default="0" label="FLEXI_MENU_USE_FEATURED" description="FLEXI_MENU_USE_FEATURED_DESC" class="btn-group btn-group-yesno">
 				<option value="0">FLEXI_NO</option>
 				<option value="1">FLEXI_YES</option>
 			</field>
@@ -1551,7 +1560,7 @@
 
 			<field name="form_lbl_class_fe" type="text" default="" label="FLEXI_LABEL_CLASS" description="FLEXI_LABEL_CLASS_DESC" class="input-xxlarge" />
 			<field name="form_container_class_fe" type="text" default="" label="FLEXI_FORM_CONTAINER_CLASS" description="FLEXI_FORM_CONTAINER_CLASS_DESC" class="input-xxlarge" />
-			<field name="form_container_css_fe" type="textarea" default="" filter="JComponentHelper::filterText" rows="1" cols="80" label="FLEXI_FORM_CONTAINER_CSS" description="FLEXI_FORM_CONTAINER_CSS_DESC" />
+			<field name="form_container_css_fe" type="textarea" default="" filter="\Joomla\CMS\Component\ComponentHelper::filterText" rows="1" cols="80" label="FLEXI_FORM_CONTAINER_CSS" description="FLEXI_FORM_CONTAINER_CSS_DESC" />
 			<field name="form_extra_css_fe" type="editor" editor="codemirror" default="" rows="2" cols="60" label="FLEXI_EDIT_FORM_CSS" description="FLEXI_EDIT_FORM_CSS_DESC" class="input-xxlarge" />
 			<field name="form_extra_js_fe" type="editor" editor="codemirror" default="" rows="2" cols="60" label="FLEXI_EDIT_FORM_JS" description="FLEXI_EDIT_FORM_JS_DESC" class="input-xxlarge" />
 
@@ -1579,8 +1588,8 @@
 			<field name="" type="separator" default="FLEXI_GENERAL_FORM_BEHAVIOR" icon_class="icon-cog" level="tab_open" box_type="1" remove_boxes="2" />
 
 			<field name="allowbuttons_be" type="fccheckbox" default=""
-				checkoptions="FLEXI_APPLY_N_RELOAD,FLEXI_APPLY,FLEXI_SAVE_AND_NEW,FLEXI_SAVE_AS_COPY,FLEXI_SAVE_A_PREVIEW,FLEXI_PREVIEW_LATEST"
-				checkvals="apply,apply_ajax,save2new,save2copy,save_preview,preview_latest" defaultvals="apply,apply_ajax,save2new,save2copy,save_preview,preview_latest"
+				checkoptions="FLEXI_APPLY_N_RELOAD,FLEXI_APPLY,FLEXI_SAVE_AND_NEW,FLEXI_SAVE_AS_COPY,FLEXI_SAVE_A_PREVIEW,FLEXI_PREVIEW_LATEST,FLEXI_PREVIEW_LATEST_ITEM_ONLY"
+				checkvals="apply,apply_ajax,save2new,save2copy,save_preview,preview_latest,preview_latest_item_only" defaultvals="apply,save_preview,preview_latest"
 				label="FLEXI_MENU_ALLOW_BUTTONS" description="FLEXI_MENU_ALLOW_BUTTONS_DESC" cols="2" />
 			<field name="buttons_placement_be" type="fcradio" default="-1" label="FLEXI_BUTTONS_PLACEMENT" description="FLEXI_BUTTONS_PLACEMENT_DESC" class="btn-group btn-group-yesno">
 				<option value="-1">JTOOLBAR</option>
@@ -1649,6 +1658,10 @@
 				<option value="1">FLEXI_YES</option>
 			</field>
 			<field name="useaccess_be" type="fcradio" default="1" label="FLEXI_MENU_USE_ACCESS" description="FLEXI_MENU_USE_ACCESS_DESC" class="btn-group btn-group-yesno">
+				<option value="0">FLEXI_NO</option>
+				<option value="1">FLEXI_YES</option>
+			</field>
+			<field name="usefeatured_be" type="fcradio" default="1" label="FLEXI_MENU_USE_FEATURED" description="FLEXI_MENU_USE_FEATURED_DESC" class="btn-group btn-group-yesno">
 				<option value="0">FLEXI_NO</option>
 				<option value="1">FLEXI_YES</option>
 			</field>
@@ -1789,7 +1802,7 @@
 			<field name="" type="separator" default="FLEXI_STYLING" label="" level="level1" />
 			<field name="form_lbl_class_be" type="text" default="" label="FLEXI_LABEL_CLASS" description="FLEXI_LABEL_CLASS_DESC" class="input-xxlarge" />
 			<field name="form_container_class_be" type="text" default="" label="FLEXI_FORM_CONTAINER_CLASS" description="FLEXI_FORM_CONTAINER_CLASS_DESC" class="input-xxlarge" />
-			<field name="form_container_css_be" type="textarea" default="" filter="JComponentHelper::filterText" rows="1" cols="80" label="FLEXI_FORM_CONTAINER_CSS" description="FLEXI_FORM_CONTAINER_CSS_DESC" />
+			<field name="form_container_css_be" type="textarea" default="" filter="\Joomla\CMS\Component\ComponentHelper::filterText" rows="1" cols="80" label="FLEXI_FORM_CONTAINER_CSS" description="FLEXI_FORM_CONTAINER_CSS_DESC" />
 			<field name="form_extra_css_be" type="editor" editor="codemirror" default="" rows="2" cols="60" label="FLEXI_EDIT_FORM_CSS" description="FLEXI_EDIT_FORM_CSS_DESC" class="input-xxlarge" />
 			<field name="form_extra_js_be" type="editor" editor="codemirror" default="" rows="2" cols="60" label="FLEXI_EDIT_FORM_JS" description="FLEXI_EDIT_FORM_JS_DESC" class="input-xxlarge" />
 
@@ -1990,10 +2003,19 @@
 				<option value="1">Field Label</option>
 				<option value="2">Field name</option>
 			</field>
+
+
+			<field name="" type="separator" default="FLEXI_IMPORT_CSV_FILE_FORMAT" label="" level="level1" />
 			<field name="csv_export_field_sep" type="text" default="," label="Field (Column) separator" description="" />
+			<field name="csv_export_item_record_sep" type="text" default="\n" size="12" label="FLEXI_CSV_ITEM_SEPARATOR" description="FLEXI_CSV_ITEM_SEPARATOR_DESC"/>
 			<field name="__exported_fields" type="list" default="0" label="Exported fields" description="">
 				<option value="0">Enable this inside every field</option>
 			</field>
+
+
+			<field name="" type="separator" default="FLEXI_IMPORT_MVAL_MPROP_FIELDS" label="" level="level2" />
+			<field name="csv_export_field_multivalue_sep" type="text" default="%%" label="Multivalue separator" description="By defaut %%" />
+			<field name="csv_export_field_mprop_sep" type="text" default="!!" size="12" label="FLEXI_CSV_MPROP_SEPARATOR" description="FLEXI_CSV_MPROP_SEPARATOR_DESC"/>
 
 	</fieldset>
 
@@ -2029,6 +2051,7 @@
 				<option value="0">FLEXI_NO</option>
 				<option value="1">FLEXI_IN_SLIDER</option>
 			</field>
+
 
 		<field name="" type="separator" default="FLEXI_ITEMS_MANAGER" icon_class="icon-list" level="tab_open" box_type="1" remove_boxes="2" />
 

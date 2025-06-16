@@ -37,7 +37,7 @@ class plgFlexicontent_fieldsColor extends FCField
 	{
 		if ( !in_array($field->field_type, static::$field_types) ) return;
 
-		$field->label = $field->parameters->get('label_form') ? JText::_($field->parameters->get('label_form')) : JText::_($field->label);
+		$field->label = $field->parameters->get('label_form') ? \Joomla\CMS\Language\Text::_($field->parameters->get('label_form')) : \Joomla\CMS\Language\Text::_($field->label);
 
 		// Set field and item objects
 		$this->setField($field);
@@ -60,12 +60,14 @@ class plgFlexicontent_fieldsColor extends FCField
 		$auto_value = $auto_value === 2 && !$auto_value_code ? 0 : $auto_value;
 
 		// Initialize framework objects and other variables
-		$document = JFactory::getDocument();
-		$cparams  = JComponentHelper::getParams( 'com_flexicontent' );
+		$document = \Joomla\CMS\Factory::getDocument();
+		$cparams  = \Joomla\CMS\Component\ComponentHelper::getParams( 'com_flexicontent' );
 
 		$tooltip_class = 'hasTooltip';
 		$add_on_class    = $cparams->get('bootstrap_ver', 2)==2  ?  'add-on' : 'input-group-addon';
 		$input_grp_class = $cparams->get('bootstrap_ver', 2)==2  ?  'input-append input-prepend' : 'input-group';
+		$btn_item_class  = $cparams->get('bootstrap_ver', 2)==2  ?  'btn' : 'btn';
+		$btn_group_class = $cparams->get('bootstrap_ver', 2)==2  ?  'btn-group' : 'btn-group';
 		$form_font_icons = $cparams->get('form_font_icons', 1);
 		$font_icon_class = $form_font_icons ? ' fcfont-icon' : '';
 		$font_icon_class .= FLEXI_J40GE ? ' icon icon- ' : '';
@@ -185,7 +187,7 @@ class plgFlexicontent_fieldsColor extends FCField
 			});
 			";
 
-			if ($max_values) JText::script("FLEXI_FIELD_MAX_ALLOWED_VALUES_REACHED", true);
+			if ($max_values) \Joomla\CMS\Language\Text::script("FLEXI_FIELD_MAX_ALLOWED_VALUES_REACHED", true);
 			$js .= "
 			function addField".$field->id."(el, groupval_box, fieldval_box, params)
 			{
@@ -313,18 +315,18 @@ class plgFlexicontent_fieldsColor extends FCField
 
 			$css .= '';
 
-			$remove_button = '<span class="' . $add_on_class . ' fcfield-delvalue ' . $font_icon_class . '" title="'.JText::_( 'FLEXI_REMOVE_VALUE' ).'" onclick="deleteField'.$field->id.'(this);"></span>';
-			$move2 = '<span class="' . $add_on_class . ' fcfield-drag-handle ' . $font_icon_class . '" title="'.JText::_( 'FLEXI_CLICK_TO_DRAG' ).'"></span>';
+			$remove_button = '<span class="' . $btn_item_class . ' fcfield-delvalue ' . $font_icon_class . '" title="'.\Joomla\CMS\Language\Text::_( 'FLEXI_REMOVE_VALUE' ).'" onclick="deleteField'.$field->id.'(this);"></span>';
+			$move2         = '<span class="' . $btn_item_class . ' fcfield-drag-handle ' . $font_icon_class . '" title="'.\Joomla\CMS\Language\Text::_( 'FLEXI_CLICK_TO_DRAG' ).'"></span>';
 			$add_here = '';
-			$add_here .= $add_position==2 || $add_position==3 ? '<span class="' . $add_on_class . ' fcfield-insertvalue fc_before ' . $font_icon_class . '" onclick="addField'.$field->id.'(null, jQuery(this).closest(\'ul\'), jQuery(this).closest(\'li\'), {insert_before: 1});" title="'.JText::_( 'FLEXI_ADD_BEFORE' ).'"></span> ' : '';
-			$add_here .= $add_position==1 || $add_position==3 ? '<span class="' . $add_on_class . ' fcfield-insertvalue fc_after ' . $font_icon_class . '"  onclick="addField'.$field->id.'(null, jQuery(this).closest(\'ul\'), jQuery(this).closest(\'li\'), {insert_before: 0});" title="'.JText::_( 'FLEXI_ADD_AFTER' ).'"></span> ' : '';
+			$add_here .= $add_position==2 || $add_position==3 ? '<span class="' . $btn_item_class . ' fcfield-insertvalue fc_before ' . $font_icon_class . '" onclick="addField'.$field->id.'(null, jQuery(this).closest(\'ul\'), jQuery(this).closest(\'li\'), {insert_before: 1});" title="'.\Joomla\CMS\Language\Text::_( 'FLEXI_ADD_BEFORE' ).'"></span> ' : '';
+			$add_here .= $add_position==1 || $add_position==3 ? '<span class="' . $btn_item_class . ' fcfield-insertvalue fc_after ' . $font_icon_class . '"  onclick="addField'.$field->id.'(null, jQuery(this).closest(\'ul\'), jQuery(this).closest(\'li\'), {insert_before: 0});" title="'.\Joomla\CMS\Language\Text::_( 'FLEXI_ADD_AFTER' ).'"></span> ' : '';
 		}
 
 		// Field not multi-value
 		else
 		{
 			$remove_button = '';
-			$move2 = '';
+			$move2         = '';
 			$add_here = '';
 			$js .= '';
 			$css .= '';
@@ -348,9 +350,11 @@ class plgFlexicontent_fieldsColor extends FCField
 			$classes = ' fcfield_auto_value ';
 		}
 
-		jimport('joomla.form.helper'); // JFormHelper
-		JFormHelper::loadFieldClass('color');   // JFormFieldColor
-
+		if (!FLEXI_J40GE)
+		{
+			jimport('joomla.form.helper'); // \Joomla\CMS\Form\FormHelper
+			\Joomla\CMS\Form\FormHelper::loadFieldClass('color');   // \Joomla\CMS\Form\Field\ColorField
+		}
 
 		/**
 		 * Create field's HTML display for item form
@@ -361,7 +365,8 @@ class plgFlexicontent_fieldsColor extends FCField
 
 		foreach ($field->value as $value)
 		{
-			if ( !strlen($value) && !$use_ingroup && $n) continue;  // If at least one added, skip empty if not in field group
+			$value = $value ?? ''; // value maybe null
+		if (!strlen($value) && !$use_ingroup && $n) continue;  // If at least one added, skip empty if not inside a field group
 
 			$fieldname_n = $fieldname.'['.$n.']';
 			$elementid_n = $elementid.'_'.$n;
@@ -371,9 +376,11 @@ class plgFlexicontent_fieldsColor extends FCField
 			$xml_field = '<field name="'.$fieldname_n.'" type="color" control="' . $color_control . '" colors="' . $specific_colors . '"/>';
 			$xml_form = '<form><fields name="attribs"><fieldset name="attribs">'.$xml_field.'</fieldset></fields></form>';
 
-			$jform = new JForm('flexicontent_field.color', array('control' => '', 'load_data' => true));
+			$jform = new \Joomla\CMS\Form\Form('flexicontent_field.color', array('control' => '', 'load_data' => true));
 			$jform->load($xml_form);
-			$jfield = new JFormFieldColor($jform);
+			$jfield = FLEXI_J40GE
+				? new \Joomla\CMS\Form\Field\ColorField($jform)
+				: new JFormFieldColor($jform);
 
 			$jfield->setup(new SimpleXMLElement($xml_field), $value, '');
 
@@ -383,7 +390,7 @@ class plgFlexicontent_fieldsColor extends FCField
 				' . $jfield_html . '
 				' . $posttext . '
 				' . (!$add_ctrl_btns || $auto_value ? '' : '
-				<div class="'.$input_grp_class.' fc-xpended-btns">
+				<div class="'.$btn_group_class.' fc-xpended-btns">
 					'.$move2.'
 					'.$remove_button.'
 					'.(!$add_position ? '' : $add_here).'
@@ -406,9 +413,9 @@ class plgFlexicontent_fieldsColor extends FCField
 				'</li>';
 			$field->html = '<ul class="fcfield-sortables" id="sortables_'.$field->id.'">' .$field->html. '</ul>';
 			if (!$add_position) $field->html .= '
-				<div class="input-append input-prepend fc-xpended-btns">
-					<span class="fcfield-addvalue ' . $font_icon_class . ' fccleared" onclick="addField'.$field->id.'(jQuery(this).closest(\'.fc-xpended-btns\').get(0));" title="'.JText::_( 'FLEXI_ADD_TO_BOTTOM' ).'">
-						'.JText::_( 'FLEXI_ADD_VALUE' ).'
+				<div class="'.$btn_group_class.' fc-xpended-btns">
+					<span class="fcfield-addvalue ' . $font_icon_class . ' ' . $btn_item_class . '" onclick="addField'.$field->id.'(jQuery(this).closest(\'.fc-xpended-btns\').get(0));" title="'.\Joomla\CMS\Language\Text::_( 'FLEXI_ADD_TO_BOTTOM' ).'">
+						'.\Joomla\CMS\Language\Text::_( 'FLEXI_ADD_VALUE' ).'
 					</span>
 				</div>';
 		}
@@ -428,7 +435,7 @@ class plgFlexicontent_fieldsColor extends FCField
 	{
 		if ( !in_array($field->field_type, static::$field_types) ) return;
 
-		$field->label = JText::_($field->label);
+		$field->label = \Joomla\CMS\Language\Text::_($field->label);
 
 		// Set field and item objects
 		$this->setField($field);
@@ -446,8 +453,8 @@ class plgFlexicontent_fieldsColor extends FCField
 		{
 			$initialized = 1;
 
-			$app       = JFactory::getApplication();
-			$document  = JFactory::getDocument();
+			$app       = \Joomla\CMS\Factory::getApplication();
+			$document  = \Joomla\CMS\Factory::getDocument();
 			$option    = $app->input->getCmd('option', '');
 			$format    = $app->input->getCmd('format', 'html');
 			$realview  = $app->input->getCmd('view', '');

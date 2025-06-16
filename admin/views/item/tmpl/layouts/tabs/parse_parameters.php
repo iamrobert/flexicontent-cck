@@ -4,6 +4,8 @@ defined('_JEXEC') or die('Restricted access');
 use Joomla\String\StringHelper;
 use Joomla\Utilities\ArrayHelper;
 
+#[AllowDynamicProperties] //php8.2 compatibility
+
 class FcFormLayoutParameters
 {
 	/**
@@ -23,7 +25,7 @@ class FcFormLayoutParameters
 	 */
 	function createPlacementConf( $item, & $fields, $params, $coreprops_fields, $via_core_field, $via_core_prop, $typeselected)
 	{
-		$app    = JFactory::getApplication();
+		$app    = \Joomla\CMS\Factory::getApplication();
 		$CFGsfx = $app->isClient('site') ? '' : '_be';
 
 		$placeable_fields = array_merge($via_core_field, $via_core_prop);
@@ -34,15 +36,32 @@ class FcFormLayoutParameters
 		 */
 
 		$tab_fields['above']  = $params->get('form_tabs_above'. $CFGsfx,    'title, alias, category, lang, type, state, vstate, access, disable_comments, notify_subscribers, notify_owner');
-		$tab_fields['tab01']  = $params->get('form_tab01_fields'. $CFGsfx,  'text');
-		$tab_fields['tab02']  = $params->get('form_tab02_fields'. $CFGsfx,  'fields_manager');
-		$tab_fields['tab02a'] = $params->get('form_tab02a_fields'. $CFGsfx, 'jimages, jurls');
-		$tab_fields['tab03']  = $params->get('form_tab03_fields'. $CFGsfx,  'categories, tags, lang_assocs, perms');
-		$tab_fields['tab04']  = $params->get('form_tab04_fields'. $CFGsfx,  'timezone_info, created, created_by, created_by_alias, publish_up, publish_down, modified, modified_by, item_screen');
-		$tab_fields['tab05']  = $params->get('form_tab05_fields'. $CFGsfx,  'metadata, seoconf');
-		$tab_fields['tab06']  = $params->get('form_tab06_fields'. $CFGsfx,  'display_params');
-		$tab_fields['tab07']  = $params->get('form_tab07_fields'. $CFGsfx,  'layout_selection, layout_params');
-		$tab_fields['tab08']  = $params->get('form_tab08_fields'. $CFGsfx,  'versions');
+		$tab_fields['tab01']  = $params->get('form_tab01_fields'. $CFGsfx,  $defaultTabValue = 'text');
+		$tab_customized['tab01'] = $tab_fields['tab01'] != $defaultTabValue;
+		$tab_fields['tab02']  = $params->get('form_tab02_fields'. $CFGsfx,  $defaultTabValue = 'fields_manager');
+		$tab_customized['tab02'] = $tab_fields['tab02'] != $defaultTabValue;
+		$tab_fields['tab02a'] = $params->get('form_tab02a_fields'. $CFGsfx, $defaultTabValue = 'jimages, jurls');
+		$tab_customized['tab02a'] = $tab_fields['tab02a'] != $defaultTabValue;
+		$tab_fields['tab03']  = $params->get('form_tab03_fields'. $CFGsfx,  $defaultTabValue = 'featured, categories, tags, lang_assocs, perms');
+		$tab_customized['tab03'] = $tab_fields['tab03'] != $defaultTabValue;
+		$tab_fields['tab04']  = $params->get('form_tab04_fields'. $CFGsfx,  $defaultTabValue = 'timezone_info, created, created_by, created_by_alias, publish_up, publish_down, modified, modified_by, item_screen');
+		$tab_customized['tab04'] = $tab_fields['tab04'] != $defaultTabValue;
+		$tab_fields['tab05']  = $params->get('form_tab05_fields'. $CFGsfx,  $defaultTabValue = 'metadata, seoconf');
+		$tab_customized['tab05'] = $tab_fields['tab05'] != $defaultTabValue;
+		$tab_fields['tab06']  = $params->get('form_tab06_fields'. $CFGsfx,  $defaultTabValue = 'display_params');
+		$tab_customized['tab06'] = $tab_fields['tab06'] != $defaultTabValue;
+		$tab_fields['tab07']  = $params->get('form_tab07_fields'. $CFGsfx,  $defaultTabValue = 'layout_selection, layout_params');
+		$tab_customized['tab07'] = $tab_fields['tab07'] != $defaultTabValue;
+		$tab_fields['tab08']  = $params->get('form_tab08_fields'. $CFGsfx,  $defaultTabValue = 'versions');
+		$tab_customized['tab08'] = $tab_fields['tab08'] != $defaultTabValue;
+
+		$tab_fields['tab09a']  = $params->get('form_tab09a_fields'. $CFGsfx,  $defaultTabValue = '_skip_');
+		$tab_customized['tab09a'] = $tab_fields['tab09a'] != $defaultTabValue;
+		$tab_fields['tab09b']  = $params->get('form_tab09b_fields'. $CFGsfx,  $defaultTabValue = '_skip_');
+		$tab_customized['tab09b'] = $tab_fields['tab09b'] != $defaultTabValue;
+		$tab_fields['tab09c']  = $params->get('form_tab09c_fields'. $CFGsfx,  $defaultTabValue = '_skip_');
+		$tab_customized['tab09c'] = $tab_fields['tab09c'] != $defaultTabValue;
+
 		$tab_fields['below']  = $params->get('form_tabs_below'. $CFGsfx,    '');
 
 
@@ -104,18 +123,18 @@ class FcFormLayoutParameters
 		// Create title of the custom fields default TAB (field manager TAB)
 		if ($item->type_id)
 		{
-			$_str = JText::_('FLEXI_DETAILS');
+			$_str = \Joomla\CMS\Language\Text::_('FLEXI_DETAILS');
 			$_str = StringHelper::strtoupper(StringHelper::substr($_str, 0, 1)) . StringHelper::substr($_str, 1);
 
 			$types_arr = flexicontent_html::getTypesList();
 			$type_name = isset($types_arr[$item->type_id]) ? $types_arr[$item->type_id]->name : 'FLEXI_CONTENT_TYPE';
-			$type_lbl  = JText::_($type_name);
+			$type_lbl  = \Joomla\CMS\Language\Text::_($type_name);
 			$type_lbl  = $type_lbl .' ('. $_str .')';
 		}
 		else
 		{
 			$type_name = 'FLEXI_TYPE_NOT_DEFINED';
-			$type_lbl  = JText::_($type_name);
+			$type_lbl  = \Joomla\CMS\Language\Text::_($type_name);
 		}
 
 		// Also assign it for usage by layout
@@ -139,13 +158,13 @@ class FcFormLayoutParameters
 					break;
 				}
 
-				$tab_titles['tab0'.$arr[0]] = $arr[1] === '__TYPE_NAME__' ? $type_lbl : JText::_($arr[1]);
-				$tab_classes['tab0'.$arr[0]] = JFilterOutput::stringURLSafe(
-					StringHelper::strtolower($arr[1] === '__TYPE_NAME__'
-						? (($item->type_id ? 'flexi-type-' : '') . $type_name)
-						: $arr[1]
-					)
-				) . '-tab-box';
+				$tab_titles['tab0'.$arr[0]] = $arr[1] === '__TYPE_NAME__' ? $type_lbl : \Joomla\CMS\Language\Text::_($arr[1]);
+				$tab_classes['tab0'.$arr[0]] = \Joomla\CMS\Filter\OutputFilter::stringURLSafe(
+						StringHelper::strtolower($arr[1] === '__TYPE_NAME__'
+							? (($item->type_id ? 'flexi-type-' : '') . $type_name)
+							: $arr[1]
+						)
+					) . '-tab-box';
 			}
 		}
 
@@ -189,6 +208,7 @@ class FcFormLayoutParameters
 		$placementConf['via_core_prop']    = $via_core_prop;
 		$placementConf['placeable_fields'] = $placeable_fields;
 		$placementConf['tab_fields']       = $tab_fields;
+		$placementConf['tab_customized']   = $tab_customized;
 		$placementConf['tab_titles']       = $tab_titles;
 		$placementConf['tab_icocss']       = $tab_icocss;
 		$placementConf['tab_classes']      = $tab_classes;

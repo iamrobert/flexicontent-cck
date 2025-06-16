@@ -1074,6 +1074,7 @@ div.container_fcfield div.toggle_all_values_buttons_box {
 	width: 100%;
 	margin: 0 4px 16px 0;
 	padding: 12px 0 12px 12px;
+	display: grid;
 }
 #flexicontent ul.fcfield-sortables.fcfield-group > li.fcfieldval_container.valuebox .fc_sub_label {
 	box-sizing: border-box;
@@ -1101,6 +1102,26 @@ div.container_fcfield div.toggle_all_values_buttons_box {
 	#flexicontent ul.fcfield-sortables.fcfield-group .controls {
 		margin-left: 0;
 	}
+}
+#flexicontent .fcfont-icon-inline:before {
+	width: 1.4em;
+	height: 1.4em;
+	line-height: 1.4em;
+	background: none !important;
+	left: 0;
+	position: absolute !important;
+	font-size: 1em !important;
+}
+#flexicontent .fcfont-icon-inline,
+#flexicontent .fcfont-icon-inline:before,
+#flexicontent .fcfont-icon-inline:hover,
+#flexicontent .fcfont-icon-inline:hover:before {
+	width: 0 !important;
+	height: 0 !important;
+	background: none !important;
+}
+#flexicontent .fcfont-icon-inline {
+	position: relative !important;
 }
 #flexicontent div [class^="fcfield-"].fcfont-icon,
 #flexicontent div [class*=" fcfield-"].fcfont-icon,
@@ -1150,9 +1171,10 @@ div.container_fcfield div.toggle_all_values_buttons_box {
 #flexicontent .fc-xpended-btns.btn-group > *,
 #flexicontent span.fcfield-disablevalue.fcfont-icon.icon.icon- {
 	min-height: var(--ctrls-inp-height) !important;
+	max-height: var(--ctrls-inp-height) !important;
 	line-height: calc(var(--ctrls-inp-height) - 1px) !important;
 	box-sizing: border-box !important;
-	padding: 0 calc(var(--ctrls-inp-height) / 2) !important;
+	padding: 0 calc(var(--ctrls-inp-height) / 6);
 }
 #flexicontent .fc-xpended-btns > * {
 	flex-grow: 0;
@@ -1203,17 +1225,29 @@ div.container_fcfield div.toggle_all_values_buttons_box {
 	padding: 0px;
 	margin: 0px;
 }
-#flexicontent .buttons.btn-group .btn {
+#flexicontent .buttons.btn .btn {
 	padding: 8px 6px;
 }
-#flexicontent .buttons.btn-group .btn .caret {
+#flexicontent .buttons.btn .btn .caret {
 	margin: 2px 0 4px 0;
 	vertical-align: middle;
 }
-#flexicontent .buttons.btn-group > ul.dropdown-menu > li > span {
+#flexicontent .buttons.btn > ul.dropdown-menu {
+	margin: 4px 0 0 0;
+	padding: 0;
+	border: 0;
+}
+#flexicontent .buttons.btn > ul.dropdown-menu > li {
+	margin: 0;
+	padding: 0;
+}
+#flexicontent .buttons.btn > ul.dropdown-menu > li > span {
+	line-height: 3rem;
+	margin: 0;
 	display: block;
 	cursor: pointer;
 	user-select: none;
+	border-radius: 0;
 }
 #flexicontent .fcfield-button-add {
 	vertical-align: top !important;
@@ -1400,14 +1434,6 @@ div.container_fcfield div.toggle_all_values_buttons_box {
 #flexicontent .fcfield-uploadvalue.active {
 	background-color: #efefef;
 }
-#flexicontent .fc-xpended-btns .fcfield-uploadvalue.active.fcfont-icon,
-#flexicontent .fc-xpended-btns .fcfield-uploadvalue.active.fcfont-icon:hover,
-#flexicontent .fcfield-uploadvalue.active.fcfont-icon,
-#flexicontent .fcfield-uploadvalue.active.fcfont-icon:hover {
-	background-color: #2f96b4;
-	background-image: none;
-	color: white;
-}
 #flexicontent .fcfield-uploadvalue.fcfont-icon:before {
 	content: "\e022";
 }
@@ -1460,28 +1486,22 @@ div.empty_image {
 	display: flex;
 	flex-direction: column;
 }
-.fc-field-props-box .fc_preview_msg {
+.fc-field-props-box .fc_preview_msg,
+.fc-field-props-box input,
+.fc-field-props-box textarea {
 	margin: 0.5em 0;
 	padding: 0.5em 1%;
-	width: 98%;
-	max-width: 400px;
+	width: 100%;
 	box-sizing: border-box;
 	display: inline-block;
 	line-height: 1.5em;
-	height: 2.5em;
 	border: 1px solid #ccc;
 	border-radius: 6px;
-	font-size: 11px;
-	font-size: small;
-	font-style: normal;
-	font-family: Tahoma;
 	white-space: nowrap;
 	word-wrap: normal;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	text-align: left;
-	color: #777;
-	background: white;
 	cursor: text;
 }
 #flexicontent .fcfield_preview_box {
@@ -1522,6 +1542,10 @@ div.fcimg_value_props {
 div.fcimg_value_props select,
 div.fcimg_value_props input {
 	margin: 0;
+}
+#flexicontent .fc_filedata_title {
+	width: auto !important;
+	font-style: italic;
 }
 #flexicontent .fc_filedata_txt.invalid {
 	color: red;
@@ -1727,4 +1751,10 @@ span.fcfield-disablevalue.fcfont-icon.icon.icon- {
 .buttons.btn-group.fc-iblock.dropdown {
 	margin-left: -20px !important;
 	width: 88px;
+}
+span.add-on.fcfont-icon.icon.icon-.image-option {
+	cursor: pointer;
+}
+textarea.fcfield_textareaval {
+	resize: both;
 }

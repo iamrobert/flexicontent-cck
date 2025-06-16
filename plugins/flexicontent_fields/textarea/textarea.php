@@ -40,7 +40,7 @@ class plgFlexicontent_fieldsTextarea extends FCField
 	{
 		if ( !in_array($field->field_type, static::$field_types) ) return;
 
-		$field->label = $field->parameters->get('label_form') ? JText::_($field->parameters->get('label_form')) : JText::_($field->label);
+		$field->label = $field->parameters->get('label_form') ? \Joomla\CMS\Language\Text::_($field->parameters->get('label_form')) : \Joomla\CMS\Language\Text::_($field->label);
 
 		// Set field and item objects
 		$this->setField($field);
@@ -63,14 +63,16 @@ class plgFlexicontent_fieldsTextarea extends FCField
 		$auto_value = $auto_value === 2 && !$auto_value_code ? 0 : $auto_value;
 
 		// Initialize framework objects and other variables
-		$document = JFactory::getDocument();
-		$cparams  = JComponentHelper::getParams( 'com_flexicontent' );
-		$app      = JFactory::getApplication();
-		$user     = JFactory::getUser();
+		$document = \Joomla\CMS\Factory::getDocument();
+		$cparams  = \Joomla\CMS\Component\ComponentHelper::getParams( 'com_flexicontent' );
+		$app      = \Joomla\CMS\Factory::getApplication();
+		$user     = \Joomla\CMS\Factory::getUser();
 
 		$tooltip_class = 'hasTooltip';
 		$add_on_class    = $cparams->get('bootstrap_ver', 2)==2  ?  'add-on' : 'input-group-addon';
 		$input_grp_class = $cparams->get('bootstrap_ver', 2)==2  ?  'input-append input-prepend' : 'input-group';
+		$btn_item_class  = $cparams->get('bootstrap_ver', 2)==2  ?  'btn' : 'btn';
+		$btn_group_class = $cparams->get('bootstrap_ver', 2)==2  ?  'btn-group' : 'btn-group';
 		$form_font_icons = $cparams->get('form_font_icons', 1);
 		$font_icon_class = $form_font_icons ? ' fcfont-icon' : '';
 		$font_icon_class .= FLEXI_J40GE ? ' icon icon- ' : '';
@@ -79,7 +81,7 @@ class plgFlexicontent_fieldsTextarea extends FCField
 		// Create the editor object of editor prefered by the user,
 		// this will also add the needed JS to the HTML head
 		$editor_name = $field->parameters->get( 'editor',  $user->getParam('editor', $app->getCfg('editor'))  );
-		$editor = FLEXI_J40GE ? Editor::getInstance($editor_name) : JEditor::getInstance($editor_name);
+		$editor = FLEXI_J40GE ? Editor::getInstance($editor_name) : \Joomla\CMS\Editor\Editor::getInstance($editor_name);
 		$editor_plg_params = array();  // Override parameters of the editor plugin, ignored by most editors !!
 
 
@@ -121,15 +123,17 @@ class plgFlexicontent_fieldsTextarea extends FCField
 		$use_html = (int) ($field->field_type == 'maintext' ? !$field->parameters->get( 'hide_html', 0 ) : $field->parameters->get( 'use_html', 0 ));
 
 		// *** Simple Textarea ***
-		$rows  = $field->parameters->get( 'rows', ($field->field_type === 'maintext' ? 6 : 3) ) ;
-		$cols  = $field->parameters->get( 'cols', 80 ) ;
+		$rows  = (int) $field->parameters->get( 'rows', ($field->field_type == 'maintext') ? 6 : 3 ) ;
+		$cols  = (int) $field->parameters->get( 'cols', 80 ) ;
+		$rows  = $rows !== -1 ? $rows : '';
+		$cols  = $cols !== -1 ? $cols : '';
 
 		// Max Length is enforced in both client & server sides when using textarea,
 		// when using HTML editor, this will be client size only (and only if editor supports it)
 		$maxlength = (int) $field->parameters->get( 'maxlength', 0 ) ;
 
 		$display_label_form = (int) $field->parameters->get( 'display_label_form', 1 ) ;
-		$placeholder        = $display_label_form==-1 ? $field->label : JText::_($field->parameters->get( 'placeholder', '' )) ;
+		$placeholder        = $display_label_form==-1 ? $field->label : \Joomla\CMS\Language\Text::_($field->parameters->get( 'placeholder', '' )) ;
 
 		// *** HTML Editor configuration  ***
 		$width = $field->parameters->get( 'width', '') ;
@@ -272,7 +276,7 @@ class plgFlexicontent_fieldsTextarea extends FCField
 			});
 			";
 
-			if ($max_values) JText::script("FLEXI_FIELD_MAX_ALLOWED_VALUES_REACHED", true);
+			if ($max_values) \Joomla\CMS\Language\Text::script("FLEXI_FIELD_MAX_ALLOWED_VALUES_REACHED", true);
 			$js .= "
 			function addField".$field->id."(el, groupval_box, fieldval_box, params)
 			{
@@ -489,31 +493,41 @@ class plgFlexicontent_fieldsTextarea extends FCField
 
 			$css .= '';
 
-			$remove_button = '<span class="' . $add_on_class . ' fcfield-delvalue ' . $font_icon_class . '" title="'.JText::_( 'FLEXI_REMOVE_VALUE' ).'" onclick="deleteField'.$field->id.'(this);"></span>';
-			$move2 = '<span class="' . $add_on_class . ' fcfield-drag-handle ' . $font_icon_class . '" title="'.JText::_( 'FLEXI_CLICK_TO_DRAG' ).'"></span>';
+			$remove_button = '<span class="' . $btn_item_class . ' fcfield-delvalue ' . $font_icon_class . '" title="'.\Joomla\CMS\Language\Text::_( 'FLEXI_REMOVE_VALUE' ).'" onclick="deleteField'.$field->id.'(this);"></span>';
+			$move2         = '<span class="' . $btn_item_class . ' fcfield-drag-handle ' . $font_icon_class . '" title="'.\Joomla\CMS\Language\Text::_( 'FLEXI_CLICK_TO_DRAG' ).'"></span>';
 			$add_here = '';
-			$add_here .= $add_position==2 || $add_position==3 ? '<span class="' . $add_on_class . ' fcfield-insertvalue fc_before ' . $font_icon_class . '" onclick="addField'.$field->id.'(null, jQuery(this).closest(\'ul\'), jQuery(this).closest(\'li\'), {insert_before: 1});" title="'.JText::_( 'FLEXI_ADD_BEFORE' ).'"></span> ' : '';
-			$add_here .= $add_position==1 || $add_position==3 ? '<span class="' . $add_on_class . ' fcfield-insertvalue fc_after ' . $font_icon_class . '"  onclick="addField'.$field->id.'(null, jQuery(this).closest(\'ul\'), jQuery(this).closest(\'li\'), {insert_before: 0});" title="'.JText::_( 'FLEXI_ADD_AFTER' ).'"></span> ' : '';
+			$add_here .= $add_position==2 || $add_position==3 ? '<span class="' . $btn_item_class . ' fcfield-insertvalue fc_before ' . $font_icon_class . '" onclick="addField'.$field->id.'(null, jQuery(this).closest(\'ul\'), jQuery(this).closest(\'li\'), {insert_before: 1});" title="'.\Joomla\CMS\Language\Text::_( 'FLEXI_ADD_BEFORE' ).'"></span> ' : '';
+			$add_here .= $add_position==1 || $add_position==3 ? '<span class="' . $btn_item_class . ' fcfield-insertvalue fc_after ' . $font_icon_class . '"  onclick="addField'.$field->id.'(null, jQuery(this).closest(\'ul\'), jQuery(this).closest(\'li\'), {insert_before: 0});" title="'.\Joomla\CMS\Language\Text::_( 'FLEXI_ADD_AFTER' ).'"></span> ' : '';
 		}
 
 		// Field not multi-value
 		else
 		{
 			$remove_button = '';
-			$move2 = '';
+			$move2         = '';
 			$add_here = '';
 			$js .= '';
 			$css .= '';
 		}
 
 
-		$classes  = ' fcfield_textval' . $required_class;
+		$classes  = 'txtarea fcfield_textareaval' . $required_class;
 
 		// Set field to 'Automatic' on successful validation'
 		if ($auto_value)
 		{
 			$classes = ' fcfield_auto_value ';
 		}
+
+		// Extra attributes
+		$extra_attribs = $field->parameters->get( 'extra_attributes', '' )
+			. ($maxlength ? ' maxlength="' . $maxlength . '" ' : '')
+			. ($cols ? ' cols="' . $cols . '" ' : '')
+			. ($rows ? '  rows="' . $rows . '" ' : '')
+			. (strlen($placeholder) ? ' placeholder="'.htmlspecialchars( $placeholder, ENT_COMPAT, 'UTF-8' ).'"' : '')
+		;
+		if (strpos($extra_attribs, 'class="') === false) $extra_attribs .= ' class="'.$classes.'"';
+		else $extra_attribs = str_replace('class="', 'class="'.$classes.' ', $extra_attribs);
 
 
 		/**
@@ -565,9 +579,9 @@ class plgFlexicontent_fieldsTextarea extends FCField
 				'</li>';
 			$field->html = '<ul class="fcfield-sortables" id="sortables_'.$field->id.'">' .$field->html. '</ul>';
 			if (!$add_position) $field->html .= '
-				<div class="input-append input-prepend fc-xpended-btns">
-					<span class="fcfield-addvalue ' . $font_icon_class . ' fccleared" onclick="addField'.$field->id.'(jQuery(this).closest(\'.fc-xpended-btns\').get(0));" title="'.JText::_( 'FLEXI_ADD_TO_BOTTOM' ).'">
-						'.JText::_( 'FLEXI_ADD_VALUE' ).'
+				<div class="'.$btn_group_class.' fc-xpended-btns">
+					<span class="fcfield-addvalue ' . $font_icon_class . ' ' . $btn_item_class . '" onclick="addField'.$field->id.'(jQuery(this).closest(\'.fc-xpended-btns\').get(0));" title="'.\Joomla\CMS\Language\Text::_( 'FLEXI_ADD_TO_BOTTOM' ).'">
+						'.\Joomla\CMS\Language\Text::_( 'FLEXI_ADD_VALUE' ).'
 					</span>
 				</div>';
 		}
@@ -590,7 +604,7 @@ class plgFlexicontent_fieldsTextarea extends FCField
 
 		if (count($skipped_vals))
 		{
-			$app->enqueueMessage( JText::sprintf('FLEXI_FIELD_DATE_EDIT_VALUES_SKIPPED', $field->label, implode(',',$skipped_vals)), 'notice' );
+			$app->enqueueMessage( \Joomla\CMS\Language\Text::sprintf('FLEXI_FIELD_DATE_EDIT_VALUES_SKIPPED', $field->label, implode(',',$skipped_vals)), 'notice' );
 		}
 	}
 
@@ -600,7 +614,7 @@ class plgFlexicontent_fieldsTextarea extends FCField
 	{
 		if ( !in_array($field->field_type, static::$field_types) ) return;
 
-		$field->label = JText::_($field->label);
+		$field->label = \Joomla\CMS\Language\Text::_($field->label);
 
 		// Set field and item objects
 		$this->setField($field);
@@ -618,8 +632,8 @@ class plgFlexicontent_fieldsTextarea extends FCField
 		{
 			$initialized = 1;
 
-			$app       = JFactory::getApplication();
-			$document  = JFactory::getDocument();
+			$app       = \Joomla\CMS\Factory::getApplication();
+			$document  = \Joomla\CMS\Factory::getDocument();
 			$option    = $app->input->getCmd('option', '');
 			$format    = $app->input->getCmd('format', 'html');
 			$realview  = $app->input->getCmd('view', '');
@@ -654,8 +668,8 @@ class plgFlexicontent_fieldsTextarea extends FCField
 		$cut_text        = $view=='item' ? 0 : $field->parameters->get('cut_text_catview', 0);
 		$cut_text_length = $field->parameters->get('cut_text_length_catview', 200);
 		$cut_text_display = $field->parameters->get('cut_text_display_catview', 0);
-		$cut_text_display_btn_icon = JText::_($field->parameters->get('cut_text_display_btn_icon_catview', 'icon-paragraph-center'));
-		$cut_text_display_btn_text = JText::_($field->parameters->get('cut_text_display_btn_text_catview', '...'));
+		$cut_text_display_btn_icon = \Joomla\CMS\Language\Text::_($field->parameters->get('cut_text_display_btn_icon_catview', 'icon-paragraph-center'));
+		$cut_text_display_btn_text = \Joomla\CMS\Language\Text::_($field->parameters->get('cut_text_display_btn_text_catview', '...'));
 
 
 		/**
@@ -683,18 +697,18 @@ class plgFlexicontent_fieldsTextarea extends FCField
 
 		if ($clean_output)
 		{
-			$ifilter = $clean_output == 1 ?  JFilterInput::getInstance([], [], 1, 1) : JFilterInput::getInstance();
+			$ifilter = $clean_output == 1 ?  \Joomla\CMS\Filter\InputFilter::getInstance([], [], 1, 1) : \Joomla\CMS\Filter\InputFilter::getInstance();
 		}
 		if ($lang_filter_values || $clean_output || $encode_output || !$use_html)
 		{
 			// (* BECAUSE OF THIS, the value display loop expects unserialized values)
 			foreach ($values as &$value)
 			{
-				if ( !strlen($value) ) continue;  // skip further actions
+				if ( $value === null || !strlen($value) ) continue;  // skip further actions
 
 				if ($lang_filter_values)
 				{
-					$value = JText::_($value);
+					$value = \Joomla\CMS\Language\Text::_($value);
 				}
 				if ($clean_output)
 				{
@@ -794,7 +808,7 @@ class plgFlexicontent_fieldsTextarea extends FCField
 				{
 					$content_val = !$is_ingroup ? flexicontent_html::striptagsandcut($field->{$prop}, $ogpmaxlen) :
 						flexicontent_html::striptagsandcut($opentag.implode($separatorf, $field->{$prop}).$closetag, $ogpmaxlen) ;
-					JFactory::getDocument()->addCustomTag('<meta property="og:'.$usagetype.'" content="'.$content_val.'" />');
+					\Joomla\CMS\Factory::getDocument()->addCustomTag('<meta property="og:'.$usagetype.'" content="'.$content_val.'" />');
 				}
 			}
 		}
@@ -1046,15 +1060,15 @@ class plgFlexicontent_fieldsTextarea extends FCField
 	function createTabs(&$field, &$item, $fieldname, $elementid)
 	{
 		// initialize framework objects and other variables
-		$document = JFactory::getDocument();
-		$app  = JFactory::getApplication();
-		$user = JFactory::getUser();
+		$document = \Joomla\CMS\Factory::getDocument();
+		$app  = \Joomla\CMS\Factory::getApplication();
+		$user = \Joomla\CMS\Factory::getUser();
 
 
 		// Create the editor object of editor prefered by the user,
 		// this will also add the needed JS to the HTML head
 		$editor_name = $field->parameters->get( 'editor',  $user->getParam('editor', $app->getCfg('editor'))  );
-		$editor = FLEXI_J40GE ? Editor::getInstance($editor_name) : JEditor::getInstance($editor_name);
+		$editor = FLEXI_J40GE ? Editor::getInstance($editor_name) : \Joomla\CMS\Editor\Editor::getInstance($editor_name);
 		$editor_plg_params = array();  // Override parameters of the editor plugin, ignored by most editors !!
 
 
@@ -1073,8 +1087,19 @@ class plgFlexicontent_fieldsTextarea extends FCField
 		$use_html  = (int) ($field->field_type == 'maintext' ? !$field->parameters->get( 'hide_html', 0 ) : $field->parameters->get( 'use_html', 0 ));
 
 		// *** Simple Textarea & HTML Editor (shared configuration) ***
-		$rows  = $field->parameters->get( 'rows', ($field->field_type == 'maintext') ? 6 : 3 ) ;
-		$cols  = $field->parameters->get( 'cols', 80 ) ;
+		$rows  = (int) $field->parameters->get( 'rows', ($field->field_type == 'maintext') ? 6 : 3 ) ;
+		$cols  = (int) $field->parameters->get( 'cols', 80 ) ;
+		$rows  = $rows !== -1 ? $rows : '';
+		$cols  = $cols !== -1 ? $cols : '';
+
+		// Extra attributes
+		$attribs = $field->parameters->get( 'extra_attributes', '' )
+			. ($maxlength ? ' maxlength="' . $maxlength . '" ' : '')
+			. ($cols ? ' cols="' . $cols . '" ' : '')
+			. ($rows ? '  rows="' . $rows . '" ' : '')
+		;
+		if (strpos($attribs, 'class="') === false) $attribs .= ' class="'.$required.'"';
+		else $attribs = str_replace('class="', 'class="'.$required.' ', $attribs);
 
 		// *** HTML Editor configuration  ***
 		$width = $field->parameters->get( 'width', '98%') ;
@@ -1178,9 +1203,10 @@ class plgFlexicontent_fieldsTextarea extends FCField
 			$elementid_t = $elementid.'_'.$ta_count;
 			$fieldname_t = $field->tab_names[$ta_count];
 
-			if (!$use_html) {
+			if (!$use_html)
+			{
 				$field->html[$ta_count] = '
-				<textarea id="'.$elementid_t.'" name="'.$fieldname_t.'" cols="'.$cols.'" rows="'.$rows.'" class="'.$required.'" '.($maxlength ? 'maxlength="'.$maxlength.'"' : '').'>'
+				<textarea id="'.$elementid_t.'" name="'.$fieldname_t.'" '.$attribs.'" >'
 					.htmlspecialchars( $tab_content, ENT_COMPAT, 'UTF-8' ).
 				'</textarea>
 				';
@@ -1227,9 +1253,10 @@ class plgFlexicontent_fieldsTextarea extends FCField
 			$elementid_t = $elementid.'_'.$ta_count;
 			$fieldname_t = $field->tab_names[$ta_count];
 
-			if (!$use_html) {
+			if (!$use_html)
+			{
 				$field->html[$ta_count]	 = '
-				<textarea id="'.$elementid_t.'" name="'.$fieldname_t.'" cols="'.$cols.'" rows="'.$rows.'" class="'.$required.'" '.($maxlength ? 'maxlength="'.$maxlength.'"' : '').'>'
+				<textarea id="'.$elementid_t.'" name="'.$fieldname_t.'" '.$attribs.'>'
 					.htmlspecialchars( $ti->aftertabs, ENT_COMPAT, 'UTF-8' ).
 				'</textarea>
 				';

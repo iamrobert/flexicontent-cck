@@ -1,6 +1,10 @@
 <?php
+
+use Joomla\CMS\Factory;
+use Joomla\CMS\Uri\Uri;
+use Joomla\Filesystem\Path;
 use Joomla\String\StringHelper;
-$isAdmin = JFactory::getApplication()->isClient('administrator');
+$isAdmin = Factory::getApplication()->isClient('administrator');
 
 // Important create a -1 "value", before any other normal values, so that it is at 1st position of the array
 $field->{$prop}[-1] = '';
@@ -48,13 +52,22 @@ foreach($values as $file_id)
 	// ***
 
 	$basePath = $file_data->secure ? COM_FLEXICONTENT_FILEPATH : COM_FLEXICONTENT_MEDIAPATH;
-	$abspath = str_replace(DS, '/', JPath::clean($basePath.DS.$file_data->filename));
+	if (!$file_data->url)
+	{
+		$abspath = str_replace(DS, '/', Path::clean($basePath.DS.$file_data->filename));
+	}
+	else
+	{
+		$abspath = $file_data->url == 2
+			? Path::clean(JPATH_ROOT.DS.$file_data->filename)
+			: $file_data->filename;
+	}
 
 	$_size = '-';
 
 	if ($display_size)
 	{
-		if ($file_data->url)
+		if ($file_data->url == 1)
 		{
 			$_size = (int)$file_data->size ? (int)$file_data->size : '-';
 		}
@@ -67,8 +80,8 @@ foreach($values as $file_id)
 		$file_data->size = (int) $_size;
 	}
 
-	// Force new window for URLs that have zero file size
-	$non_file_url = $file_data->url && !$file_data->size;
+	// Force new window for URLs that have zero file's size
+	$non_file_url = $file_data->url == 1 && !$file_data->size;
 
 
 	// ***
@@ -96,6 +109,7 @@ foreach($values as $file_id)
 
 	// Initialize CSS classes variable
 	$file_classes = !$authorized ? 'fcfile_noauth' : '';
+	$analytics_classes = ' piwik_download ';
 
 
 	// ***
@@ -108,10 +122,10 @@ foreach($values as $file_id)
 	{
 		$file_data = $this->addIcon( $file_data );
 		$_tooltip_title   = '';
-		$_tooltip_content = JText::_( 'FLEXI_FIELD_FILE_TYPE', true ) .': '. $file_data->ext;
+		$_tooltip_content = \Joomla\CMS\Language\Text::_( 'FLEXI_FIELD_FILE_TYPE', true ) .': '. $file_data->ext;
 		$icon = '
 		<span class="fcfile_mime">
-			' . JHtml::image($file_data->icon, $file_data->ext, 'class="fcicon-mime '.$tooltip_class.'" title="'.JHtml::tooltipText($_tooltip_title, $_tooltip_content, 1, 0).'"') . '
+			' . \Joomla\CMS\HTML\HTMLHelper::image($file_data->icon, $file_data->ext, 'class="fcicon-mime '.$tooltip_class.'" title="'.\Joomla\CMS\HTML\HTMLHelper::tooltipText($_tooltip_title, $_tooltip_content, 1, 0).'"') . '
 		</span>';
 	}
 
@@ -125,10 +139,10 @@ foreach($values as $file_id)
 		$lang = '<span class="fcfile_lang fc-iblock">';
 
 		$lang .= $display_lang == 1 || $display_lang == 3 ? '<span class="icon-flag fcicon-lang"></span> ' : '';
-		$lang .= $display_lang == 2 || $display_lang == 3 ? '<span class="fcfile_lang_label label">' .JTEXT::_('FLEXI_LANGUAGE'). '</span> ' : '';
+		$lang .= $display_lang == 2 || $display_lang == 3 ? '<span class="fcfile_lang_label label">' . \Joomla\CMS\Language\Text::_('FLEXI_LANGUAGE'). '</span> ' : '';
 		$lang .=
 		'<span class="fcfile_lang_value value">'
-			. ($file_data->language === '*' ? JText::_('FLEXI_FIELD_FILE_ALL_LANGS') : $langs->{$file_data->language}->name) .
+			. ($file_data->language === '*' ? \Joomla\CMS\Language\Text::_('FLEXI_FIELD_FILE_ALL_LANGS') : $langs->{$file_data->language}->name) .
 		'</span>';
 
 		$lang .= '</span>';
@@ -146,7 +160,7 @@ foreach($values as $file_id)
 		<span class="fcfile_size fc-iblock">';
 
 		$sizeinfo .= $display_size == 1 || $display_size == 3 ? '<span class="icon-archive fcicon-size"></span> ' : '';
-		$sizeinfo .= $display_size == 2 || $display_size == 3 ? '<span class="fcfile_size_label label">' . JTEXT::_('FLEXI_FIELD_FILE_SIZE') . '</span> ' : '';
+		$sizeinfo .= $display_size == 2 || $display_size == 3 ? '<span class="fcfile_size_label label">' . \Joomla\CMS\Language\Text::_('FLEXI_FIELD_FILE_SIZE') . '</span> ' : '';
 
 		if (!is_numeric($_size))
 		{
@@ -154,15 +168,15 @@ foreach($values as $file_id)
 		}
 		elseif ($_size < 1048576)
 		{
-			$sizeinfo .= '<span class="fcfile_size_value value">' . number_format($_size / 1024, 0) . '&nbsp;'.JTEXT::_('FLEXI_FIELD_FILE_KBS').'</span>';
+			$sizeinfo .= '<span class="fcfile_size_value value">' . number_format($_size / 1024, 0) . '&nbsp;'. \Joomla\CMS\Language\Text::_('FLEXI_FIELD_FILE_KBS').'</span>';
 		}
 		elseif ($_size < 1073741824)
 		{
-			$sizeinfo .= '<span class="fcfile_size_value value">' . number_format($_size / 1048576, 2) . '&nbsp;'.JTEXT::_('FLEXI_FIELD_FILE_MBS').'</span>';
+			$sizeinfo .= '<span class="fcfile_size_value value">' . number_format($_size / 1048576, 2) . '&nbsp;'. \Joomla\CMS\Language\Text::_('FLEXI_FIELD_FILE_MBS').'</span>';
 		}
 		else
 		{
-			$sizeinfo .= '<span class="fcfile_size_value value">' . number_format($_size / 1073741824, 2) . '&nbsp;'.JTEXT::_('FLEXI_FIELD_FILE_GBS').'</span>';
+			$sizeinfo .= '<span class="fcfile_size_value value">' . number_format($_size / 1073741824, 2) . '&nbsp;'. \Joomla\CMS\Language\Text::_('FLEXI_FIELD_FILE_GBS').'</span>';
 		}
 
 		$sizeinfo .= '</span>';
@@ -180,7 +194,7 @@ foreach($values as $file_id)
 		<span class="fcfile_hits fc-iblock">';
 
 		$hits .= $display_hits == 1 || $display_hits == 3 ? '<span class="icon-eye fcicon-hits"></span> ' : '';
-		$hits .= $display_hits == 2 || $display_hits == 3 ? '<span class="fcfile_hits_label label">' .JTEXT::_('FLEXI_FIELD_FILE_HITS'). '</span> ' : '';
+		$hits .= $display_hits == 2 || $display_hits == 3 ? '<span class="fcfile_hits_label label">' . \Joomla\CMS\Language\Text::_('FLEXI_FIELD_FILE_HITS'). '</span> ' : '';
 		$hits .= '<span class="fcfile_hits_value value">'.$file_data->hits.'</span>';
 
 		$hits .= '</span>';
@@ -212,7 +226,7 @@ foreach($values as $file_id)
 		{
 			if ($noaccess_display != 2)
 			{
-				$descr_tip  = JHtml::tooltipText($name_str, $file_data->description, 0, 1);
+				$descr_tip  = \Joomla\CMS\HTML\HTMLHelper::tooltipText($name_str, $file_data->description, 0, 1);
 				$descr_icon = '<img src="components/com_flexicontent/assets/images/comments.png" class="hasTooltip" alt="'.$name_escaped.'" title="'. $descr_tip .'"/>';
 				$descr_inline  = '';
 			}
@@ -221,7 +235,7 @@ foreach($values as $file_id)
 		// As tooltip
 		elseif ($display_descr==1 || $prop=='namelist')
 		{
-			$descr_tip  = JHtml::tooltipText($name_str, $file_data->description, 0, 1);
+			$descr_tip  = \Joomla\CMS\HTML\HTMLHelper::tooltipText($name_str, $file_data->description, 0, 1);
 			$descr_icon = '<img src="components/com_flexicontent/assets/images/comments.png" class="hasTooltip" alt="'.$name_escaped.'" title="'. $descr_tip .'"/>';
 			$descr_inline  = '';
 		}
@@ -237,7 +251,7 @@ foreach($values as $file_id)
 			$descr_icon = '
 			<span class="fcfile_descr_tip">
 				<span class="fcfile_descr_tip_label label">
-					' .JTEXT::_('FLEXI_DESCRIPTION'). '
+					' . \Joomla\CMS\Language\Text::_('FLEXI_DESCRIPTION'). '
 				</span>
 				'. $descr_icon . '
 			</span>
@@ -268,7 +282,7 @@ foreach($values as $file_id)
 	else
 	{
 		$dl_link = 'index.php?option=com_flexicontent&id='. $file_id .'&cid='.$item->id.'&fid='.$field->id.'&task=download';
-		$dl_link = $isAdmin ? flexicontent_html::getSefUrl($dl_link) : JRoute::_( $dl_link );
+		$dl_link = $isAdmin ? flexicontent_html::getSefUrl($dl_link) : \Joomla\CMS\Router\Route::_( $dl_link );
 	}
 
 	// SOME behavior FLAGS
@@ -281,9 +295,12 @@ foreach($values as $file_id)
 /**
  * ****** SKIP THIS PART IF display_properties_only
  */
-if ($prop !== 'display_properties_only') :
+$is_csv_export = $prop === 'csv_export';
 
-
+if ($is_csv_export) {
+	$html .= $abspath;
+}
+else if ($prop !== 'display_properties_only') :
 
 	// [0]: filename (if visible)
 	if ((($filename_shown && !$filename_shown_as_link) || $not_downloadable) && $display_filename != -1)
@@ -359,7 +376,7 @@ if ($prop !== 'display_properties_only') :
 			// The Download Button
 			$_download_btn_html = '
 				<button type="button" onclick="window.open(\''.$dl_link.'\', ' . ($non_file_url ? "''": "'_self'") . ')"
-					class="' . $file_classes . ' btn-success fcfile_downloadFile" title="'.htmlspecialchars($downloadsinfo, ENT_COMPAT, 'UTF-8').'"
+					class="' . $file_classes . ' btn-success fcfile_downloadFile ' . $analytics_classes . '" title="'.htmlspecialchars($downloadsinfo, ENT_COMPAT, 'UTF-8').'"
 				>
 					' . ($compact_display != 2 ? $downloadstext : '') . '
 					' . ($compact_display == 2 ? ' <span class="icon-download"></span>' : '') . '
@@ -373,7 +390,7 @@ if ($prop !== 'display_properties_only') :
 			$view_link = $dl_link . (strpos($dl_link, '?') !== false ? '&amp;' : '?') . 'method=view';
 			$view_file_classes = $file_classes . ' btn-info fcfile_viewFile';
 			$actions_arr[] = '
-				<button type="button" data-href="' . $view_link . '" class="' . $view_file_classes .'" title="' . $viewinfo . '" style="line-height:1.3em;" '
+				<button type="button" data-href="' . $view_link . '" class="' . $view_file_classes .'" title="' . $viewinfo . '" '
 					. ($viewinside>=2 ? ' onclick="var url = jQuery(this).attr(\'data-href\'); window.open(url, ' . ($viewinside==3 ? "'_self'" : "") . ');" ' : '')
 					. ($viewinside==1 ? ' onclick="var url = jQuery(this).attr(\'data-href\'); fc_showDialog(url, \'fc_modal_popup_container\', 0, 0, 0, 0, {title:\''. $filetitle_escaped .'\'}); return false;" ' : '')
 					. ($viewinside==0 ? ' onclick="var url = jQuery(this).attr(\'data-href\'); jQuery.fancybox.open([{ src: url , type: \'iframe\'}]); "' : '')
@@ -453,7 +470,7 @@ if ($prop !== 'display_properties_only') :
 			// The download link, if filename/title not shown, then display a 'download' prompt text
 			$actions_arr[] =
 				($filename_shown && $link_filename ? $icon.' ' : '')
-				.'<a href="' . $dl_link . '" class="' . $file_classes . ' fcfile_downloadFile" title="' . htmlspecialchars($downloadsinfo, ENT_COMPAT, 'UTF-8') . '" ' . ($non_file_url ? 'target="_blank"' : '') . '>'
+				.'<a href="' . $dl_link . '" class="' . $file_classes . ' fcfile_downloadFile ' . $analytics_classes . '" title="' . htmlspecialchars($downloadsinfo, ENT_COMPAT, 'UTF-8') . '" ' . ($non_file_url ? 'target="_blank"' : '') . '>'
 				.($filename_shown && $link_filename ? $name_str : $downloadstext)
 				.'</a>';
 		}
@@ -545,16 +562,16 @@ if ($prop !== 'display_properties_only') :
 				<!--div id="fc_mediafile_current_time_' . $fnn . '" class="media_time">00:00:00</div-->
 				<div id="fc_mediafile_controls_' . $fnn . '" class="fc_mediafile_controls">
 					<a href="javascript:;" class="btn playBtn">
-						<span class="icon-play controls"></span><span class="btnControlsText">' . JText::_('FLEXI_FIELD_MEDIAFILE_PLAY') . '</span>
+						<span class="icon-play controls"></span><span class="btnControlsText">' . \Joomla\CMS\Language\Text::_('FLEXI_FIELD_MEDIAFILE_PLAY') . '</span>
 					</a>
 					<a href="javascript:;" class="btn pauseBtn" style="display: none;">
-						<span class="icon-pause-circle controls"></span><span class="btnControlsText">' . JText::_('FLEXI_FIELD_MEDIAFILE_PAUSE') . '</span>
+						<span class="icon-pause-circle controls"></span><span class="btnControlsText">' . \Joomla\CMS\Language\Text::_('FLEXI_FIELD_MEDIAFILE_PAUSE') . '</span>
 					</a>
 					<a href="javascript:;" class="btn stopBtn" style="display: none;">
-						<span class="icon-stop-circle controls"></span><span class="btnControlsText">' . JText::_('FLEXI_FIELD_MEDIAFILE_STOP') . '</span>
+						<span class="icon-stop-circle controls"></span><span class="btnControlsText">' . \Joomla\CMS\Language\Text::_('FLEXI_FIELD_MEDIAFILE_STOP') . '</span>
 					</a>
 					<a href="javascript:;" class="btn loadBtn" style="display: none;">
-						<span class="icon-loop controls"></span><span class="btnControlsText">' . JText::_('FLEXI_FIELD_MEDIAFILE_LOAD') . '</span>
+						<span class="icon-loop controls"></span><span class="btnControlsText">' . \Joomla\CMS\Language\Text::_('FLEXI_FIELD_MEDIAFILE_LOAD') . '</span>
 					</a>
 					' . ($allowdownloads ? $_download_btn_html : '') . '
 					' . (!$wf_zoom_slider ? '' : '
@@ -629,7 +646,7 @@ endif;   // END OF   $prop !== 'display_properties_only'
 
 			if ($md_name == 'channels')
 			{
-				$PROP_NAME = '<span class="icon-play large-icon"> </span> ' . JText::_('FLEXI_FIELD_MEDIADATA_CHANNELS');
+				$PROP_NAME = '<span class="icon-play large-icon"> </span> ' . \Joomla\CMS\Language\Text::_('FLEXI_FIELD_MEDIADATA_CHANNELS');
 
 				// Only change value if it is 2 or 1
 				if ($PROP_VALUE == 2 || $PROP_VALUE == 1)
@@ -641,30 +658,30 @@ endif;   // END OF   $prop !== 'display_properties_only'
 
 			if ($md_name == 'media_format')
 			{
-				$PROP_NAME = '<span class="icon-music large-icon"> </span> ' . JText::_('FLEXI_FIELD_MEDIADATA_MEDIA_TYPE');
+				$PROP_NAME = '<span class="icon-music large-icon"> </span> ' . \Joomla\CMS\Language\Text::_('FLEXI_FIELD_MEDIADATA_MEDIA_TYPE');
 			}
 
 			if ($md_name == 'bit_rate')
 			{
-				$PROP_NAME = '<span class="icon-options large-icon"> </span> ' . JText::_('FLEXI_FIELD_MEDIADATA_BIT_RATE');
+				$PROP_NAME = '<span class="icon-options large-icon"> </span> ' . \Joomla\CMS\Language\Text::_('FLEXI_FIELD_MEDIADATA_BIT_RATE');
 				$PROP_VALUE = ($PROP_VALUE / 1000).' Kbps';
 			}
 
 			if ($md_name == 'bits_per_sample')
 			{
-				$PROP_NAME = '<span class="icon-options large-icon"> </span> ' . JText::_('FLEXI_FIELD_MEDIADATA_BIT_DEPTH');
+				$PROP_NAME = '<span class="icon-options large-icon"> </span> ' . \Joomla\CMS\Language\Text::_('FLEXI_FIELD_MEDIADATA_BIT_DEPTH');
 				$PROP_VALUE = $PROP_VALUE.' Bit';
 			}
 
 			if ($md_name == 'sample_rate')
 			{
-				$PROP_NAME = '<span class="icon-health large-icon"> </span> ' . JText::_('FLEXI_FIELD_MEDIADATA_SAMPLE_RATE');
+				$PROP_NAME = '<span class="icon-health large-icon"> </span> ' . \Joomla\CMS\Language\Text::_('FLEXI_FIELD_MEDIADATA_SAMPLE_RATE');
 				$PROP_VALUE = $PROP_VALUE.' Hz';
 			}
 
 			if ($md_name == 'duration')
 			{
-				$PROP_NAME = '<span class="icon-clock large-icon"> </span> ' . JText::_('FLEXI_FIELD_MEDIADATA_DURATION');
+				$PROP_NAME = '<span class="icon-clock large-icon"> </span> ' . \Joomla\CMS\Language\Text::_('FLEXI_FIELD_MEDIADATA_DURATION');
 				$PROP_VALUE = gmdate("H:i:s", $PROP_VALUE);
 			}
 
@@ -683,10 +700,13 @@ endif;   // END OF   $prop !== 'display_properties_only'
 
 
 	// Values Prefix and Suffix Texts
-	$field->{$prop}[$n]	=  $pretext . $html . $posttext;
+	$field->{$prop}[$n]	=  !$is_csv_export
+		? $pretext . $html . $posttext
+		: $html;
 
 	// Some extra data for developers: (absolute) file URL and (absolute) file path
 	$field->url[$use_ingroup ? $n : $i] = $dl_link;
+	$field->direct_url[$use_ingroup ? $n : $i] = $file_data->url == 2 ? Uri::root(true) . '/' . $file_data->filename : ($file_data->url == 1 ? $file_data->filename : $dl_link);
 	$field->abspath[$use_ingroup ? $n : $i] = $abspath;
 	$field->file_data[$use_ingroup ? $n : $i] = $file_data;
 
@@ -705,7 +725,7 @@ endif;   // END OF   $prop !== 'display_properties_only'
 	if (!$multiple) break;  // multiple values disabled, break out of the loop, not adding further values even if the exist
 }
 
-JFactory::getDocument()->addScriptDeclaration("
+Factory::getDocument()->addScriptDeclaration("
 	fcview_mediafile_base_url['".$field_name_js."'] = '".$base_url."';
 
 	" . (!$per_value_js ? "" : "
