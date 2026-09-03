@@ -7,10 +7,14 @@
  */
 
 defined( '_JEXEC' ) or die( 'Restricted access' );
+
+use Joomla\CMS\Factory;
 // first define the template name
 \Joomla\CMS\HTML\HTMLHelper::_('bootstrap.popover', '.hasTooltip', array('trigger' => 'click hover'));
 $tmpl = $this->tmpl;
 $user = \Joomla\CMS\Factory::getUser();
+
+$wa = Factory::getApplication()->getDocument()->getWebAssetManager();
 
 $readon_type  = (int) $this->params->get('readon_type', 0);
 $readon_image = $this->params->get('readon_image', '');
@@ -18,7 +22,204 @@ $readon_class = $this->params->get('readon_class', 'btn btn-default');
 $use_lazy_loading = (int) $this->params->get('use_lazy_loading', 1);
 $lazy_loading = $use_lazy_loading ? ' loading="lazy" decoding="async" ' : '';
 
-if ($readon_type && $readon_image && file_exists(\Joomla\CMS\Filesystem\Path::clean(JPATH_SITE . DS . $readon_image)))
+// Adding WebP support : define breakpoints for responsive srcset generation via phpThumb (if raw_src is available)
+// Format : 'viewport_width' => 'image_width_for_that_viewport'
+$_fc_cat_breakpoints = [480 => 480, 768 => 768]; // desktop = $img_w (taille configurée)
+
+// Helper : encode une URL pour usage dans srcset (préserve %20 pour les espaces, évite double-encodage)
+if (!function_exists('fc_cat_srcset_url')) {
+	function fc_cat_srcset_url($url) {
+		if (!$url) return '';
+		$decoded = rawurldecode($url);
+		$parts   = parse_url($decoded);
+		$path    = implode('/', array_map('rawurlencode', explode('/', $parts['path'] ?? '')));
+		// Chemin relatif (pas de scheme ni host) : retourner juste le path encodé
+		if (empty($parts['scheme']) && empty($parts['host'])) {
+			return $path ?: $url;
+		}
+		$encoded = $parts['scheme'] . '://' . $parts['host'] . $path
+			. (isset($parts['query']) ? '?' . $parts['query'] : '');
+		return $encoded ?: $url;
+	}
+}
+
+// Helper : génère un <picture> depuis les thumbs pré-générés par FC (small/medium/large/original)
+// $urls     = ['small'=>url, 'medium'=>url, 'large'=>url]  (pré-chargés depuis FC)
+// $main_url = URL absolue du thumb de la taille demandée
+// Pas de phpThumb — srcset multi-tailles, WebP si dispo, espaces encodés proprement
+if (!function_exists('fc_cat_make_picture_from_thumbs')) {
+	function fc_cat_make_picture_from_thumbs($urls, $size, $main_url, $alt, $style, $lazy_loading, $display_w, $display_h, $use_webp = false) {
+		if (!$main_url) {
+			// Pas d'URL principale → img simple depuis $urls si disponible
+			$main_url = $urls[$size] ?? reset($urls) ?: '';
+		}
+		if (!$main_url) return '';
+
+		$size_order  = ['small', 'medium', 'large'];
+		$size_widths = ['small' => 480, 'medium' => 768, 'large' => 1200];
+
+		// Construire le chemin filesystem depuis un chemin relatif ou une URL absolue
+		// JPATH_SITE = /home/.../realestate/demoj4
+		// URL FC     = /realestate/demoj4/images/... → strip du base_path avant concat
+		$_url_to_fs = function($url) {
+			if (!$url) return '';
+			$decoded   = rawurldecode($url);
+			$base_path = \Joomla\CMS\Uri\Uri::root(true); // ex: /realestate/demoj4
+			// Extraire le path de l'URL (gère http:// et chemins relatifs)
+			if (preg_match('#^https?://#i', $decoded)) {
+				$path = parse_url($decoded, PHP_URL_PATH) ?? '';
+			} else {
+				$path = $decoded;
+			}
+			// Retirer le base_path du début du path web
+			// ex: /realestate/demoj4/images/... → /images/...
+			if ($base_path && $base_path !== '/' && strpos($path, $base_path) === 0) {
+				$path = substr($path, strlen($base_path));
+			}
+			return JPATH_SITE . '/' . ltrim($path, '/');
+		};
+
+		$main_fs      = $_url_to_fs($main_url);
+		$_src_is_webp = (strtolower(pathinfo($main_url, PATHINFO_EXTENSION)) === 'webp');
+		$size_attrs   = ($display_w ? ' width="'.(int)$display_w.'"' : '') . ($display_h ? ' height="'.(int)$display_h.'"' : '');
+
+		// Si le fichier n'existe pas sur le disque → img directe sans vérification
+		// (cas d'image sur CDN ou chemin non standard)
+		$main_exists = file_exists($main_fs);
+
+		$srcset_img  = [];
+		$srcset_webp = [];
+		$sizes_parts = [];
+		$fallback_url = $main_url;
+
+		$target_idx = array_search($size, $size_order);
+		$is_single  = ($size === 'original' || $target_idx === false || empty($urls));
+
+		if ($is_single) {
+			$dw = $display_w ?: 1200;
+			$srcset_img[]  = fc_cat_srcset_url($main_url) . ' ' . $dw . 'w';
+			$sizes_parts[] = $dw . 'px';
+			if ($use_webp && !$_src_is_webp && $main_exists) {
+				$webp_fs  = preg_replace('/\.(jpe?g|png|gif)$/i', '.webp', $main_fs);
+				$webp_url = preg_replace('/\.(jpe?g|png|gif)$/i', '.webp', $main_url);
+				if (file_exists($webp_fs)) $srcset_webp[] = fc_cat_srcset_url($webp_url) . ' ' . $dw . 'w';
+			}
+		} else {
+			foreach ($size_order as $idx => $s) {
+				if ($idx > $target_idx) continue;
+				$s_url = ($idx === $target_idx) ? $main_url : ($urls[$s] ?? '');
+				if (!$s_url) continue;
+				$s_fs  = $_url_to_fs($s_url);
+				$w     = ($idx === $target_idx) ? ($display_w ?: $size_widths[$s]) : $size_widths[$s];
+
+				// On inclut même si file_exists échoue (CDN, chemin non standard) pour le cas principal
+				$s_exists = ($idx === $target_idx) ? true : file_exists($s_fs);
+				if (!$s_exists) continue;
+
+				if ($idx < $target_idx) {
+					$srcset_img[]  = fc_cat_srcset_url($s_url) . ' ' . $w . 'w';
+					$sizes_parts[] = '(max-width:' . $w . 'px) ' . $w . 'px';
+					if ($use_webp && !$_src_is_webp) {
+						$webp_fs  = preg_replace('/\.(jpe?g|png|gif)$/i', '.webp', $s_fs);
+						$webp_url = preg_replace('/\.(jpe?g|png|gif)$/i', '.webp', $s_url);
+						if (file_exists($webp_fs)) $srcset_webp[] = fc_cat_srcset_url($webp_url) . ' ' . $w . 'w';
+					}
+				} else {
+					$fallback_url  = $main_url;
+					$srcset_img[]  = fc_cat_srcset_url($main_url) . ' ' . $w . 'w';
+					$sizes_parts[] = $w . 'px';
+					if ($use_webp && !$_src_is_webp && $main_exists) {
+						$webp_fs  = preg_replace('/\.(jpe?g|png|gif)$/i', '.webp', $main_fs);
+						$webp_url = preg_replace('/\.(jpe?g|png|gif)$/i', '.webp', $main_url);
+						if (file_exists($webp_fs)) $srcset_webp[] = fc_cat_srcset_url($webp_url) . ' ' . $w . 'w';
+					}
+				}
+			}
+		}
+
+		// Toujours générer au moins l'img de base
+		if (empty($srcset_img)) {
+			$srcset_img[]  = fc_cat_srcset_url($main_url) . ' ' . ($display_w ?: 800) . 'w';
+			$sizes_parts[] = ($display_w ?: 800) . 'px';
+		}
+
+		$sizes_str  = implode(', ', $sizes_parts);
+		$has_srcset = count($srcset_img) > 1;
+
+		$img_tag = '<img style="' . $style . '" src="' . fc_cat_srcset_url($fallback_url) . '" alt="' . $alt . '"' . $size_attrs
+			. ($has_srcset ? ' srcset="' . implode(', ', $srcset_img) . '"' : '')
+			. ($has_srcset ? ' sizes="' . $sizes_str . '"' : '')
+			. ' ' . $lazy_loading . ' />';
+
+		$html = '<picture>';
+		if (!empty($srcset_webp)) {
+			$html .= '<source type="image/webp"' . ($has_srcset ? ' sizes="' . $sizes_str . '"' : '') . ' srcset="' . implode(', ', $srcset_webp) . '">';
+		}
+		$html .= $img_tag . '</picture>';
+		return $html;
+	}
+}
+
+// Helper : generate <picture> tag with WebP support and responsive srcset (if raw_src is available)
+if (!function_exists('fc_cat_make_picture')) {
+	function fc_cat_make_picture($src_webp, $src, $alt, $style, $lazy_loading, $img_w = 0, $img_h = 0, $use_webp = 1, $raw_src = '', $base_url = '') {
+		global $_fc_cat_breakpoints;
+		// Encoder les espaces dans les URLs (noms de fichiers avec espaces) + décoder &amp; pour srcset
+		$src      = str_replace([' ', '&amp;'], ['%20', '&'], $src);
+		$src_webp = str_replace([' ', '&amp;'], ['%20', '&'], $src_webp);
+		$raw_src  = str_replace(' ', '%20', $raw_src);
+
+		$size_attrs = '';
+		if ($img_w) $size_attrs .= ' width="' . (int)$img_w . '"';
+		if ($img_h) $size_attrs .= ' height="' . (int)$img_h . '"';
+
+		// f raw_src is available, we can generate srcset for responsive images and WebP support via phpThumb
+		if ($raw_src && $img_w) {
+			$ratio      = ($img_w > 0 && $img_h > 0) ? ($img_h / $img_w) : 0;
+			$phpthumb   = \Joomla\CMS\Uri\Uri::base(true) . '/components/com_flexicontent/librairies/phpthumb/phpThumb.php?src=' . $base_url . $raw_src;
+			$srcset_webp = $srcset_jpeg = $sizes_parts = [];
+
+			foreach ($_fc_cat_breakpoints as $vp => $lw) {
+				$lh = $ratio > 0 ? (int) round($lw * $ratio) : 0;
+				// Note: & (pas &amp;) car srcset est lu par le navigateur, pas parsé comme HTML
+				$_cf = '&w=' . $lw . ($lh ? '&h=' . $lh : '') . '&aoe=1&q=95&zc=1';
+				if ($use_webp) $srcset_webp[] = $phpthumb . $_cf . '&f=webp ' . $lw . 'w';
+				$srcset_jpeg[]  = $phpthumb . $_cf . '&f=jpg ' . $lw . 'w';
+				$sizes_parts[]  = '(max-width:' . $vp . 'px) ' . $lw . 'px';
+			}
+			// Desktop
+			$dw = (int) $img_w; $dh = $ratio > 0 ? (int) round($dw * $ratio) : 0;
+			$_cf_desk = '&w=' . $dw . ($dh ? '&h=' . $dh : '') . '&aoe=1&q=95&zc=1';
+			if ($use_webp) $srcset_webp[] = $phpthumb . $_cf_desk . '&f=webp ' . $dw . 'w';
+			$srcset_jpeg[]  = $phpthumb . $_cf_desk . '&f=jpg ' . $dw . 'w';
+			$sizes_parts[]  = $dw . 'px';
+
+			$sizes_str    = implode(', ', $sizes_parts);
+			$fallback_jpeg = $phpthumb . $_cf_desk . '&f=jpg';
+			$img_tag      = '<img style="' . $style . '" src="' . $fallback_jpeg . '" alt="' . $alt . '" ' . $size_attrs . ' sizes="' . $sizes_str . '" srcset="' . implode(', ', $srcset_jpeg) . '" ' . $lazy_loading . ' />';
+
+			$webp_source = $use_webp && $srcset_webp
+				? '<source type="image/webp" sizes="' . $sizes_str . '" srcset="' . implode(', ', $srcset_webp) . '">'
+				: '';
+
+			// Pas de <source type="image/jpeg"> : le <img> avec srcset joue ce rôle de fallback
+			return '<picture>' . $webp_source . $img_tag . '</picture>';
+		}
+
+		// Fallback to simple <img> tag with WebP support if available
+		$img_tag = '<img style="' . $style . '" src="' . $src . '" alt="' . $alt . '" ' . $size_attrs . ' ' . $lazy_loading . ' />';
+		if ($src_webp && $use_webp) {
+			return '<picture>'
+				. '<source srcset="' . $src_webp . '" type="image/webp">'
+				. $img_tag
+				. '</picture>';
+		}
+		return $img_tag;
+	}
+}
+
+
+if ($readon_type && $readon_image && file_exists(\Joomla\Filesystem\Path::clean(JPATH_SITE . DS . $readon_image)))
 {
 	$readon_image = \Joomla\CMS\Uri\Uri::base(true) . '/' . $readon_image;
 }
@@ -30,7 +231,8 @@ $display_text 		= $this->params->get('display_text');
 $display_hits			= $this->params->get('display_hits');
 $display_voting		= $this->params->get('display_voting');
 $display_comments	= $this->params->get('display_comments');
-$force_content_height	= $this->params->get('content_height_fit', 0);
+$force_content_height_stan	= $this->params->get('content_height_fit_stan', 0);
+$force_content_height_feat	= $this->params->get('content_height_fit_feat', 0);
 
 // featured
 $display_date_feat		= $this->params->get('display_date_feat');
@@ -60,11 +262,11 @@ $ibox_background_color_feat = $this->params->get('ibox_background_color_feat', '
 
 
 // Item Dimensions standard
-$ibox_inner_inline_css = (int)$this->params->get('ibox_inner_inline_css', 0);
-$ibox_padding_top_bottom = (int)$this->params->get('ibox_padding_top_bottom', 8);
-$ibox_padding_left_right = (int)$this->params->get('ibox_padding_left_right', 12);
-$ibox_margin_top_bottom = (int)$this->params->get('ibox_margin_left_right', 4);
-$ibox_margin_left_right = (int)$this->params->get('ibox_margin_left_right', 4);
+$ibox_inner_inline_css = $this->params->get('ibox_inner_inline_css', 0);
+$ibox_padding_top_bottom = $this->params->get('ibox_padding_top_bottom', 8);
+$ibox_padding_left_right = $this->params->get('ibox_padding_left_right', 12);
+$ibox_margin_top_bottom = $this->params->get('ibox_margin_top_bottom', 4);
+$ibox_margin_left_right = $this->params->get('ibox_margin_left_right', 4);
 $ibox_border_width = (int)$this->params->get('ibox_border_width', 1);
 $ibox_background_color = $this->params->get('ibox_background_color', '');
 
@@ -78,15 +280,15 @@ $item_img_fit_feat = $this->params->get('img_fit_feat', 1);   // 0: Auto-fit, 1:
 
 switch ($content_layout_feat) {
 	case 0: case 1:
-		$img_container_class_feat = ($content_layout_feat==0 ? 'fc_float_left' : 'fc_float_right');
+		$container_class_feat = ($content_layout_feat==0 ? 'fc_float_left' : 'fc_float_right');
 		$content_container_class_feat = 'fc_floated';
 		break;
 	case 2: case 3:
-		$img_container_class_feat = 'fc_stretch fc_clear';
+		$container_class_feat = 'fc_stretch fc_clear';
 		$content_container_class_feat = '';
 		break;
 	case 4: case 5: case 6:
-		$img_container_class_feat = 'fc_stretch';
+		$container_class_feat = 'fc_stretch';
 		$content_container_class_feat = 'fc_overlayed '
 			.($content_layout_feat==4 ? 'fc_top' : '')
 			.($content_layout_feat==5 ? 'fc_bottom' : '')
@@ -95,7 +297,7 @@ switch ($content_layout_feat) {
 		if ($content_display_feat >= 1) $content_container_class_feat .= ' fc_auto_show';
 		if ($content_display_feat == 1) $content_container_class_feat .= ' fc_show_active';
 		break;
-	default: $img_container_class_feat = '';  break;
+	default: $container_class_feat = '';  break;
 }
 
 
@@ -109,15 +311,15 @@ $item_img_fit = $this->params->get('img_fit', 1);   // 0: Auto-fit, 1: Auto-fit 
 
 switch ($content_layout) {
 	case 0: case 1:
-		$img_container_class = ($content_layout==0 ? 'fc_float_left' : 'fc_float_right');
+		$container_class = ($content_layout==0 ? 'fc_float_left' : 'fc_float_right');
 		$content_container_class = 'fc_floated';
 		break;
 	case 2: case 3:
-		$img_container_class = 'fc_stretch fc_clear';
+		$container_class = 'fc_stretch fc_clear';
 		$content_container_class = '';
 		break;
 	case 4: case 5: case 6:
-		$img_container_class = 'fc_stretch';
+		$container_class = 'fc_stretch';
 		$content_container_class = 'fc_overlayed '
 			.($content_layout==4 ? 'fc_top' : '')
 			.($content_layout==5 ? 'fc_bottom' : '')
@@ -126,7 +328,7 @@ switch ($content_layout) {
 		if ($content_display >= 1) $content_container_class .= ' fc_auto_show';
 		if ($content_display == 1) $content_container_class .= ' fc_show_active';
 		break;
-	default: $img_container_class = '';  break;
+	default: $container_class = '';  break;
 }
 
 
@@ -194,11 +396,15 @@ if ($lead_link_to_popup || $intro_link_to_popup) {
 // MICRODATA 'itemtype' for ALL items in the listing (this is the fallback if the 'itemtype' in content type / item configuration are not set)
 $microdata_itemtype_cat = $this->params->get( 'microdata_itemtype_cat', 'Article' );
 
+
+
 // ITEMS as MASONRY tiles
 if (!empty($this->items) && ($load_masonry_feat || $load_masonry_std))
 {
 	flexicontent_html::loadFramework('masonry');
 	flexicontent_html::loadFramework('imagesLoaded');
+	$ibox_margin_left_right = intval($ibox_margin_left_right);
+	$ibox_margin_left_right_feat = intval($ibox_margin_left_right_feat);
 
 	$js = "
 		jQuery(document).ready(function(){
@@ -210,7 +416,10 @@ if (!empty($this->items) && ($load_masonry_feat || $load_masonry_std))
 			// initialize Masonry after all images have loaded
 			if (container_lead) {
 				imagesLoaded( container_lead, function() {
-					msnry_lead = new Masonry( container_lead );
+					msnry_lead = new Masonry( container_lead , {
+	 				gutter: $ibox_margin_left_right_feat,
+					percentPosition: true
+					});
 				});
 			}
 		";
@@ -222,7 +431,10 @@ if (!empty($this->items) && ($load_masonry_feat || $load_masonry_std))
 			// initialize Masonry after all images have loaded
 			if (container_intro) {
 				imagesLoaded( container_intro, function() {
-					msnry_intro = new Masonry( container_intro );
+					msnry_intro = new Masonry( container_intro , {
+	 				gutter: $ibox_margin_left_right,
+					percentPosition: true
+					});
 				});
 			}
 		";
@@ -246,18 +458,17 @@ if (!empty($this->items) && ($load_masonry_feat || $load_masonry_std))
 	$filter_form_html = trim(ob_get_contents());
 	ob_end_clean();
 	if ( $filter_form_html ) {
-		echo '<div class="group">'."\n".$filter_form_html."\n".'</div>';
+		echo '<aside class="">'."\n".$filter_form_html."\n".'</aside>';
 	}
 ?>
 
-<div class="fcclear"></div>
 
 <?php
 if (!$this->items) {
 	// No items exist
 	if ($this->getModel()->getState('limit')) {
 		// Not creating a category view without items
-		echo '<div class="noitems group">' . \Joomla\CMS\Language\Text::_( 'FLEXI_NO_ITEMS_FOUND' ) . '</div>';
+		echo '<div class="noitems">' . \Joomla\CMS\Language\Text::_( 'FLEXI_NO_ITEMS_FOUND' ) . '</div>';
 	}
 	return;
 }
@@ -271,7 +482,7 @@ if ($count) {
 	$_comments_container_params = 'class="fc_comments_count '.$tooltip_class.'" title="'.flexicontent_html::getToolTip('FLEXI_NUM_OF_COMMENTS', 'FLEXI_NUM_OF_COMMENTS_TIP', 1, 1).'"';
 }
 ?>
-<div class="content group">
+<div class="content">
 
 <?php
 $leadnum  = $this->params->get('lead_num', 1);
@@ -305,21 +516,31 @@ if ($leadnum) :
 
 
 	<!-- BOF DIV featured-block (featured items) -->
+	<?php $oe_class = $rowtoggler ? 'odd' : 'even'; ?>
 
-	<div class="featured-block news fc-items-block <?php echo $classnum; ?> group row" >
+	<div class="featured-block news fc-items-block <?php echo $classnum; ?> <?php echo ' '.$oe_class . ($cols_class_feat ? ' '.$cols_class_feat : ''); ?>" >
 
 		<?php
+		$_lead_use_webp = 0;
 		if ($lead_use_image && $this->params->get('lead_image'))
 		{
 			$img_size_map   = array('l'=>'large', 'm'=>'medium', 's'=>'small', 'o'=>'original');
 			$img_field_size = $img_size_map[ $this->params->get('lead_image_size' , 'l') ];
 			$img_field_name = $this->params->get('lead_image');
+			// Lire generate_webp depuis les attribs du champ FC, une seule fois avant la boucle
+			$_lead_field_db = \Joomla\CMS\Factory::getContainer()->get(\Joomla\Database\DatabaseInterface::class);
+			$_lead_field_db->setQuery('SELECT attribs FROM #__flexicontent_fields WHERE name = ' . $_lead_field_db->quote($img_field_name));
+			$_lead_field_attribs = $_lead_field_db->loadResult();
+			if ($_lead_field_attribs) {
+				$_lead_field_params = new \Joomla\Registry\Registry($_lead_field_attribs);
+				$_lead_use_webp = (int) $_lead_field_params->get('generate_webp', 0);
+			}
 		}
 		
-		$lead_fallback_field = $params->get('lead_fallback_field', 0);
-		$lead_image_fallback_img = $params->get('lead_image_fallback_img');
-		$lead_image_custom_display	= $params->get('lead_image_custom_url');
-		$lead_image_custom_url	= $params->get('lead_image_custom_url');
+		$lead_fallback_field = $this->params->get('lead_fallback_field', 0);
+		$lead_image_fallback_img = $this->params->get('lead_image_fallback_img');
+		$lead_image_custom_display	= $this->params->get('lead_image_custom_url');
+		$lead_image_custom_url	= $this->params->get('lead_image_custom_url');
 
 		$lead_dimgs = $this->params->get('lead_default_images');
 		if ($lead_use_image && $lead_dimgs)
@@ -388,6 +609,7 @@ if ($leadnum) :
 					}
 					$item->image_w = $item->image_h = 0;
 
+
 					if ($img_field)
 					{
 						$src = str_replace(\Joomla\CMS\Uri\Uri::root(), '', ($img_field->thumbs_src[$img_field_size][0] ?? '') );
@@ -398,6 +620,8 @@ if ($leadnum) :
 
 						$item->image_w = $src ? $img_field->parameters->get('w_'.$img_field_size[0], 120) : 0;
 						$item->image_h = $src ? $img_field->parameters->get('h_'.$img_field_size[0], 90) : 0;
+						// Chemin original (avant thumbnail) pour srcset responsive
+						$_lead_original_src = str_replace(\Joomla\CMS\Uri\Uri::root(), '', ($img_field->file_src[0] ?? $src));
 					}
 					else
 					{
@@ -431,27 +655,43 @@ if ($leadnum) :
 					if (!$src && isset($lead_type_default_imgs['_OTHER_']))         $src = $lead_type_default_imgs['_OTHER_'];
 				}
 				$RESIZE_FLAG = !$this->params->get('lead_image') || !$this->params->get('lead_image_size');
+				$item->image_raw_src  = '';
+				$item->image_base_url = '';
+				// generate_webp lu depuis les attribs du champ avant la boucle ($_lead_use_webp)
+				// raw_src = chemin original si dispo, sinon $src (thumbnail)
+				$_raw = isset($_lead_original_src) && $_lead_original_src ? $_lead_original_src : $src;
+
 				if ( $src && $RESIZE_FLAG ) {
-					// Resize image when src path is set and RESIZE_FLAG: (a) using image extracted from item main text OR (b) not using image field's already created thumbnails
-					$w		= '&amp;w=' . $this->params->get('lead_width', 200);
-					$h		= '&amp;h=' . $this->params->get('lead_height', 200);
-					$aoe	= '&amp;aoe=1';
-					$q		= '&amp;q=95';
-					$ar 	= '&amp;ar=x';
-					$zc		= $this->params->get('lead_method') ? '&amp;zc=' . $this->params->get('lead_method') : '';
-					$ext = strtolower(pathinfo($src, PATHINFO_EXTENSION));
-					$f = in_array( $ext, array('png', 'gif', 'jpeg', 'jpg', 'webp', 'wbmp', 'bmp', 'ico') ) ? '&amp;f='.$ext : '';
-					$conf	= $w . $h . $aoe . $q . $ar . $zc . $f;
+					// Resize image via phpThumb
+					$_lw   = (int) $this->params->get('lead_width', 200);
+					$_lh   = (int) $this->params->get('lead_height', 200);
+					$_zc   = $this->params->get('lead_method') ? '&amp;zc=' . $this->params->get('lead_method') : '';
+					$_conf = '&amp;w=' . $_lw . '&amp;h=' . $_lh . '&amp;aoe=1&amp;q=95&amp;ar=x' . $_zc . '&amp;f=jpg';
+					$base_url = (!preg_match("#^http|^https|^ftp|^/#i", $_raw)) ? \Joomla\CMS\Uri\Uri::base(true).'/' : '';
+					$_phpthumb = \Joomla\CMS\Uri\Uri::base(true).'/components/com_flexicontent/librairies/phpthumb/phpThumb.php?src='.$base_url.$_raw;
 
-					$base_url = (!preg_match("#^http|^https|^ftp|^/#i", $src)) ?  \Joomla\CMS\Uri\Uri::base(true).'/' : '';
-					$item->image = \Joomla\CMS\Uri\Uri::base(true).'/components/com_flexicontent/librairies/phpthumb/phpThumb.php?src='.$base_url.$src.$conf;
+					$item->image          = $_phpthumb . $_conf;
+					$item->image_w        = $_lw;
+					$item->image_h        = $_lh;
+					$item->image_raw_src  = $_raw;
+					$item->image_base_url = $base_url;
 
-					$item->image_w = $this->params->get('lead_width', 200);
-					$item->image_h = $this->params->get('lead_height', 200);
 				} else {
-					// Do not resize image when (a) image src path not set or (b) using image field's already created thumbnails
-					$item->image = $src ?: $thumb_rendered;
+					// Thumbnails pré-générés par le champ : affichage direct sans phpThumb
+					// $img_field_size = taille FC ('small','medium','large','original') depuis lead_image_size
+					$item->image         = $src ?: $thumb_rendered;
+					// Les URLs FC sont des chemins relatifs (ex: /subdir/images/...)
+					$item->image_fc_url  = $src; // chemin relatif
+					$item->image_fc_size = $img_field_size;
+					// thumbs_src contient déjà toutes les tailles après getFieldDisplay
+					$item->image_fc_urls = [
+						'small'    => $img_field->thumbs_src['small'][0]    ?? '',
+						'medium'   => $img_field->thumbs_src['medium'][0]   ?? '',
+						'large'    => $img_field->thumbs_src['large'][0]    ?? '',
+						'original' => $img_field->thumbs_src['original'][0] ?? '',
+					];
 				}
+				unset($_lead_original_src, $_raw);
 
 				// Instead of empty image
 				$item->image = $item->image ?: $mod_default_img_path;
@@ -470,9 +710,6 @@ if ($leadnum) :
 				.($lead_catblock_title && @$globalcats[$item->rel_catid] ? $globalcats[$item->rel_catid]->title : '').
 			'</div>' : ''; ?>		
 
-
-			<?php $oe_class = $rowtoggler ? 'odd' : 'even'; ?>
-
 			<?php
 				$img_force_dims_css_feat = $img_auto_dims_css_feat;
 				if (!empty($item->image) && ($item_img_fit_feat==0/* || $content_layout_feat <= 3*/))
@@ -489,17 +726,19 @@ if ($leadnum) :
 			?>
 
 			<!-- BOF item -->	
-			<div class="fc-item-block-featured-wrapper<?php echo $do_hlight_feat; ?><?php echo ' '.$oe_class . ($cols_class_feat ? ' '.$cols_class_feat : ''); ?> <?php echo ($force_content_height == 1) ? 'd-flex' : '' ;?>"
+			<div class="fc-item-block-featured-wrapper<?php echo $do_hlight_feat; ?> <?php echo ($force_content_height_feat == 1) ? 'd-flex' : '' ;?> <?php echo ($load_masonry_feat == 1) ? 'masonry' : '';?>"
 				<?php echo $microdata_itemtype_code; ?>
 				id="fc_newslist_item_<?php echo $i; ?>"
 			>
 			<div class="fc-item-block-featured-wrapper-innerbox <?php echo $fc_item_classes; ?>" >
 
+			<article class="fc-item-featured <?php echo $container_class_feat;?>">
+
 				<!-- BOF beforeDisplayContent -->
 				<?php if ($item->event->beforeDisplayContent) : ?>
-					<div class="fc_beforeDisplayContent group">
+					<aside class="fc_beforeDisplayContent ">
 						<?php echo $item->event->beforeDisplayContent; ?>
-					</div>
+					</aside>
 				<?php endif; ?>
 				<!-- EOF beforeDisplayContent -->
 
@@ -508,10 +747,14 @@ if ($leadnum) :
 						$this->params->get('show_comments_count', 1) ||
 						$this->params->get('show_title', 1) || $item->event->afterDisplayTitle ||
 						0; // ...
-						echo '<div class="group tool">';
 				?>
 
+				<?php if ( $header_shown ) : ?>
+				<header class=" tool">
+				<?php endif; ?>
+
 				<?php if ($this->params->get('show_editbutton', 1)) : ?>
+					
 
 					<?php $editbutton = flexicontent_html::editbutton( $item, $this->params ); ?>
 					<?php if ($editbutton) : ?>
@@ -546,9 +789,8 @@ if ($leadnum) :
 				<?php echo $markup_tags; ?>
 
 				<?php if ( $header_shown ) : ?>
-				</div>
+				</header>
 				<?php endif; ?>
-
 
 				<!-- BOF item title -->
 				<?php ob_start(); ?>
@@ -568,7 +810,7 @@ if ($leadnum) :
 
 					<?php if ($item->event->afterDisplayTitle) : ?>
 					<!-- BOF afterDisplayTitle -->
-						<div class="fc_afterDisplayTitle group">
+						<div class="fc_afterDisplayTitle">
 							<?php echo $item->event->afterDisplayTitle; ?>
 						</div>
 					<!-- EOF afterDisplayTitle -->
@@ -583,7 +825,7 @@ if ($leadnum) :
 
 					<?php if (!empty($item->image_rendered)) : ?>
 
-						<div class="image_featured <?php echo $img_container_class_feat;?>">
+						<figure class="image_featured">
 							<?php if ($lead_link_image) : ?>
 								<a href="<?php echo $link_url; ?>">
 									<?php echo $item->image_rendered; ?>
@@ -591,19 +833,23 @@ if ($leadnum) :
 							<?php else : ?>
 								<?php echo $item->image_rendered; ?>
 							<?php endif; ?>
-						</div>
+						</figure>
 
 					<?php elseif (!empty($item->image)) : ?>
 
-						<div class="image_featured <?php echo $img_container_class_feat;?>">
+						<figure class="image_featured">
 							<?php if ($lead_link_image) : ?>
 								<a href="<?php echo $link_url; ?>">
-									<img style="<?php echo $img_force_dims_css_feat; ?>" src="<?php echo $item->image; ?>" alt="<?php echo flexicontent_html::striptagsandcut($title_encoded, 60); ?>" <?php echo $lazy_loading; ?> />
+									<?php echo (!empty($item->image_fc_size) && isset($item->image_fc_url) && $item->image_fc_url)
+										? fc_cat_make_picture_from_thumbs($item->image_fc_urls ?? [], $item->image_fc_size, $item->image_fc_url, flexicontent_html::striptagsandcut($title_encoded, 60), $img_force_dims_css_feat, $lazy_loading, $item->image_w, $item->image_h, (bool)$_lead_use_webp)
+										: fc_cat_make_picture('', $item->image, flexicontent_html::striptagsandcut($title_encoded, 60), $img_force_dims_css_feat, $lazy_loading, $item->image_w, $item->image_h, $_lead_use_webp, $item->image_raw_src ?? '', $item->image_base_url ?? ''); ?>
 								</a>
 							<?php else : ?>
-								<img style="<?php echo $img_force_dims_css_feat; ?>" src="<?php echo $item->image; ?>" alt="<?php echo flexicontent_html::striptagsandcut($title_encoded, 60); ?>" <?php echo $lazy_loading; ?> />
+								<?php echo (!empty($item->image_fc_size) && isset($item->image_fc_url) && $item->image_fc_url)
+										? fc_cat_make_picture_from_thumbs($item->image_fc_urls ?? [], $item->image_fc_size, $item->image_fc_url, flexicontent_html::striptagsandcut($title_encoded, 60), $img_force_dims_css_feat, $lazy_loading, $item->image_w, $item->image_h, (bool)$_lead_use_webp)
+										: fc_cat_make_picture('', $item->image, flexicontent_html::striptagsandcut($title_encoded, 60), $img_force_dims_css_feat, $lazy_loading, $item->image_w, $item->image_h, $_lead_use_webp, $item->image_raw_src ?? '', $item->image_base_url ?? ''); ?>
 							<?php endif; ?>
-						</div>
+						</figure>
 
 					<?php endif; ?>
 
@@ -746,12 +992,18 @@ if ($leadnum) :
 					$readmore_shown  = $this->params->get('show_readmore', 1) && ($uncut_length > $lead_cut_text || strlen(trim($item->fulltext)) >= 1);
 					$readmore_shown  = $readmore_shown || $readmore_forced;
 					$footer_shown = $readmore_shown || $item->event->afterDisplayContent;
+					$readmore_align_feat = $this->params->get('readmore_align_feat', 'center');
 
 					if ($lead_link_to_popup) $_tmpl_ = (strstr($link_url, '?') ? '&' : '?'). 'tmpl=component';
 					?>
 
-					<?php if ($readmore_shown) : ?>
-						<div class="fcitem_readon readmore">
+					<!-- Move the 'Read More' button based on the value of placement. 0/1: floated (right/left), 2/3: cleared (above/below), 4/5/6: overlayed (top/bottom/full) -->
+
+					<?php if ( $footer_shown && $content_layout_feat == 0 || $content_layout_feat == 1 || $content_layout_feat == 4 || $content_layout_feat == 5 || $content_layout_feat == 6 ) : ?>
+					<footer class="fc_block">
+					<?php endif; ?>
+					<?php if ($readmore_shown && $content_layout_feat == 0 || $content_layout_feat == 1 || $content_layout_feat == 4 || $content_layout_feat == 5 || $content_layout_feat == 6) : ?>
+						<div class="fcitem_readon readmore <?php echo $readmore_align_feat; ?>">
 							<a href="<?php echo $link_url; ?>" class="<?php echo $readon_class; ?>" itemprop="url" <?php echo ($lead_link_to_popup ? 'onclick="var url = jQuery(this).attr(\'href\')+\''.$_tmpl_.'\'; fc_showDialog(url, \'fc_modal_popup_container\', 0, 0, 0, 0, {title: \'\'}); return false;"' : '');?> >
 								<?php
 								$read_more_text = $item->params->get('readmore')  ?  $item->params->get('readmore') : \Joomla\CMS\Language\Text::sprintf('FLEXI_READ_MORE', $item->title);
@@ -763,25 +1015,51 @@ if ($leadnum) :
 						</div>
 					<?php endif; ?>
 
-					<!-- BOF afterDisplayContent -->
-					<?php if ($item->event->afterDisplayContent) : ?>
-						<div class="fc_afterDisplayContent group">
-							<?php echo $item->event->afterDisplayContent; ?>
-						</div>
-					<?php endif; ?>
-					<!-- EOF afterDisplayContent -->
 
-					<div class="clearfix"></div> 
+					<?php if ( $footer_shown && $content_layout_feat == 0 || $content_layout_feat == 1 || $content_layout_feat == 4 || $content_layout_feat == 5 || $content_layout_feat == 6) : ?>
+					</footer>
+					<?php endif; ?>
 
 				</div> <!-- EOF item's content -->
 
+				<?php if ( $footer_shown && $content_layout_feat == 2 || $content_layout_feat == 3 ) : ?>
+					<footer class="fc_block">
+					<?php endif; ?>
+					<?php if ($readmore_shown && $content_layout_feat == 2 || $content_layout_feat == 3 ) : ?>
+						<div class="fcitem_readon readmore <?php echo $readmore_align_feat; ?>">
+							<a href="<?php echo $link_url; ?>" class="<?php echo $readon_class; ?>" itemprop="url" <?php echo ($lead_link_to_popup ? 'onclick="var url = jQuery(this).attr(\'href\')+\''.$_tmpl_.'\'; fc_showDialog(url, \'fc_modal_popup_container\', 0, 0, 0, 0, {title: \'\'}); return false;"' : '');?> >
+								<?php
+								$read_more_text = $item->params->get('readmore')  ?  $item->params->get('readmore') : \Joomla\CMS\Language\Text::sprintf('FLEXI_READ_MORE', $item->title);
+								echo $readon_type === 1
+									? '<img src="' . $readon_image . '" alt="' . \Joomla\CMS\Language\Text::sprintf('FLEXI_READ_MORE', $item->title) . '" />'
+									: '<span class="icon-chevron-right"></span> ' . $read_more_text;
+								?>
+							</a>
+						</div>
+					<?php endif; ?>
+
+
+					<?php if ( $footer_shown && $content_layout_feat == 2 || $content_layout_feat == 3 ) : ?>
+					</footer>
+					<?php endif; ?>
+
+				
+
+				<!-- BOF afterDisplayContent -->
+				<?php if ($item->event->afterDisplayContent) : ?>
+						<aside class="fc_afterDisplayContent">
+							<?php echo $item->event->afterDisplayContent; ?>
+						</aside>
+					<?php endif; ?>
+					<!-- EOF afterDisplayContent -->
+
 				<?php echo $content_layout_feat==2 ? $captured_image : '';?>
 
+				</article>
 			</div>  <!-- EOF wrapper-innerbox -->
 			</div>  <!-- EOF wrapper -->
 			<!-- EOF item -->
 
-			<?php if ($item_placement_feat==0) /* 0: clear, 1: as masonry tiles */ echo !($rowcount%$item_columns_feat) ? '<div class="clearfix"></div>' : ''; ?>
 
 		<?php endfor; ?>
 
@@ -801,26 +1079,40 @@ if ($count > $leadnum) :
 	$intro_cols = $this->params->get('intro_cols', 2);
 	$intro_cols_classes = array(1=>'one',2=>'two',3=>'three',4=>'four');
 	$classnum = $intro_cols_classes[$intro_cols];
+
+	// bootstrap span
+	$intro_cols_spanclasses = array(1=>'span12',2=>'span6',3=>'span4',4=>'span3');
+	$classspan = $intro_cols_spanclasses[$intro_cols];
+	$oe_class ='odd' ? 'even' : 'odd';
 ?>
 
 
 	<!-- BOF DIV standard-block (standard items) -->
 
-	<div class="standard-block news fc-items-block <?php echo $classnum; ?> group">
+	<div class="standard-block news fc-items-block <?php echo $classnum; ?> <?php echo ' '.$oe_class . ($cols_class_std ? ' '.$cols_class_std : ''); ?>">
 
 		<?php
+		$_intro_use_webp = 0;
 		if ($intro_use_image && $this->params->get('intro_image'))
 		{
 			$img_size_map   = array('l'=>'large', 'm'=>'medium', 's'=>'small', 'o'=>'original');
 			$img_field_size = $img_size_map[ $this->params->get('intro_image_size' , 'l') ];
 			$img_field_name = $this->params->get('intro_image');
+			// Lire generate_webp depuis les attribs du champ FC, une seule fois avant la boucle
+			$_intro_field_db = \Joomla\CMS\Factory::getContainer()->get(\Joomla\Database\DatabaseInterface::class);
+			$_intro_field_db->setQuery('SELECT attribs FROM #__flexicontent_fields WHERE name = ' . $_intro_field_db->quote($img_field_name));
+			$_intro_field_attribs = $_intro_field_db->loadResult();
+			if ($_intro_field_attribs) {
+				$_intro_field_params = new \Joomla\Registry\Registry($_intro_field_attribs);
+				$_intro_use_webp = (int) $_intro_field_params->get('generate_webp', 0);
+			}
 		}
-		
-		$intro_fallback_field = $params->get('intro_fallback_field', 0);
-		$intro_image_fallback_img = $params->get('intro_image_fallback_img');
-		$intro_image_custom_display	= $params->get('intro_image_custom_url');
-		$intro_image_custom_url	= $params->get('intro_image_custom_url');
-		
+
+		$intro_fallback_field = $this->params->get('intro_fallback_field', 0);
+		$intro_image_fallback_img = $this->params->get('intro_image_fallback_img');
+		$intro_image_custom_display	= $this->params->get('intro_image_custom_url');
+		$intro_image_custom_url	= $this->params->get('intro_image_custom_url');
+
 		$intro_dimgs = $this->params->get('intro_default_images');
 		if ($intro_use_image && $intro_dimgs) {
 			$intro_dimgs = preg_split("/[\s]*,[\s]*/", $intro_dimgs);
@@ -842,6 +1134,7 @@ if ($count > $leadnum) :
 			$fc_item_classes = 'fc_newslist_item';
 			if ($doing_cat_order)
      		$fc_item_classes .= ($i==0 || ($items[$i-1]->rel_catid != $items[$i]->rel_catid) ? ' fc_cat_item_1st' : '');
+			$fc_item_classes .= ' '.$classspan;
 			$fc_item_classes .= ' fccol'.($i%$intro_cols + 1);
 
 			$markup_tags = '<span class="fc_mublock">';
@@ -896,6 +1189,8 @@ if ($count > $leadnum) :
 
 						$item->image_w = $src ? $img_field->parameters->get('w_'.$img_field_size[0], 120) : 0;
 						$item->image_h = $src ? $img_field->parameters->get('h_'.$img_field_size[0], 90) : 0;
+						// Chemin original (avant thumbnail) pour srcset responsive
+						$_intro_original_src = str_replace(\Joomla\CMS\Uri\Uri::root(), '', ($img_field->file_src[0] ?? $src));
 					}
 					else
 					{
@@ -929,26 +1224,41 @@ if ($count > $leadnum) :
 					if (!$src && isset($intro_type_default_imgs['_OTHER_']))         $src = $intro_type_default_imgs['_OTHER_'];
 				}
 				$RESIZE_FLAG = !$this->params->get('intro_image') || !$this->params->get('intro_image_size');
+				$item->image_raw_src  = '';
+				$item->image_base_url = '';
+				// generate_webp lu depuis les attribs du champ avant la boucle ($_intro_use_webp)
+				// raw_src = chemin original si dispo, sinon $src (thumbnail)
+				$_raw = isset($_intro_original_src) && $_intro_original_src ? $_intro_original_src : $src;
+
 				if ( $src && $RESIZE_FLAG ) {
-					// Resize image when src path is set and RESIZE_FLAG: (a) using image extracted from item main text OR (b) not using image field's already created thumbnails
-					$w		= '&amp;w=' . $this->params->get('intro_width', 200);
-					$h		= '&amp;h=' . $this->params->get('intro_height', 200);
-					$aoe	= '&amp;aoe=1';
-					$q		= '&amp;q=95';
-					$zc		= $this->params->get('intro_method') ? '&amp;zc=' . $this->params->get('intro_method') : '';
-					$ext = strtolower(pathinfo($src, PATHINFO_EXTENSION));
-					$f = in_array( $ext, array('png', 'gif', 'jpeg', 'jpg', 'webp', 'wbmp', 'bmp', 'ico') ) ? '&amp;f='.$ext : '';
-					$conf	= $w . $h . $aoe . $q . $zc . $f;
+					$_iw   = (int) $this->params->get('intro_width', 200);
+					$_ih   = (int) $this->params->get('intro_height', 200);
+					$_zc   = $this->params->get('intro_method') ? '&amp;zc=' . $this->params->get('intro_method') : '';
+					$_conf = '&amp;w=' . $_iw . '&amp;h=' . $_ih . '&amp;aoe=1&amp;q=95' . $_zc . '&amp;f=jpg';
+					$base_url = (!preg_match("#^http|^https|^ftp|^/#i", $_raw)) ? \Joomla\CMS\Uri\Uri::base(true).'/' : '';
+					$_phpthumb = \Joomla\CMS\Uri\Uri::base(true).'/components/com_flexicontent/librairies/phpthumb/phpThumb.php?src='.$base_url.$_raw;
 
-					$base_url = (!preg_match("#^http|^https|^ftp|^/#i", $src)) ?  \Joomla\CMS\Uri\Uri::base(true).'/' : '';
-					$item->image = \Joomla\CMS\Uri\Uri::base(true).'/components/com_flexicontent/librairies/phpthumb/phpThumb.php?src='.$base_url.$src.$conf;
+					$item->image          = $_phpthumb . $_conf;
+					$item->image_w        = $_iw;
+					$item->image_h        = $_ih;
+					$item->image_raw_src  = $_raw;
+					$item->image_base_url = $base_url;
 
-					$item->image_w = $this->params->get('intro_width', 200);
-					$item->image_h = $this->params->get('intro_height', 200);
 				} else {
-					// Do not resize image when (a) image src path not set or (b) using image field's already created thumbnails
-					$item->image = $src ?: $thumb_rendered;
+					// Thumbnails pré-générés par le champ : affichage direct sans phpThumb
+					$item->image         = $src ?: $thumb_rendered;
+					// Les URLs FC sont des chemins relatifs (ex: /subdir/images/...)
+					$item->image_fc_url  = $src; // chemin relatif
+					$item->image_fc_size = $img_field_size;
+					// thumbs_src contient déjà toutes les tailles après getFieldDisplay
+					$item->image_fc_urls = [
+						'small'    => $img_field->thumbs_src['small'][0]    ?? '',
+						'medium'   => $img_field->thumbs_src['medium'][0]   ?? '',
+						'large'    => $img_field->thumbs_src['large'][0]    ?? '',
+						'original' => $img_field->thumbs_src['original'][0] ?? '',
+					];
 				}
+				unset($_intro_original_src, $_raw);
 
 				// Instead of empty image
 				$item->image = $item->image ?: $mod_default_img_path;
@@ -985,18 +1295,21 @@ if ($count > $leadnum) :
 				$rowcount++;
 				$n++;
 			?>
+
 			<!-- BOF item -->	
-			<div class="fc-item-block-standard-wrapper d-flex <?php echo $do_hlight; ?><?php echo ' '.$oe_class . ($cols_class_std ? ' '.$cols_class_std : ''); ?> <?php echo ($force_content_height == 1) ? 'd-flex' : '' ;?>"
+			<div class="fc-item-block-standard-wrapper<?php echo $do_hlight; ?> <?php echo ($force_content_height_stan == 1) ? 'd-flex' : '' ;?> <?php echo ($load_masonry_std == 1) ? 'masonry' : '';?>"
 				<?php echo $microdata_itemtype_code; ?>
 				id="fc_newslist_item_<?php echo $i; ?>"
 			>
-			<div class="fc-item-block-standard-wrapper-innerbox" >
+			<div class="fc-item-block-standard-wrapper-innerbox <?php echo $fc_item_classes; ?> " >
+
+			<article class="fc-item-standard <?php echo $container_class;?>">
 
 				<!-- BOF beforeDisplayContent -->
 				<?php if ($item->event->beforeDisplayContent) : ?>
-					<div class="fc_beforeDisplayContent group">
+					<aside class="fc_beforeDisplayContent ">
 						<?php echo $item->event->beforeDisplayContent; ?>
-					</div>
+					</aside>
 				<?php endif; ?>
 				<!-- EOF beforeDisplayContent -->
 
@@ -1005,8 +1318,11 @@ if ($count > $leadnum) :
 						$this->params->get('show_comments_count', 1) ||
 						$this->params->get('show_title', 1) || $item->event->afterDisplayTitle ||
 						0; // ...
-						echo '<div class="group tool">';
 				?>
+
+				<?php if ( $header_shown ) : ?>
+				<header class="tool">
+				<?php endif; ?>
 
 				<?php if ($this->params->get('show_editbutton', 1)) : ?>
 
@@ -1041,10 +1357,10 @@ if ($count > $leadnum) :
 				<?php endif; ?>
 
 				<?php echo $markup_tags; ?>
-				<?php if ( $header_shown ) : ?>
-				</div>
-				<?php endif; ?>
 
+				<?php if ( $header_shown ) : ?>
+				</header>
+				<?php endif; ?>
 
 				<!-- BOF item title -->
 				<?php ob_start(); ?>
@@ -1064,7 +1380,7 @@ if ($count > $leadnum) :
 
 					<?php if ($item->event->afterDisplayTitle) : ?>
 					<!-- BOF afterDisplayTitle -->
-						<div class="fc_afterDisplayTitle group">
+						<div class="fc_afterDisplayTitle">
 							<?php echo $item->event->afterDisplayTitle; ?>
 						</div>
 					<!-- EOF afterDisplayTitle -->
@@ -1079,7 +1395,7 @@ if ($count > $leadnum) :
 
 					<?php if (!empty($item->image_rendered)) : ?>
 
-						<div class="image_standard <?php echo $img_container_class;?>">
+						<figure class="image_standard">
 							<?php if ($intro_link_image) : ?>
 								<a href="<?php echo $link_url; ?>">
 									<?php echo $item->image_rendered; ?>
@@ -1087,20 +1403,24 @@ if ($count > $leadnum) :
 							<?php else : ?>
 								<?php echo $item->image_rendered; ?>
 							<?php endif; ?>
-						</div>
+						</figure>
 
 
 					<?php elseif (!empty($item->image)) : ?>
 
-						<div class="image_standard <?php echo $img_container_class;?>">
+						<figure class="image_standard">
 							<?php if ($intro_link_image) : ?>
 								<a href="<?php echo $link_url; ?>">
-									<img style="<?php echo $img_force_dims_css; ?>" src="<?php echo $item->image; ?>" alt="<?php echo flexicontent_html::striptagsandcut($title_encoded, 60); ?>" <?php echo $lazy_loading; ?> />
+									<?php echo (!empty($item->image_fc_size) && isset($item->image_fc_url) && $item->image_fc_url)
+										? fc_cat_make_picture_from_thumbs($item->image_fc_urls ?? [], $item->image_fc_size, $item->image_fc_url, flexicontent_html::striptagsandcut($title_encoded, 60), $img_force_dims_css, $lazy_loading, $item->image_w, $item->image_h, (bool)$_intro_use_webp)
+										: fc_cat_make_picture('', $item->image, flexicontent_html::striptagsandcut($title_encoded, 60), $img_force_dims_css, $lazy_loading, $item->image_w, $item->image_h, $_intro_use_webp, $item->image_raw_src ?? '', $item->image_base_url ?? ''); ?>
 								</a>
 							<?php else : ?>
-								<img style="<?php echo $img_force_dims_css; ?>" src="<?php echo $item->image; ?>" alt="<?php echo flexicontent_html::striptagsandcut($title_encoded, 60); ?>" <?php echo $lazy_loading; ?> />
+								<?php echo (!empty($item->image_fc_size) && isset($item->image_fc_url) && $item->image_fc_url)
+										? fc_cat_make_picture_from_thumbs($item->image_fc_urls ?? [], $item->image_fc_size, $item->image_fc_url, flexicontent_html::striptagsandcut($title_encoded, 60), $img_force_dims_css, $lazy_loading, $item->image_w, $item->image_h, (bool)$_intro_use_webp)
+										: fc_cat_make_picture('', $item->image, flexicontent_html::striptagsandcut($title_encoded, 60), $img_force_dims_css, $lazy_loading, $item->image_w, $item->image_h, $_intro_use_webp, $item->image_raw_src ?? '', $item->image_base_url ?? ''); ?>
 							<?php endif; ?>
-						</div>
+						</figure>
 
 					<?php endif; ?>
 
@@ -1241,13 +1561,20 @@ if ($count > $leadnum) :
 					$readmore_shown  = $this->params->get('show_readmore', 1) && ($uncut_length > $intro_cut_text || strlen(trim($item->fulltext)) >= 1);
 					$readmore_shown  = $readmore_shown || $readmore_forced;
 					$footer_shown = $readmore_shown || $item->event->afterDisplayContent;
+					$readmore_align  = $this->params->get('readmore_align', 'center');
 
 					if ($intro_link_to_popup) $_tmpl_ = (strstr($link_url, '?') ? '&' : '?'). 'tmpl=component';
 					?>
 
-					<?php if ($readmore_shown) : ?>
-						<div class="fcitem_readon">
-							<a href="<?php echo $link_url; ?>" class="<?php echo $readon_class; ?>" itemprop="url" <?php echo ($intro_link_to_popup ? 'onclick="var url = jQuery(this).attr(\'href\')+\''.$_tmpl_.'\'; fc_showDialog(url, \'fc_modal_popup_container\', 0, 0, 0, 0, {title: \'\'}); return false;"' : '');?> >
+
+					<!-- Move the 'Read More' button based on the value of placement. 0/1: floated (right/left), 2/3: cleared (above/below), 4/5/6: overlayed (top/bottom/full) -->
+
+					<?php if ( $footer_shown && $content_layout == 0 || $content_layout == 1 || $content_layout == 4 || $content_layout == 5 || $content_layout == 6) : ?>
+					<footer class="fc_block">
+					<?php endif; ?>
+					<?php if ($readmore_shown && $content_layout == 0 || $content_layout == 1 || $content_layout == 4 || $content_layout == 5 || $content_layout == 6) : ?>
+						<div class="fcitem_readon readmore <?php echo $readmore_align; ?>">
+							<a href="<?php echo $link_url; ?>" class="<?php echo $readon_class; ?>" itemprop="url" <?php echo ($lead_link_to_popup ? 'onclick="var url = jQuery(this).attr(\'href\')+\''.$_tmpl_.'\'; fc_showDialog(url, \'fc_modal_popup_container\', 0, 0, 0, 0, {title: \'\'}); return false;"' : '');?> >
 								<?php
 								$read_more_text = $item->params->get('readmore')  ?  $item->params->get('readmore') : \Joomla\CMS\Language\Text::sprintf('FLEXI_READ_MORE', $item->title);
 								echo $readon_type === 1
@@ -1258,25 +1585,51 @@ if ($count > $leadnum) :
 						</div>
 					<?php endif; ?>
 
-					<!-- BOF afterDisplayContent -->
-					<?php if ($item->event->afterDisplayContent) : ?>
-						<div class="fc_afterDisplayContent group">
-							<?php echo $item->event->afterDisplayContent; ?>
-						</div>
-					<?php endif; ?>
-					<!-- EOF afterDisplayContent -->
 
-					<div class="clearfix"></div> 
+					<?php if ( $footer_shown && $content_layout == 0 || $content_layout == 1 || $content_layout == 4 || $content_layout == 5 || $content_layout == 6) : ?>
+					</footer>
+					<?php endif; ?>
 
 				</div> <!-- EOF item's content -->
 
-				<?php echo $content_layout==2 ? $captured_image : '';?>
+				<?php if ( $footer_shown && $content_layout == 2 || $content_layout == 3) : ?>
+					<footer class="fc_block">
+					<?php endif; ?>
+					<?php if ($readmore_shown && $content_layout == 2 || $content_layout == 3) : ?>
+						<div class="fcitem_readon readmore <?php echo $readmore_align; ?>">
+							<a href="<?php echo $link_url; ?>" class="<?php echo $readon_class; ?>" itemprop="url" <?php echo ($lead_link_to_popup ? 'onclick="var url = jQuery(this).attr(\'href\')+\''.$_tmpl_.'\'; fc_showDialog(url, \'fc_modal_popup_container\', 0, 0, 0, 0, {title: \'\'}); return false;"' : '');?> >
+								<?php
+								$read_more_text = $item->params->get('readmore')  ?  $item->params->get('readmore') : \Joomla\CMS\Language\Text::sprintf('FLEXI_READ_MORE', $item->title);
+								echo $readon_type === 1
+									? '<img src="' . $readon_image . '" alt="' . \Joomla\CMS\Language\Text::sprintf('FLEXI_READ_MORE', $item->title) . '" />'
+									: '<span class="icon-chevron-right"></span> ' . $read_more_text;
+								?>
+							</a>
+						</div>
+					<?php endif; ?>
 
+
+					<?php if ( $footer_shown && $content_layout == 2 || $content_layout == 3) : ?>
+					</footer>
+					<?php endif; ?>
+
+				
+
+				<!-- BOF afterDisplayContent -->
+				<?php if ($item->event->afterDisplayContent) : ?>
+						<aside class="fc_afterDisplayContent">
+							<?php echo $item->event->afterDisplayContent; ?>
+						</aside>
+					<?php endif; ?>
+					<!-- EOF afterDisplayContent -->
+
+				<?php echo $content_layout ==2 ? $captured_image : '';?>
+
+				</article>
 			</div>  <!-- EOF wrapper-innerbox -->
 			</div>  <!-- EOF wrapper -->
 			<!-- EOF item -->
 
-			<?php if ($item_placement_std==0) /* 0: clear, 1: as masonry tiles */ echo !($rowcount%$item_columns_std) ? '<div class="clearfix"></div>' : ''; ?>
 
 		<?php endfor; ?>
 
@@ -1288,15 +1641,14 @@ if ($count > $leadnum) :
 	<?php endif; ?>
 
 </div>
-<div class="fcclear"></div>
-
+<div class="clearfix"></div>
 
 	<?php
 	// We need this inside the loop since ... we may have multiple orderings thus we may
 	// have multiple container (1 item list container per order) being effected by JS
 	$js = ''
 		;
-	if ($js) $document->addScriptDeclaration($js);
+	if ($js) $wa->addInline('script', $js);
 
 	// ***********************************************************
 	// Module specific styling (we use names containing module ID)
@@ -1304,4 +1656,4 @@ if ($count > $leadnum) :
 
 	$css = '';
 
-	if ($css) $document->addStyleDeclaration($css);
+	if ($css) $wa->addInline('css', $css);

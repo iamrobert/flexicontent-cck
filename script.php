@@ -300,6 +300,7 @@ class com_flexicontentInstallerScript
 			// J1.6+ installer requires that we explicit set override/upgrade options
 			$jinstaller->setOverwrite(true);
 			$jinstaller->setUpgrade(true);
+			$jinstaller->setDatabase($db);
 
 			if ($jinstaller->install($extensions[$i]['folder']))
 			{
@@ -1828,9 +1829,9 @@ class com_flexicontentInstallerScript
 						{
 							foreach($tmpl_override_files as $file)
 							{
-								if (\Joomla\CMS\Filesystem\File::exists($file))
+								if (\Joomla\Filesystem\File::exists($file))
 								{
-									if (!\Joomla\CMS\Filesystem\File::delete($file))
+									if (!\Joomla\Filesystem\File::delete($file))
 									{
 										echo 'Cannot delete legacy file: ' . $file . '<br />';
 									}
@@ -2061,6 +2062,7 @@ class com_flexicontentInstallerScript
 		if ($ext && $ext['id'] > 0)
 		{
 			$installer = new \Joomla\CMS\Installer\Installer();
+			$installer->setDatabase(\Joomla\CMS\Factory::getContainer()->get('DatabaseDriver'));
 
 			$msg[$n] = $installer->uninstall($ext['type'], $ext['id'], (int)$ext['client_id'])
 				? '<br/>'.$msg[$n].', uninstalling plugin: <span class="badge bg-success badge-success">success</span> <br/>'

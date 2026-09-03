@@ -11,6 +11,7 @@
 
 defined('_JEXEC') or die('Restricted access');
 
+use Joomla\CMS\Language\Text;
 use Joomla\String\StringHelper;
 use Joomla\Utilities\ArrayHelper;
 
@@ -1034,10 +1035,18 @@ class FlexicontentViewItem extends FlexicontentViewBaseRecord
 
 		if ($isnew)
 		{
+			$request_maincat = $jinput->get('maincat', 0, 'int');
+			$request_catid   = $jinput->get('catid', 0, 'int');
+			$request_cats    = $jinput->get('cats', array(), 'array');
+
+			$request_cats = is_array($request_cats) ? $request_cats : array($request_cats);
+			$request_cats = ArrayHelper::toInteger($request_cats);
+			$request_cats = array_values(array_filter(array_unique($request_cats)));
+
 			// Case for preselected main category for new items
 			$maincat = $item->catid
 				? $item->catid
-				: $jinput->get('maincat', 0, 'int');
+				: $request_maincat;
 
 			// For backend form also try the items manager 's category filter
 			if ( $app->isClient('administrator') && !$maincat )
@@ -1054,11 +1063,15 @@ class FlexicontentViewItem extends FlexicontentViewBaseRecord
 				$item->categories = array();
 			}
 
-			if ( $page_params->get('cid_default') )
+			if ($request_cats)
+			{
+				$item->categories = array_values(array_unique(array_merge($item->categories, $request_cats)));
+			}
+			elseif ( $page_params->get('cid_default') )
 			{
 				$item->categories = $page_params->get('cid_default');
 			}
-			if ( $page_params->get('catid_default') )
+			if ( !$request_catid && !$request_maincat && $page_params->get('catid_default') )
 			{
 				$item->catid = $page_params->get('catid_default');
 			}
@@ -2186,7 +2199,7 @@ class FlexicontentViewItem extends FlexicontentViewBaseRecord
 			if ( in_array($parents[$p]->id, $globalnoroute) )  { $p++; continue; }
 
 			// Add current parent category
-			$pathway->addItem( $parents[$p]->title, \Joomla\CMS\Router\Route::_( FlexicontentHelperRoute::getCategoryRoute($parents[$p]->slug) ) );
+			$pathway->addItem(Text::_($parents[$p]->title), \Joomla\CMS\Router\Route::_( FlexicontentHelperRoute::getCategoryRoute($parents[$p]->slug) ) );
 			$p++;
 		}
 		if ($params->get('add_item_pathway', 1)) {

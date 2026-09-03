@@ -279,10 +279,10 @@ class FlexicontentController extends \Joomla\CMS\MVC\Controller\AdminController
 	public function display($cachable = false, $urlparams = false)
 	{
 		/**
-		 * Alternative way to get clasname could be: get_parent_class('\Joomla\CMS\MVC\Controller\AdminController')
+		 * Alternative way to get clasname could be: get_parent_class(get_parent_class(get_class()))
 		 * Also for PHP < 7.0 we need class name inside a string variable
 		 */
-		$class = get_parent_class(get_parent_class(get_class()));
+		$class = get_parent_class('\Joomla\CMS\MVC\Controller\AdminController');
 		return $class::display($cachable, $urlparams);
 	}
 

@@ -60,6 +60,7 @@ class FlexicontentControllerFlexicontent extends FlexicontentControllerBaseAdmin
 
 		$this->registerTask('createlanguagepack',			'createLanguagePack');
 		$this->registerTask('fcversioncompare',				'FCVersionCompare');
+		$this->registerTask('fcupdateredirect',				'FCUpdateRedirect');
 	}
 
 
@@ -751,7 +752,7 @@ class FlexicontentControllerFlexicontent extends FlexicontentControllerBaseAdmin
 				{
 					$file = JPATH_SITE . DS . 'tmp' . DS . 'tbl_indexes_' . $tblname;
 					$file_contents = "" . time();
-					\Joomla\CMS\Filesystem\File::write($file, $file_contents);
+					\Joomla\Filesystem\File::write($file, $file_contents);
 
 					if (isset($update_queries[$tblname]))
 					{
@@ -787,7 +788,7 @@ class FlexicontentControllerFlexicontent extends FlexicontentControllerBaseAdmin
 						}
 					}
 
-					\Joomla\CMS\Filesystem\File::delete($file);
+					\Joomla\Filesystem\File::delete($file);
 				}
 			}
 		}
@@ -968,8 +969,8 @@ class FlexicontentControllerFlexicontent extends FlexicontentControllerBaseAdmin
 		$format = strtolower($this->input->get('format', 'html', 'CMD'));
 
 		// PhpThumb cache directory
-		$phpthumbcache 	= \Joomla\CMS\Filesystem\Path::clean(JPATH_SITE . DS . 'components' . DS . 'com_flexicontent' . DS . 'librairies' . DS . 'phpthumb' . DS . 'cache');
-		$success = \Joomla\CMS\Filesystem\Path::setPermissions($phpthumbcache, '0600', '0700');
+		$phpthumbcache 	= \Joomla\Filesystem\Path::clean(JPATH_SITE . DS . 'components' . DS . 'com_flexicontent' . DS . 'librairies' . DS . 'phpthumb' . DS . 'cache');
+		$success = \Joomla\Filesystem\Path::setPermissions($phpthumbcache, '0600', '0700');
 
 		if (!$success)
 		{
@@ -1052,7 +1053,7 @@ class FlexicontentControllerFlexicontent extends FlexicontentControllerBaseAdmin
 		// Delete deprecated files that were found
 		foreach ($deprecated['files'] as $file)
 		{
-			if (!\Joomla\CMS\Filesystem\File::delete($file))
+			if (!\Joomla\Filesystem\File::delete($file))
 			{
 				echo 'Cannot delete legacy file: ' . $file . '<br />';
 			}
@@ -1061,7 +1062,7 @@ class FlexicontentControllerFlexicontent extends FlexicontentControllerBaseAdmin
 		// Delete deprecated folders that were found
 		foreach ($deprecated['folders'] as $folder)
 		{
-			if (!\Joomla\CMS\Filesystem\Folder::delete($folder))
+			if (!\Joomla\Filesystem\Folder::delete($folder))
 			{
 				echo 'Cannot delete legacy folder: ' . $folder . '<br />';
 			}
@@ -1412,5 +1413,64 @@ class FlexicontentControllerFlexicontent extends FlexicontentControllerBaseAdmin
 		$this->input->set('layout', 'fversion');
 		parent::display();
 		exit;
+	}
+
+
+	/**
+	 * Reset update cache for FC and redirect to Joomla Update Manager
+	 */
+	function fcUpdateRedirect()
+	{
+		// Check for request forgeries
+		\Joomla\CMS\Session\Session::checkToken('request') or jexit(\Joomla\CMS\Language\Text::_('JINVALID_TOKEN'));
+
+		$db = \Joomla\CMS\Factory::getDbo();
+
+		try
+		{
+			// 1. Purger les updates en cache pour com_flexicontent
+			$db->setQuery(
+				$db->getQuery(true)
+					->delete($db->qn('#__updates'))
+					->where($db->qn('element') . ' = ' . $db->q('com_flexicontent'))
+			)->execute();
+
+			// 2. Remettre last_check_timestamp à 0
+			$db->setQuery(
+				$db->getQuery(true)
+					->update($db->qn('#__update_sites'))
+					->set($db->qn('last_check_timestamp') . ' = 0')
+					->where($db->qn('name') . ' = ' . $db->q('FLEXIcontent CCK update'))
+			)->execute();
+
+			// 3. Récupérer l'update_site_id de FC
+			$db->setQuery(
+				$db->getQuery(true)
+					->select($db->qn('update_site_id'))
+					->from($db->qn('#__update_sites'))
+					->where($db->qn('name') . ' = ' . $db->q('FLEXIcontent CCK update'))
+			);
+			$updateSiteId = (int) $db->loadResult();
+
+			// 4. Forcer le check synchrone via l'API Joomla Updater
+			if ($updateSiteId)
+			{
+				\Joomla\CMS\Updater\Updater::getInstance()->findUpdates($updateSiteId, 0);
+			}
+			else
+			{
+				// Fallback : check toutes les extensions
+				\Joomla\CMS\Updater\Updater::getInstance()->findUpdates(0, 0);
+			}
+		}
+		catch (\Exception $e)
+		{
+			\Joomla\CMS\Factory::getApplication()->enqueueMessage($e->getMessage(), 'error');
+		}
+
+		// 5. Rediriger vers le gestionnaire de mises à jour Joomla
+		\Joomla\CMS\Factory::getApplication()->redirect(
+			'index.php?option=com_installer&view=update'
+		);
 	}
 }

@@ -81,6 +81,9 @@
 /* FIELD: multiple-value (sortable) container */
 #flexicontent ul.fcfield-sortables > li.fcfieldval_container.valuebox {
 	list-style: none !important;
+	display: flex;
+    gap: 10px;
+	align-items: flex-start;
 }
 /* FIELD: multiple-value (sortable) container (not cleared) */
 #flexicontent ul.fcfield-sortables > li.fcfieldval_container.valuebox.floated {
@@ -670,7 +673,7 @@ div.container_fcfield div.toggle_all_values_buttons_box {
 		background: url(../images/magnifier.png) 50% 50% no-repeat;
 	}
 	.fcfield-selectvalue.fcfont-icon:before {
-		content: "\53";
+		content: "\f002";
 	}
 	.fcfield-selectvalue:before {
 		color: black;
@@ -769,6 +772,12 @@ table.fcimg_dbfile_tbl {
 	display: flex;
 	flex-direction: column;
 
+	.fc_preview_msg {
+		min-height: 2em;
+		margin-bottom: 1em !important;
+		max-width: 300px;
+	}
+
 	/* FIELDs: (image field) filename text */
 	.fc_preview_msg, input, textarea {
 		margin: 0.5em 0;
@@ -779,7 +788,6 @@ table.fcimg_dbfile_tbl {
 		line-height: 1.5em;
 
 		border: 1px solid #ccc;
-		border-radius: 6px;
 
 		white-space: nowrap;
 		word-wrap: normal;
@@ -827,7 +835,9 @@ table.fcimg_dbfile_tbl {
 	}
 }
 div.fcimg_value_props {
-	display: inline-block;
+	    display: flex;
+    flex-direction: column;
+    gap: 20px;
 	select, input {
 		margin: 0;
 	}

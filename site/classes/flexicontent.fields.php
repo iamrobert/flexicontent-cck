@@ -11,6 +11,11 @@
 
 defined( '_JEXEC' ) or die( 'Restricted access' );
 
+use Joomla\CMS\Factory;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Router\Route;
+use Joomla\Database\DatabaseInterface;
+use Joomla\Registry\Registry;
 use Joomla\String\StringHelper;
 use Joomla\Utilities\ArrayHelper;
 use Joomla\CMS\Plugin\PluginHelper;
@@ -40,7 +45,7 @@ class FlexicontentFields
 		if ( empty($item_ids) || empty($field_names) ) return false;
 
 		// Get item data, needed for rendering fields
-		$db = \Joomla\CMS\Factory::getDbo();
+		$db = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 
 		$unique_item_ids = array_unique(array_map('intval', $item_ids));
 		$item_ids_list = implode("," , $unique_item_ids) ;
@@ -109,8 +114,8 @@ class FlexicontentFields
 		if (!$_items) return $_items;
 		if (!is_array($_items))  $items = array( & $_items );  else  $items = & $_items ;
 
-		$jinput    = \Joomla\CMS\Factory::getApplication()->input;
-		$user      = \Joomla\CMS\Factory::getUser();
+		$jinput    = \Joomla\CMS\Factory::getApplication()->getInput();
+		$user      = \Joomla\CMS\Factory::getApplication()->getIdentity();
 		$cparams   = \Joomla\CMS\Component\ComponentHelper::getParams('com_flexicontent');
 		$print_logging_info = $cparams->get('print_logging_info');
 
@@ -200,8 +205,8 @@ class FlexicontentFields
 			return array();
 		}
 
-		$db   = \Joomla\CMS\Factory::getDbo();
-		$user = \Joomla\CMS\Factory::getUser();
+		$db   = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
+		$user = \Joomla\CMS\Factory::getApplication()->getIdentity();
 
 		$field_types_quoted = array();
 
@@ -247,8 +252,8 @@ class FlexicontentFields
 			return $fields;
 		}
 
-		$db   = \Joomla\CMS\Factory::getDbo();
-		$user = \Joomla\CMS\Factory::getUser();
+		$db   = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
+		$user = \Joomla\CMS\Factory::getApplication()->getIdentity();
 
 		$field_ids = ArrayHelper::toInteger($field_ids);
 
@@ -283,7 +288,7 @@ class FlexicontentFields
 	 */
 	static function & getFieldValsById($field_ids, $item_ids, $version=0)
 	{
-		$db = \Joomla\CMS\Factory::getDbo();
+		$db = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 		$field_ids = ArrayHelper::toInteger($field_ids);
 		$item_ids  = ArrayHelper::toInteger($item_ids);
 
@@ -342,10 +347,10 @@ class FlexicontentFields
 
 		static $type_fields = array();
 
-		$dispatcher = JEventDispatcher::getInstance();
-		$db   = \Joomla\CMS\Factory::getDbo();
-		$user = \Joomla\CMS\Factory::getUser();
-		$nullDate = $db->getNulldate();
+		$dispatcher = \Joomla\CMS\Factory::getApplication()->getDispatcher();
+		$db   = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
+		$user = \Joomla\CMS\Factory::getApplication()->getIdentity();
+		$nullDate = $db->getNullDate();
 
 		// This is optimized regarding the use of SINGLE QUERY to retrieve the core item data
 		if ($vars==null)
@@ -621,7 +626,7 @@ class FlexicontentFields
 	 * @return object
 	 * @since 1.5.5
 	 */
-	static function getFieldDisplay(&$item_arr, $fieldname, $single_item_vals=null, $method='display', $view = FLEXI_ITEMVIEW, $reload_field_params = true)
+	static function getFieldDisplay(&$item_arr, $fieldname, $single_item_vals=null, $method='display', $view = FLEXI_ITEMVIEW, $reload_field_params = true, $options = null)
 	{
 		// 1. Convert to array of items if not an array already
 		if ( empty($item_arr) ) {
@@ -646,17 +651,17 @@ class FlexicontentFields
 		$_method_html = array();
 		foreach ($items as $item)
 		{
-			// Check if we have already created the display and skip current item
-			if ( isset($item->onDemandFields[$fieldname]->{$method}) )
-			{
-				$_method_html[$item->id] = $item->onDemandFields[$fieldname]->{$method};
-				continue;
-			}
-
 			// Find the field inside item
 			foreach ($item->fields as $field)
 			{
 				if ( !empty($field->name) && $field->name==$fieldname ) break;
+			}
+
+			// Check if we have already created the display and skip current item
+			if ( isset($item->onDemandFields[$fieldname]->{$method}) )
+			{
+				$field->{$method} = $_method_html[$item->id] = $item->onDemandFields[$fieldname]->{$method};
+				continue;
 			}
 
 			// Check for not found field, and skip it, this is either due to no access or wrong name ...
@@ -687,11 +692,17 @@ class FlexicontentFields
 			// Render the (display) method of the field
 			if (!isset($field->{$method}))
 			{
+				/**
+				 * Check if field should be rendered as array because it is a field of a group, and we also have a value-order
+				 */
+				$renderAsArray = $options && isset($options->fieldsOfGroup[$field->id]) && isset($options->valueOrder);
+
+				if ($renderAsArray) $field->ingroup = true;  // Render as array, so that it can be used inside a field group
 				$field = FlexicontentFields::renderField($item, $field, $values, $method, $view, false, false, $reload_field_params);
 			}
 			if (!isset($field->{$method}))
 			{
-				$field->{$method} = '';
+				$field->{$method} = $field->ingroup ? [] : '';
 			}
 
 			// Only cache the result, only if using no values were given, thus DB values were used
@@ -709,6 +720,7 @@ class FlexicontentFields
 			// Not isset should occur only when fieldname was not found
 			$_method_html = isset($_method_html[$item_arr->id]) ? $_method_html[$item_arr->id] : '';
 		}
+
 		return $_method_html;
 	}
 
@@ -727,10 +739,10 @@ class FlexicontentFields
 		static $_trigger_plgs_ft = array();
 		static $_created = array();
 		$app = \Joomla\CMS\Factory::getApplication();
-		$request_view = $app->input->get('view', '', 'cmd');
+		$request_view = $app->getInput()->get('view', '', 'cmd');
 
 		// Field's source code, can use this HTTP request variable, to detect who rendered the fields (e.g. they can detect rendering from 'module')
-		$app->input->set('flexi_callview', $view);
+		$app->getInput()->set('flexi_callview', $view);
 
 		static $cparams = null;
 		if ($cparams === null)
@@ -741,7 +753,7 @@ class FlexicontentFields
 		static $aid;
 		if ($aid === null)
 		{
-			$aid = \Joomla\CMS\Access\Access::getAuthorisedViewLevels(\Joomla\CMS\Factory::getUser()->id);
+			$aid = \Joomla\CMS\Access\Access::getAuthorisedViewLevels(\Joomla\CMS\Factory::getApplication()->getIdentity()->id);
 		}
 
 		if (is_array($_item) && is_string($_field)) ;  // ok
@@ -855,11 +867,11 @@ class FlexicontentFields
 
 			if ($show_acc_msg == 2 && $login_link === null)
 			{
-				if (\Joomla\CMS\Factory::getUser()->guest)
+				if (\Joomla\CMS\Factory::getApplication()->getIdentity()->guest)
 				{
 					$uri      = \Joomla\CMS\Uri\Uri::getInstance();
 					$return   = strtr(base64_encode($uri->toString()), '+/=', '-_,');          // Current URL as return URL (but we will for id / cid)
-					$fcreturn = serialize( array('id' => $app->input->getInt('id'), 'cid' => $app->input->getInt('cid')) );  // a special url parameter, used by some SEF code
+					$fcreturn = serialize( array('id' => $app->getInput()->getInt('id'), 'cid' => $app->getInput()->getInt('cid')) );  // a special url parameter, used by some SEF code
 					$login_link = \Joomla\CMS\Component\ComponentHelper::getParams( 'com_flexicontent' )->get('login_page', 'index.php?option=com_users&view=login')
 						. '&return='.$return
 						. '&fcreturn='.base64_encode($fcreturn);
@@ -960,7 +972,7 @@ class FlexicontentFields
 		}
 
 		// DOES NOT support multiple items, do it 1 at a time
-		if ( !$skip_trigger_plgs && $_trigger_plgs_ft[$field_name] )
+		if ( !$skip_trigger_plgs && !empty($_trigger_plgs_ft[$field_name]) )
 		{
 			foreach($items as $item)
 			{
@@ -1000,7 +1012,7 @@ class FlexicontentFields
 		static $_layout, $_view, $_option;
 		static $dispatcher, $fcdispatcher;
 
-		$jinput = \Joomla\CMS\Factory::getApplication()->input;
+		$jinput = \Joomla\CMS\Factory::getApplication()->getInput();
 
 		//$flexiparams = \Joomla\CMS\Component\ComponentHelper::getParams('com_flexicontent');
 		//$print_logging_info = $flexiparams->get('print_logging_info');
@@ -1022,15 +1034,13 @@ class FlexicontentFields
 			$_view   = $jinput->get('view', '', 'cmd');
 			$_option = $jinput->get('option', '', 'cmd');
 			$_initialize = true;
-
 			// ***********************************************************************
 			// We use a custom Dispatcher to allow selective Content Plugin triggering
 			// ***********************************************************************
 			require_once (JPATH_SITE.DS.'components'.DS.'com_flexicontent'.DS.'helpers'.DS.'dispatcher.php');
-			$dispatcher   = JEventDispatcher::getInstance();
+			$dispatcher = \Joomla\CMS\Factory::getApplication()->getDispatcher();
 			$fcdispatcher = FCDispatcher::getInstance_FC($debug);
 		}
-
 		// Use limitstart only for maintext core field
 		$is_maintext = $field->iscore && $field->field_type === 'maintext';
 		$limitstart = $is_maintext
@@ -1045,7 +1055,9 @@ class FlexicontentFields
 		  $context = 'com_content.article';
 
 			// Needed by legacy non-updated plugins
-			!FLEXI_J40GE ? JRequest::setVar('view', 'article') : null;
+			//if (!FLEXI_J40GE) $jinput->set('view', 'article');
+			if (!FLEXI_J40GE) $jinput->set('view', 'article');
+			
 		}
 
 		// ALL OTHER CASES: (FLEXIcontent category, FLEXIcontent module, etc),
@@ -1057,7 +1069,8 @@ class FlexicontentFields
 		  $context = 'com_content.category';
 
 			// Needed by legacy non-updated plugins
-			!FLEXI_J40GE ? JRequest::setVar('view', 'category') : null;
+			//!FLEXI_J40GE ? JRequest::setVar('view', 'category') : null;
+			if (!FLEXI_J40GE) $jinput->set('view', 'category');
 		}
 
 		// Set the 'option' to 'com_content' but set a flag 'isflexicontent' to indicate triggering from inside FLEXIcontent ... code
@@ -1066,7 +1079,8 @@ class FlexicontentFields
 		$jinput->set('layout_fc', $_layout);
 
 		// Needed by legacy non-updated plugins
-		!FLEXI_J40GE ? JRequest::setVar('option', 'com_content') : null;
+		//!FLEXI_J40GE ? JRequest::setVar('option', 'com_content') : null;
+		if (!FLEXI_J40GE) $jinput->set('option', 'com_content');
 
 
 		if ($debug) echo "<br><br>Executing plugins for <b>".$field->name."</b>:<br>";
@@ -1193,9 +1207,12 @@ class FlexicontentFields
 		$jinput->set('option', $_option);
 
 		// Needed by legacy non-updated plugins
-		!FLEXI_J40GE ? JRequest::setVar('layout', $_layout) : null;
-		!FLEXI_J40GE ? JRequest::setVar('view', $_view) : null;
-		!FLEXI_J40GE ? JRequest::setVar('option', $_option) : null;
+		//!FLEXI_J40GE ? JRequest::setVar('layout', $_layout) : null;
+		//!FLEXI_J40GE ? JRequest::setVar('view', $_view) : null;
+		//!FLEXI_J40GE ? JRequest::setVar('option', $_option) : null;
+		if (!FLEXI_J40GE) $jinput->set('layout', $_layout);
+		if (!FLEXI_J40GE) $jinput->set('view', $_view);
+		if (!FLEXI_J40GE) $jinput->set('option', $_option);
 	}
 
 
@@ -1215,10 +1232,10 @@ class FlexicontentFields
 		if ($view == FLEXI_ITEMVIEW)	$layout = 'ilayout';
 
 		$app = \Joomla\CMS\Factory::getApplication();
-		$request_view = $app->input->get('view', '', 'cmd');
+		$request_view = $app->getInput()->get('view', '', 'cmd');
 
 		// Field's source code, can use this HTTP request variable, to detect who rendered the fields (e.g. they can detect rendering from 'module')
-		$app->input->set('flexi_callview', $view);
+		$app->getInput()->set('flexi_callview', $view);
 
 		if ( $use_tmpl && ($view == 'category' || $view == FLEXI_ITEMVIEW) )
 		{
@@ -1355,7 +1372,7 @@ class FlexicontentFields
 		$item_ids = array();
 		foreach ($items as $item) $item_ids[] = $item->id;
 
-		$db = \Joomla\CMS\Factory::getDbo();
+		$db = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 		$query = 'SELECT field_id, value, item_id, valueorder, suborder'
 				.( $version ? ' FROM #__flexicontent_items_versions':' FROM #__flexicontent_fields_item_relations')
 				.' WHERE item_id IN (' . implode(',', $item_ids) .')'
@@ -1393,7 +1410,7 @@ class FlexicontentFields
 	 */
 	static function getCustomFieldValues(&$items, $view = FLEXI_ITEMVIEW)
 	{
-		$db = \Joomla\CMS\Factory::getDbo();
+		$db = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 
 		$query = $db->getQuery(true)
 			->select('*')
@@ -1444,7 +1461,7 @@ class FlexicontentFields
 	 */
 	static function _getTags(&$items, $view = FLEXI_ITEMVIEW)
 	{
-		$db = \Joomla\CMS\Factory::getDbo();
+		$db = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 
 		// ***************************************************************
 		// SPECIAL CASE for versioned fields in items view when previewing
@@ -1550,7 +1567,7 @@ class FlexicontentFields
 	 */
 	static function _getCategories(&$items, $view = FLEXI_ITEMVIEW)
 	{
-		$db = \Joomla\CMS\Factory::getDbo();
+		$db = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 
 		// ***************************************************************
 		// SPECIAL CASE for versioned fields in items view when previewing
@@ -1635,7 +1652,7 @@ class FlexicontentFields
 	 */
 	static function _getFavourites(&$items, $view = FLEXI_ITEMVIEW)
 	{
-		$db = \Joomla\CMS\Factory::getDbo();
+		$db = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 		$cids = array();
 		foreach ($items as $item) { array_push($cids, $item->id); }
 
@@ -1666,8 +1683,8 @@ class FlexicontentFields
 	 */
 	static function _getFavoured(&$items, $view = FLEXI_ITEMVIEW)
 	{
-		$user = \Joomla\CMS\Factory::getUser();
-		$db = \Joomla\CMS\Factory::getDbo();
+		$user = \Joomla\CMS\Factory::getApplication()->getIdentity();
+		$db = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 
 		$cids = array();
 		foreach ($items as $item) { array_push($cids, $item->id); }
@@ -1703,7 +1720,7 @@ class FlexicontentFields
 		// This is fix for versioned field of modifier in items view when previewing
 		$versioned_item = count($items)==1 && !empty($items[0]->version_id) && !empty($items[0]->modified_by);
 
-		$db = \Joomla\CMS\Factory::getDbo();
+		$db = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 		$cids = array();
 		foreach ($items as $item) { array_push($cids, $item->id); }
 
@@ -1729,7 +1746,7 @@ class FlexicontentFields
 		// This is fix for versioned fields in items view when previewing
 		$versioned_item = count($items)==1 && !empty($items[0]->version_id) && !empty($items[0]->created_by);
 
-		$db = \Joomla\CMS\Factory::getDbo();
+		$db = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 		$cids = array();
 		foreach ($items as $item) { array_push($cids, $item->id); }
 
@@ -1752,7 +1769,7 @@ class FlexicontentFields
 	 */
 	static function _getTypenames(&$items, $view = FLEXI_ITEMVIEW)
 	{
-		$db = \Joomla\CMS\Factory::getDbo();
+		$db = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 
 		$type_ids = array();
 		foreach ($items as $item) { $type_ids[$item->type_id]=1; }
@@ -1782,7 +1799,7 @@ class FlexicontentFields
 	 */
 	static function _getVotes(&$items, $view = FLEXI_ITEMVIEW)
 	{
-		$db = \Joomla\CMS\Factory::getDbo();
+		$db = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 		$cids = array();
 
 		foreach ($items as $item)
@@ -1821,7 +1838,7 @@ class FlexicontentFields
 	static function loadFieldConfig(&$field, &$item, $name='', $field_type='', $label='', $desc='', $iscore=1)
 	{
 		$app = \Joomla\CMS\Factory::getApplication();
-		$db = \Joomla\CMS\Factory::getDbo();
+		$db = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 
 		static $tparams = array();
 		static $tinfo   = array();
@@ -1838,13 +1855,13 @@ class FlexicontentFields
 		if ($is_form===null)
 		{
 			$is_form = (
-				in_array($app->input->getCmd('task', ''), array('add', 'edit')) &&
-				$app->input->getCmd('view', '') === 'item' &&
-				$app->input->getCmd('option', '') === 'com_flexicontent'
+				in_array($app->getInput()->getCmd('task', ''), array('add', 'edit')) &&
+				$app->getInput()->getCmd('view', '') === 'item' &&
+				$app->getInput()->getCmd('option', '') === 'com_flexicontent'
 			) || (
-				$app->input->getCmd('layout', '') === 'form' &&
-				$app->input->getCmd('view', '') === 'article' &&
-				$app->input->getCmd('option', '') === 'com_content'
+				$app->getInput()->getCmd('layout', '') === 'form' &&
+				$app->getInput()->getCmd('view', '') === 'article' &&
+				$app->getInput()->getCmd('option', '') === 'com_content'
 			);
 		}
 
@@ -1955,7 +1972,7 @@ class FlexicontentFields
 		if ( $core_field_names == null ) {
 			$query = "SELECT field_type FROM #__flexicontent_fields WHERE iscore=1";
 			//echo $query;
-			$db = \Joomla\CMS\Factory::getDbo();
+			$db = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 			$db->setQuery($query);
 			$core_field_names = $db->loadColumn();
 
@@ -1965,7 +1982,7 @@ class FlexicontentFields
 		}
 
 		$query = 'SELECT t.attribs, t.name, t.alias FROM #__flexicontent_types AS t WHERE t.id = ' . $type_id;
-		$db = \Joomla\CMS\Factory::getDbo();
+		$db = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 		$db->setQuery($query);
 		$typedata = $db->loadObject();
 		if ( $typedata ) {
@@ -2003,7 +2020,7 @@ class FlexicontentFields
 	{
 		//--. Get a 2 character language tag
 		static $lang = null;
-		$lang = substr(\Joomla\CMS\Factory::getLanguage()->getTag(), 0,2);
+		$lang = substr(\Joomla\CMS\Factory::getApplication()->getLanguage()->getTag(), 0,2);
 
 		// --. SET a type specific label for the current field
 
@@ -2145,7 +2162,7 @@ class FlexicontentFields
 		// SQL mode, parameter field_elements contains an SQL query
 		if ($sql_mode)
 		{
-			$db = \Joomla\CMS\Factory::getDbo();
+			$db = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 
 			// Get/verify query string, check if item properties and other replacements are allowed and replace them
 			$query = preg_match('#^select#i', $field_elements) ? $field_elements : '';
@@ -2507,7 +2524,7 @@ class FlexicontentFields
 	// Param 'search_type' : search, filter, all-search, dirty-search, dirty-nosupport, non-search
 	static function getSearchFields($key='name', $indexer='advanced', $search_fields=null, $content_types=null, $load_params=true, $item_id=0, $search_type='all-search')
 	{
-		$db = \Joomla\CMS\Factory::getDbo();
+		$db = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 		static $sp, $nsp;
 
 		switch ($search_type)
@@ -2854,7 +2871,7 @@ class FlexicontentFields
 		jimport('joomla.filesystem.file');
 		$segmenter_path = JPATH_SITE.DS.'components'.DS.'com_flexicontent'.DS.'librairies'.DS.'THSplitLib'.DS.'segment.php';
 
-		if (!\Joomla\CMS\Filesystem\File::exists($segmenter_path))
+		if (!file_exists($segmenter_path))
 		{
 			return false;
 		}
@@ -2886,7 +2903,7 @@ class FlexicontentFields
 	static function createIndexRecords(&$field, &$values, &$item, $required_props=array(), $search_props=array(), $props_spacer=' ', $filter_func='strip_tags', $for_advsearch=0)
 	{
 		$fi = FlexicontentFields::getPropertySupport($field->field_type, $field->iscore);
-		$db = \Joomla\CMS\Factory::getDbo();
+		$db = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 
 		// * Per language handlers e.g. word segmenter objects (add spaces between words for language without spaces)
 		static $lang_handlers = array();
@@ -3028,7 +3045,7 @@ class FlexicontentFields
 				$pdf_indexing_aborted = false;
 				if ( $pdf_parser && !empty($field->field_isfile) && strtolower(flexicontent_upload::getExt($v['filename'])) == 'pdf' )
 				{
-					$abspath = \Joomla\CMS\Filesystem\Path::clean( ($v['secure'] ? COM_FLEXICONTENT_FILEPATH : COM_FLEXICONTENT_MEDIAPATH) .DS. $v['filename'] );  //echo $abspath . "<br/>";  					//echo "<pre>"; print_r($v); echo "</pre>";
+					$abspath = \Joomla\Filesystem\Path::clean( ($v['secure'] ? COM_FLEXICONTENT_FILEPATH : COM_FLEXICONTENT_MEDIAPATH) .DS. $v['filename'] );  //echo $abspath . "<br/>";  					//echo "<pre>"; print_r($v); echo "</pre>";
 					if ( isset($indexed_pdfs[$abspath]) )
 					{
 						if (strlen($indexed_pdfs[$abspath])) $search_value[] = $indexed_pdfs[$abspath];
@@ -3070,7 +3087,7 @@ class FlexicontentFields
 				$csv_indexing_aborted = false;
 				if ( $csv_parser && !empty($field->field_isfile) && strtolower(flexicontent_upload::getExt($v['filename'])) == 'csv' )
 				{
-					$abspath = \Joomla\CMS\Filesystem\Path::clean( ($v['secure'] ? COM_FLEXICONTENT_FILEPATH : COM_FLEXICONTENT_MEDIAPATH) .DS. $v['filename'] );  //echo $abspath . "<br/>";  					//echo "<pre>"; print_r($v); echo "</pre>";
+					$abspath = \Joomla\Filesystem\Path::clean( ($v['secure'] ? COM_FLEXICONTENT_FILEPATH : COM_FLEXICONTENT_MEDIAPATH) .DS. $v['filename'] );  //echo $abspath . "<br/>";  					//echo "<pre>"; print_r($v); echo "</pre>";
 					if ( isset($indexed_csvs[$abspath]) )
 					{
 						if (strlen($indexed_csvs[$abspath])) $search_value[] = $indexed_csvs[$abspath];
@@ -3138,6 +3155,11 @@ class FlexicontentFields
 			 */
 			if ( !$for_advsearch )
 			{
+				// Ensure search is an array before assigning
+				if (!is_array($field->search)) {
+					$field->search = array();
+				}
+				
 				// Do not add (yet) search prefix to the words, it will be added by controller
 				$field->search[$itemid] = implode(' | ', $searchindex);
 			}
@@ -3173,7 +3195,7 @@ class FlexicontentFields
 	// Method to retrieve field values to be used for creating search indexes
 	static function searchIndex_getFieldValues(&$field, &$item, $for_advsearch=0)
 	{
-		$db = \Joomla\CMS\Factory::getDbo();
+		$db = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 		$_s = $for_advsearch ? '_s' : '';
 
 		static $nullDate = null;
@@ -3435,7 +3457,7 @@ class FlexicontentFields
 			return '';
 		}
 
-		$db = \Joomla\CMS\Factory::getDbo();
+		$db = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 		$display_filter_as = (int) $filter->parameters->get( $is_search ? 'display_filter_as_s' : 'display_filter_as', 0 );
 		$filter_compare_type = (int) $filter->parameters->get( 'filter_compare_type', 0 );
 
@@ -3491,7 +3513,7 @@ class FlexicontentFields
 				}
 
 				// Update filter value to calculated value
-				\Joomla\CMS\Factory::getApplication()->input->set('filter_'.$filter->id, $value);
+				\Joomla\CMS\Factory::getApplication()->getInput()->set('filter_'.$filter->id, $value);
 			}
 		}
 
@@ -3649,7 +3671,7 @@ class FlexicontentFields
 	// Method to get the active filter result for Content Lists Views (an SQL where clause part OR an array of item ids, matching field filter)
 	static function getFiltered( &$filter, $value, $return_sql=true )
 	{
-		$db = \Joomla\CMS\Factory::getDbo();
+		$db = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 
 		// Check if field type supports advanced search
 		$support = FlexicontentFields::getPropertySupport($filter->field_type, $filter->iscore);
@@ -3782,7 +3804,7 @@ class FlexicontentFields
 	static function getFilteredSearch( &$filter, $value, $return_sql=true )
 	{
 		$app = \Joomla\CMS\Factory::getApplication();
-		$db  = \Joomla\CMS\Factory::getDbo();
+		$db  = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 
 		// Check if field type supports advanced search
 		$support = FlexicontentFields::getPropertySupport($filter->field_type, $filter->iscore);
@@ -3892,12 +3914,12 @@ class FlexicontentFields
 		static $faceted_overlimit_msg = null;
 
 		$app = \Joomla\CMS\Factory::getApplication();
-		$user = \Joomla\CMS\Factory::getUser();
+		$user = \Joomla\CMS\Factory::getApplication()->getIdentity();
 		$cparams = \Joomla\CMS\Component\ComponentHelper::getParams('com_flexicontent');  // createFilter maybe called in backend too ...
 		$print_logging_info = $cparams->get('print_logging_info');
 
-		$option = $app->input->get('option', '', 'cmd');
-		$view   = $app->input->get('view', '', 'cmd');
+		$option = $app->getInput()->get('option', '', 'cmd');
+		$view   = $app->getInput()->get('view', '', 'cmd');
 
 		$isFC = $option === 'com_flexicontent';
 		$isCategoryView = $isFC && $view === 'category';
@@ -4022,7 +4044,7 @@ class FlexicontentFields
 			$createFilterValues = !$isSearchView ? 'createFilterValues' : 'createFilterValuesSearch';
 
 			// Decide if filter display depends on language too
-			$lang_code = $isDate && !empty($filter->date_txtformat)? \Joomla\CMS\Factory::getLanguage()->getTag() : null;
+			$lang_code = $isDate && !empty($filter->date_txtformat)? \Joomla\CMS\Factory::getApplication()->getLanguage()->getTag() : null;
 
 			// This is hack for filter core properties to be filterable in search view without being added to the adv search index
 			if ($filter->field_type == 'coreprops' &&  $view=='search')
@@ -4540,7 +4562,7 @@ class FlexicontentFields
 	static function getFilterValues(&$filter, &$view_join, &$view_where, &$filters_where, &$lang_code)
 	{
 		//echo "<pre>"; debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS); echo "</pre>";
-		$db = \Joomla\CMS\Factory::getDbo();
+		$db = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 
 		$require_all_values = (int) $filter->parameters->get('filter_values_require_all', 0);
 		$filter_where_curr = '';
@@ -4734,7 +4756,7 @@ class FlexicontentFields
 	{
 		//echo "<pre>"; debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS); echo "</pre>";
 		$app = \Joomla\CMS\Factory::getApplication();
-		$db  = \Joomla\CMS\Factory::getDbo();
+		$db  = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 
 		$require_all_values = (int) $filter->parameters->get('filter_values_require_all', 0);
 		$filter_where_curr = '';
@@ -4919,7 +4941,7 @@ class FlexicontentFields
 	 */
 	static function setFilterValues( &$cparams, $mfilter_name='persistent_filters', $is_persistent=1, $set_method="httpReq" )
 	{
-		$jinput = \Joomla\CMS\Factory::getApplication()->input;
+		$jinput = \Joomla\CMS\Factory::getApplication()->getInput();
 
 		$field_filters = array();   // Used when set_method is 'array' instead of 'httpReq'
 		$is_persistent =            // Non-httpReq method does not have initial filters
@@ -5069,8 +5091,8 @@ class FlexicontentFields
 		// array_flip to get unique filter ids as KEYS (due to flipping) ... and then array_keys to get filter_ids in 0,1,2, ... array
 		$filter_ids = array_keys(array_flip($filter_ids));
 
-		$user = \Joomla\CMS\Factory::getUser();
-		$db   = \Joomla\CMS\Factory::getDbo();
+		$user = \Joomla\CMS\Factory::getApplication()->getIdentity();
+		$db   = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 
 		// None selected filters means ALL
 		$and_scope = $usage_param!='__ALL_FILTERS__' && count($filter_ids) ? ' AND fi.id IN (' . implode(',', $filter_ids) . ')' : '';
@@ -5151,7 +5173,7 @@ class FlexicontentFields
 		flexicontent_html::loadFramework('flexi_tmpl_common');
 
 		// Make the filter compatible with Joomla standard cache
-		$jinput = \Joomla\CMS\Factory::getApplication()->input;
+		$jinput = \Joomla\CMS\Factory::getApplication()->getInput();
 
 		$filter_prefix = ($form_name == 'item_form' ? 'iform_' : '') .'filter_';
 
@@ -5214,7 +5236,7 @@ class FlexicontentFields
 
 		// Execute SQL query to get item list data array,
 		// ... and check for none found items (e.g. none published)
-		$db = \Joomla\CMS\Factory::getDbo();
+		$db = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 		try {
 			$rows = flexicontent_db::directQuery($query);
 			$item_list = array();
@@ -5264,8 +5286,8 @@ class FlexicontentFields
 	// Helper method to create SQL query for retrieving items list data
 	static function createItemsListSQL($params, $itemIDs, $field, $item, $options)
 	{
-		$db = \Joomla\CMS\Factory::getDbo();
-		$user = \Joomla\CMS\Factory::getUser();
+		$db = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
+		$user = \Joomla\CMS\Factory::getApplication()->getIdentity();
 
 		// Options
 		$reverse_field_id = (int) $params->get('reverse_field', 0);
@@ -5286,7 +5308,7 @@ class FlexicontentFields
 			if ($samelangonly)
 			{
 				$language = !$item->language || $item->language === '*'
-					? \Joomla\CMS\Factory::getLanguage()->getTag()
+					? \Joomla\CMS\Factory::getApplication()->getLanguage()->getTag()
 					: $item->language;
 				$scopes_where[] = ' (ext.language = ' . $db->Quote($language) . ' OR ext.language = ' . $db->Quote('*') . ') ';
 			}
@@ -5518,7 +5540,7 @@ class FlexicontentFields
 		$isform = isset($options->isform) ? (int) $options->isform : 0;
 		require_once (JPATH_SITE.DS.'components'.DS.'com_flexicontent'.DS.'helpers'.DS.'route.php');
 
-		$db = \Joomla\CMS\Factory::getDbo();
+		$db = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 		global $globalcats, $globalnoroute, $fc_run_times;
 		if (!is_array($globalnoroute)) $globalnoroute = array();
 
@@ -5534,12 +5556,12 @@ class FlexicontentFields
 		}
 
 		// Prefix - Suffix - Separator parameters, replacing other field values if found
-		$remove_space	= $params->get( 'remove_space', 0 ) ;
-		$pretext			= $params->get( $isform ? 'pretext_form' : 'pretext', '' ) ;
-		$posttext			= $params->get( $isform ? 'posttext_form' : 'posttext', '' ) ;
-		$separatorf		= $params->get( $isform ? 'separator' : 'separatorf' ) ;
-		$opentag			= $params->get( $isform ? 'opentag_form' : 'opentag', '' ) ;
-		$closetag			= $params->get( $isform ? 'closetag_form' : 'closetag', '' ) ;
+		$remove_space = $params->get( 'remove_space', 0 ) ;
+		$pretext      = $params->get( $isform ? 'pretext_form' : 'pretext', '' ) ;
+		$posttext     = $params->get( $isform ? 'posttext_form' : 'posttext', '' ) ;
+		$separatorf   = $params->get( $isform ? 'separator' : 'separatorf' ) ;
+		$opentag      = $params->get( $isform ? 'opentag_form' : 'opentag', '' ) ;
+		$closetag     = $params->get( $isform ? 'closetag_form' : 'closetag', '' ) ;
 
 		if($pretext)  { $pretext  = $remove_space ? $pretext : $pretext . ' '; }
 		if($posttext) { $posttext = $remove_space ? $posttext : ' ' . $posttext; }
@@ -5577,10 +5599,10 @@ class FlexicontentFields
 
 		// some parameter shortcuts
 		$relitem_html_param = $params->get('relitem_html_override', $isform ? 'relitem_html_form' : 'relitem_html');
-		$relitem_html = $params->get( $relitem_html_param, '__display_text__' ) ;
-		$displayway		= $params->get( $isform ? 'displayway_form' : 'displayway', 1 ) ;
-		$addlink 			= $params->get( $isform ? 'addlink_form' : 'addlink', 1 ) ;
-		$addtooltip		= $params->get( $isform ? 'addtooltip_form' : 'addtooltip', 1 ) ;
+		$relitem_html       = $params->get( $relitem_html_param, '__display_text__' ) ;
+		$displayway	        = $params->get( $isform ? 'displayway_form' : 'displayway', 1 ) ;
+		$addlink            = $params->get( $isform ? 'addlink_form' : 'addlink', 1 ) ;
+		$addtooltip         = $params->get( $isform ? 'addtooltip_form' : 'addtooltip', 1 ) ;
 
 		// Parse and identify custom fields
 		$result = preg_match_all("/\{\{([a-zA-Z_0-9-]+)(##)?([a-zA-Z_0-9-]+)?\}\}/", $relitem_html, $field_matches);
@@ -5674,25 +5696,25 @@ class FlexicontentFields
 			if ($i_slave) $start_microtime = microtime(true);
 
 			$display_var = $custom_field_methods[$i] ? $custom_field_methods[$i] : 'display';
-			FlexicontentFields::getFieldDisplay($item_list, $custom_field_name, $custom_field_values=null, $display_var, $_view);
+			FlexicontentFields::getFieldDisplay($item_list, $custom_field_name, $custom_field_values=null, $display_var, $_view, true, $options);
 
 			if ($i_slave) $fc_run_times['render_subfields'][$i_slave] += round(1000000 * 10 * (microtime(true) - $start_microtime)) / 10;
 		}
 
-		$tooltip_class = ' hasTooltip';
-		$display_html = array();
-		$read_more_about = \Joomla\CMS\Language\Text::_('FLEXI_READ_MORE_ABOUT', true);
+		$tooltip_class   = ' hasTooltip';
+		$display_html    = [];
+		$read_more_about = Text::_('FLEXI_READ_MORE_ABOUT', true);
 		foreach($item_list as $result)
 		{
 			$url_read_more = isset($itemIDs[$result->id]->url_read_more)
-				? \Joomla\CMS\Language\Text::_($itemIDs[$result->id]->url_read_more, true)
+				? Text::_($itemIDs[$result->id]->url_read_more, true)
 				: $read_more_about;
 			$url_class = isset($itemIDs[$result->id]->url_class)
 				? $itemIDs[$result->id]->url_class
 				: 'relateditem';
 
 			// a. Replace some custom made strings
-			$item_url = \Joomla\CMS\Router\Route::_(FlexicontentHelperRoute::getItemRoute($result->slug, $result->categoryslug, 0, $result));
+			$item_url = Route::_(FlexicontentHelperRoute::getItemRoute($result->slug, $result->categoryslug, 0, $result));
 			$item_title_escaped = htmlspecialchars($result->title, ENT_COMPAT, 'UTF-8');
 
 			$tooltip_title = flexicontent_html::getToolTip($url_read_more, $item_title_escaped, $translate=0, $escape=0);
@@ -5715,17 +5737,26 @@ class FlexicontentFields
 			$err_mssg = 'Cannot replace field: "%s" because it is of not allowed field type: "%s", which can cause loop or other problem';
 			foreach($custom_field_names as $i => $custom_field_name)
 			{
-				$_field = @ $result->fields[$custom_field_name];
+				$_field = $result->fields[$custom_field_name] ?? false;
+
 				$custom_field_display = '';
-				if ($is_disallowed_field = isset($disallowed_fieldnames[$custom_field_name]))
+				if (isset($disallowed_fieldnames[$custom_field_name]))
 				{
-					$custom_field_display .= sprintf($err_mssg, $custom_field_name, @ $_field->field_type);
+					$custom_field_display = sprintf($err_mssg, $custom_field_name, @ $_field->field_type);
 				}
-				else
+				elseif ($_field)
 				{
-					$display_var = $custom_field_methods[$i] ? $custom_field_methods[$i] : 'display';
-					$custom_field_display .= @ $_field->{$display_var};
+					/**
+					 * Check if field should be rendered as array because it is a field of a group, and we also have a value-order
+					 */
+					$display_var   = $custom_field_methods[$i] ? $custom_field_methods[$i] : 'display';
+					$renderAsArray = $options && isset($options->fieldsOfGroup[$_field->id]) && isset($options->valueOrder);
+
+					$custom_field_display = $renderAsArray
+						? ($_field->{$display_var}[$options->valueOrder] ?? '')
+						: ($_field->{$display_var} ?? '');
 				}
+
 				$curr_relitem_html = str_replace($custom_field_reps[$i], $custom_field_display, $curr_relitem_html);
 			}
 
@@ -5815,56 +5846,63 @@ class FlexicontentFields
 	}
 
 
-
-	static function & getFieldsPerGroup()
+	/**
+	 * Get all field groups and their fields
+	 *
+	 * @return object|null
+	 * @since  3.0.0
+	 */
+	static function getFieldsPerGroup()
 	{
-		static $ginfo = null;
-		if ( $ginfo!==null ) return $ginfo;
+		static $groupInfo = null;
+		if ($groupInfo !== null) return $groupInfo;
 
-		$db = \Joomla\CMS\Factory::getDbo();
-		$query = 'SELECT f.* '
-			. ' FROM #__flexicontent_fields AS f '
-			. ' WHERE f.published = 1'
-			. ' AND f.field_type = "fieldgroup" '
-			;
-		$db->setQuery($query);
-		$field_groups = $db->loadObjectList('id');
+		$db    = FLEXI_J40GE ? Factory::getContainer()->get(DatabaseInterface::class) : Factory::getContainer()->get(DatabaseInterface::class);
+		$query = $db->getQuery(true)
+			->select('f.*')
+			->from($db->quoteName('#__flexicontent_fields', 'f'))
+			->where('f.published = 1')
+			->where('f.field_type = ' . $db->quote('fieldgroup'));
+		$fieldGroups = $db->setQuery($query)->loadObjectList('id');
 
-		$grp_to_field = array();
-		$field_to_grp = array();
+		$fieldsIdToFieldName = $db->setQuery($db->getQuery(true)
+			->select('id, name')
+			->from($db->quoteName('#__flexicontent_fields'))
+		)->loadObjectList('id');
 
-		foreach($field_groups as $field_id => $field_group)
+		$fields_by_groupId        = [];
+		$fieldId_to_groupId_map   = [];
+		$fieldname_to_groupId_map = [];
+
+		foreach($fieldGroups as $fieldGroup_fieldId => $fieldGroup_field)
 		{
-			// Create field parameters, if not already created, NOTEL: for 'custom' fields loadFieldConfig() is optional
-			$field_group->parameters = new \Joomla\Registry\Registry($field_group->attribs);
+			/**
+			 * Parse parameters to get the fields that belong to this field group
+			 * Also translate the label of the field group
+			 */
+			$fieldGroup_field->parameters = new Registry($fieldGroup_field->attribs);
+			$fieldGroup_field->label      = Text::_($fieldGroup_field->label);
 
-			$fieldids = $field_group->parameters->get('fields', array());
+			$fieldIds = $fieldGroup_field->parameters->get('fields', []) ?: [];
+			$fieldIds = is_array($fieldIds) ? $fieldIds : preg_split("/[\|,]/", $fieldIds);
 
-			if (empty($fieldids))
+			foreach ($fieldIds as $groupedFieldId)
 			{
-				$fieldids = array();
-			}
-
-			if (!is_array($fieldids))
-			{
-				$fieldids = preg_split("/[\|,]/", $fieldids);
-			}
-
-			$field_group->label = \Joomla\CMS\Language\Text::_($field_group->label);
-
-			foreach ($fieldids as $grouped_fieldid)
-			{
-				$grp_to_field[$field_id][] = $grouped_fieldid;
-				$field_to_grp[$grouped_fieldid] = $field_id;
+				$groupedFieldName = $fieldsIdToFieldName[$groupedFieldId]->name ?? null;
+				$fields_by_groupId[$fieldGroup_fieldId][]    = $groupedFieldId;
+				$fieldId_to_groupId_map[$groupedFieldId]     = $fieldGroup_fieldId;
+				$fieldname_to_groupId_map[$groupedFieldName] = $fieldGroup_fieldId;
 			}
 		}
 
-		$ginfo = new stdClass;
-		$ginfo->grps = $field_groups;
-		$ginfo->grp_to_field = $grp_to_field;
-		$ginfo->field_to_grp = $field_to_grp;
+		$groupInfo = (object) [
+			'grps'         => $fieldGroups,
+			'grp_to_field' => $fields_by_groupId,
+			'field_to_grp' => $fieldId_to_groupId_map,
+			'fName_to_grp' => $fieldname_to_groupId_map,
+		];
 
-		return $ginfo;
+		return $groupInfo;
 	}
 
 
@@ -5985,7 +6023,7 @@ class FlexicontentFields
 	 */
 	public static function getBasicFilterData($category, $filters)
 	{
-		$jinput = \Joomla\CMS\Factory::getApplication()->input;
+		$jinput = \Joomla\CMS\Factory::getApplication()->getInput();
 
 		foreach ($filters as $fn => $filter)
 		{

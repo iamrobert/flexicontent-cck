@@ -63,7 +63,7 @@ class plgFlexicontent_fieldsFieldgroup extends FCField
 		$tooltip_class = 'hasTooltip';
 		$add_on_class    = $cparams->get('bootstrap_ver', 2)==2  ?  'add-on' : 'input-group-addon';
 		$input_grp_class = $cparams->get('bootstrap_ver', 2)==2  ?  'input-append input-prepend' : 'input-group';
-		$btn_item_class  = $cparams->get('bootstrap_ver', 2)==2  ?  'btn' : 'btn';
+		$btn_item_class  = $cparams->get('bootstrap_ver', 2)==2  ?  'btn' : 'btn btn-outline-secondary';
 		$btn_group_class = $cparams->get('bootstrap_ver', 2)==2  ?  'btn-group' : 'btn-group';
 		$form_font_icons = $cparams->get('form_font_icons', 1);
 		$font_icon_class = $form_font_icons ? ' fcfont-icon' : '';
@@ -84,7 +84,7 @@ class plgFlexicontent_fieldsFieldgroup extends FCField
 
 		// If we are multi-value and not inside fieldgroup then add the control buttons (move, delete, add before/after)
 		$add_ctrl_btns = !$use_ingroup && $multiple;
-		$fields_box_placing = (int) $field->parameters->get('fields_box_placing', 1);
+		$fields_box_placing = (int) $field->parameters->get('fields_box_placing', 0);
 
 
 		/**
@@ -415,15 +415,17 @@ class plgFlexicontent_fieldsFieldgroup extends FCField
 		$list_classes  = "fcfield-sortables";
 		$list_classes .= " fcfield-group";
 
+		$list_style = $fields_box_placing ? ' display: flex; flex-wrap: wrap; ' : '';
+		$element_style = $fields_box_placing ? ' style="width: fit-content; display:block" ' : '';
 		if (count($field->html))
 		{
-			$field->html = '<li class="fcfieldval_container valuebox fcfieldval_container_'.$field->id.'">'.
+			$field->html = '<li class="fcfieldval_container valuebox fcfieldval_container_'.$field->id.'" '.$element_style.'>' .
 				implode(
-				'</li><li class="fcfieldval_container valuebox fcfieldval_container_'.$field->id.'">',
+				'</li><li class="fcfieldval_container valuebox fcfieldval_container_'.$field->id.'" '.$element_style.'>',
 					$field->html
 				).
 				'</li>';
-			$field->html = '<div id="sortables_outer_'.$field->id.'"><ul class="'.$list_classes.'" id="sortables_'.$field->id.'">' .$field->html. '</ul></div>';
+			$field->html = '<div id="sortables_outer_'.$field->id.'"><ul class="'.$list_classes.'" style="'.$list_style.'" id="sortables_'.$field->id.'">' .$field->html. '</ul></div>';
 		}
 		else
 		{

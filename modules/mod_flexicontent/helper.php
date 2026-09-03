@@ -5,7 +5,7 @@
  *
  * @author          Emmanuel Danan, Georgios Papadakis, Yannick Berges, others, see contributor page
  * @link            https://flexicontent.org
- * @copyright       Copyright � 2017, FLEXIcontent team, All Rights Reserved
+ * @copyright       Copyright © 2017, FLEXIcontent team, All Rights Reserved
  * @license         http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL
  */
 
@@ -14,16 +14,304 @@
 defined('_JEXEC') or die('Restricted access');
 
 use Joomla\String\StringHelper;
+use Joomla\Database\DatabaseInterface;
 
 class modFlexicontentHelper
 {
+	/**
+	 * Breakpoints responsives pour générer img srcset.
+	 * Chaque entrée : [ largeur max du viewport en px, largeur image générée en px ]
+	 * Le dernier niveau (desktop) utilise la taille réelle du module ($w).
+	 */
+	const SRCSET_BREAKPOINTS = [
+		['viewport' => 480, 'img_w' => 480],
+		['viewport' => 768, 'img_w' => 768],
+		// desktop : $w (taille configurée dans le module)
+	];
+
+	/**
+	 * Construit une balise <picture> responsive avec srcset.
+	 *
+	 * Le srcset JPEG responsive est TOUJOURS présent.
+	 * Si $use_webp = true  : <source webp srcset> + <source jpeg srcset> + <img fallback jpeg>
+	 * Si $use_webp = false : <source jpeg srcset> + <img fallback jpeg>
+	 *
+	 * @param  string  $thumb_url      URL d'un thumb déjà généré (fallback sans srcset)
+	 * @param  string  $src            Chemin source de l'image originale
+	 * @param  string  $conf_noformat  Paramètres phpThumb de base (sans &w=, &h=, &f=)
+	 * @param  string  $base_url       Préfixe base URL pour les chemins relatifs
+	 * @param  string  $alt            Texte alternatif
+	 * @param  int     $w              Largeur desktop (taille du module)
+	 * @param  int     $h              Hauteur desktop (taille du module)
+	 * @param  bool    $use_webp       Si true, ajoute <source type="image/webp"> en priorité
+	 *                                 Doit être true UNIQUEMENT si le champ a generate_webp=1
+	 * @return string  HTML <picture> complet
+	 */
+	/**
+	 * Construit un <picture> srcset à partir des thumbs pré-générés par FLEXIcontent (small/medium/large/original).
+	 * Utilise les fichiers qui existent réellement sur le disque comme breakpoints, sans passer par phpThumb.
+	 *
+	 * @param  object  $img_field     Objet champ FC contenant thumbs_src
+	 * @param  string  $size          Taille demandée : 'small', 'medium', 'large', 'original'
+	 * @param  string  $alt           Attribut alt de l'image
+	 * @param  int     $display_w     Largeur d'affichage (attribut width sur <img>)
+	 * @param  int     $display_h     Hauteur d'affichage (attribut height sur <img>)
+	 * @param  bool    $use_webp      Si true, ajoute <source type="image/webp"> quand le .webp existe
+	 * @return string                 HTML <picture>...</picture> ou '' si aucun fichier trouvé
+	 */
+	public static function makePictureFromThumbs($img_field, $size, $alt, $display_w, $display_h, $use_webp = false)
+	{
+		// Breakpoints associés à chaque taille FC
+		// small=480, medium=768, large=desktop — on inclut les tailles inférieures si elles existent
+		$size_viewports = [
+			'small'    => 480,
+			'medium'   => 768,
+			'large'    => 0,    // 0 = taille de base / desktop
+			'original' => 0,
+		];
+
+		// URL du thumb demandé (point d'entrée)
+		$main_url = $img_field->thumbs_src[$size][0] ?? '';
+		if (!$main_url) {
+			return '';
+		}
+
+		$main_fs = self::thumbUrlToFilesystemPath($main_url);
+		if (!file_exists($main_fs)) {
+			return '';
+		}
+
+		$_src_is_webp = (strtolower(pathinfo($main_url, PATHINFO_EXTENSION)) === 'webp');
+
+		// Helper : encode correctement une URL pour srcset (les espaces %20 doivent rester encodés)
+		$_srcset_url = static function($url) {
+			// Décoder complètement puis ré-encoder uniquement les espaces et caractères invalides dans srcset
+			$decoded = rawurldecode($url);
+			// rawurlencode encode tout, on veut juste encoder les espaces et caractères problématiques
+			// On encode chaque composant du path séparément pour préserver les slashes
+			$parts = parse_url($decoded);
+			$path  = implode('/', array_map('rawurlencode', explode('/', $parts['path'] ?? '')));
+			$encoded = ($parts['scheme'] ?? '') . (!empty($parts['scheme']) ? '://' : '')
+				. ($parts['host'] ?? '') 
+				. $path 
+				. (isset($parts['query']) ? '?' . $parts['query'] : '');
+			return $encoded ?: $url;
+		};
+
+		// Construire les srcsets en exploitant small/medium/large si disponibles et existants
+		// On ne construit le srcset que pour les tailles <= à la taille demandée
+		$size_order  = ['small', 'medium', 'large'];
+		$size_widths = ['small' => 480, 'medium' => 768, 'large' => 1200];
+
+		$srcset_img  = [];
+		$srcset_webp = [];
+		$sizes_parts = [];
+		$fallback_url = $main_url;
+
+		// Pour original : on affiche juste l'image originale, pas de srcset multi-tailles
+		if ($size === 'original') {
+			$srcset_img[] = $_srcset_url($main_url) . ' ' . ($display_w ?: 1200) . 'w';
+			if ($use_webp && !$_src_is_webp) {
+				$webp_fs  = preg_replace('/\.(jpe?g|png|gif)$/i', '.webp', $main_fs);
+				$webp_url = preg_replace('/\.(jpe?g|png|gif)$/i', '.webp', $main_url);
+				if (file_exists($webp_fs)) {
+					$srcset_webp[] = $_srcset_url($webp_url) . ' ' . ($display_w ?: 1200) . 'w';
+				}
+			}
+			$sizes_parts[] = ($display_w ?: 1200) . 'px';
+		} else {
+			// Trouver les tailles inférieures ou égales à la taille demandée
+			$target_idx = array_search($size, $size_order);
+			foreach ($size_order as $idx => $s) {
+				if ($idx > $target_idx) {
+					continue; // taille supérieure à ce qu'on a → on skip
+				}
+				$s_url = $img_field->thumbs_src[$s][0] ?? '';
+				if (!$s_url) {
+					continue;
+				}
+				$s_fs = self::thumbUrlToFilesystemPath($s_url);
+				if (!file_exists($s_fs)) {
+					continue;
+				}
+				$w = $size_widths[$s];
+
+				if ($idx < $target_idx) {
+					// Taille inférieure : breakpoint responsive
+					$srcset_img[]  = $_srcset_url($s_url) . ' ' . $w . 'w';
+					$sizes_parts[] = '(max-width:' . $w . 'px) ' . $w . 'px';
+					if ($use_webp && !$_src_is_webp) {
+						$webp_fs  = preg_replace('/\.(jpe?g|png|gif)$/i', '.webp', $s_fs);
+						$webp_url = preg_replace('/\.(jpe?g|png|gif)$/i', '.webp', $s_url);
+						if (file_exists($webp_fs)) {
+							$srcset_webp[] = $_srcset_url($webp_url) . ' ' . $w . 'w';
+						}
+					}
+				} else {
+					// Taille demandée : desktop / taille de base
+					$desktop_w    = $display_w ?: $w;
+					$srcset_img[] = $_srcset_url($main_url) . ' ' . $desktop_w . 'w';
+					$sizes_parts[] = $desktop_w . 'px';
+					$fallback_url  = $main_url;
+					if ($use_webp && !$_src_is_webp) {
+						$webp_fs  = preg_replace('/\.(jpe?g|png|gif)$/i', '.webp', $main_fs);
+						$webp_url = preg_replace('/\.(jpe?g|png|gif)$/i', '.webp', $main_url);
+						if (file_exists($webp_fs)) {
+							$srcset_webp[] = $_srcset_url($webp_url) . ' ' . $desktop_w . 'w';
+						}
+					}
+				}
+			}
+		}
+
+		if (empty($srcset_img)) {
+			return '';
+		}
+
+		$sizes_str = implode(', ', $sizes_parts);
+		$_style = 'width:100%;height:auto;display:block!important;border:0!important;';
+
+		$img_tag = '<img'
+			. ' src="' . htmlspecialchars($fallback_url) . '"'
+			. ' alt="' . $alt . '"'
+			. (count($srcset_img) > 1 ? ' srcset="' . implode(', ', $srcset_img) . '"' : '')
+			. (count($srcset_img) > 1 ? ' sizes="' . $sizes_str . '"' : '')
+			. ($display_w  ? ' width="'  . (int)$display_w  . '"' : '')
+			. ($display_h  ? ' height="' . (int)$display_h . '"' : '')
+			. ' style="' . $_style . '"'
+			. ' loading="lazy" decoding="async" />';
+
+		$html = '<picture>';
+		if (!empty($srcset_webp)) {
+			$html .= '<source type="image/webp"'
+				. ' srcset="' . implode(', ', $srcset_webp) . '"'
+				. (count($srcset_webp) > 1 ? ' sizes="' . $sizes_str . '"' : '')
+				. '>';
+		}
+		$html .= $img_tag . '</picture>';
+
+		return $html;
+	}
+
+	/**
+	 * Convertit une URL de thumb FLEXIcontent en chemin filesystem absolu.
+	 * Gère les installations en sous-répertoire et les URLs avec ou sans domaine.
+	 *
+	 * @param  string  $thumb_url  URL absolue ou relative du thumb (ex: https://site.com/subdir/images/...)
+	 * @return string              Chemin filesystem absolu (ex: /var/www/html/subdir/images/...)
+	 */
+	public static function thumbUrlToFilesystemPath($thumb_url)
+	{
+		if (!$thumb_url) {
+			return '';
+		}
+
+		// Cas 1 : URL absolue avec schéma (http:// ou https://)
+		// On retire le domaine+schéma pour obtenir le path depuis la racine web
+		if (preg_match('#^https?://#i', $thumb_url)) {
+			// Uri::root() = https://site.com/subdir/ → on strip jusqu'à la fin du domaine
+			$root_url  = \Joomla\CMS\Uri\Uri::root();          // https://site.com/subdir/
+			$base_path = \Joomla\CMS\Uri\Uri::root(true);      // /subdir  (sans slash final)
+
+			if (strpos($thumb_url, $root_url) === 0) {
+				// URL commence par la racine complète → strip direct
+				$rel = substr($thumb_url, strlen($root_url));
+			} else {
+				// URL du même domaine mais construit différemment → strip schéma+hôte
+				$parsed = parse_url($thumb_url);
+				$rel    = isset($parsed['path']) ? ltrim($parsed['path'], '/') : '';
+				// Si le site est dans un sous-répertoire, le path contient déjà le subdir
+				// JPATH_SITE pointe vers la racine web du sous-répertoire → on doit retirer le subdir du rel
+				if ($base_path && strpos('/' . $rel, $base_path . '/') === 0) {
+					$rel = substr('/' . $rel, strlen($base_path) + 1);
+				}
+			}
+		} else {
+			// Cas 2 : chemin relatif ou absolu web (commence par /)
+			$base_path = \Joomla\CMS\Uri\Uri::root(true); // /subdir
+			$rel       = ltrim($thumb_url, '/');
+			if ($base_path && strpos('/' . $rel, $base_path . '/') === 0) {
+				$rel = substr('/' . $rel, strlen($base_path) + 1);
+			}
+		}
+
+		return JPATH_SITE . '/' . ltrim($rel, '/');
+	}
+
+	public static function makeWebpPicture($thumb_url, $src, $conf_noformat, $base_url, $alt, $w = 0, $h = 0, $use_webp = false)
+	{
+		// Fallback : pas de $src disponible, on retourne un <img> simple
+		if ($thumb_url && !$src) {
+			$_style = 'width: 100%; height: auto; display: block !important; border: 0 !important;'
+				. ($w ? ' max-width:' . (int)$w . 'px;' : '')
+				. ($h ? ' max-height:' . (int)$h . 'px;' : '');
+			$_size  = ($w ? ' width="' . (int)$w . '"' : '') . ($h ? ' height="' . (int)$h . '"' : '');
+			return '<img src="' . $thumb_url . '" alt="' . $alt . '" style="' . $_style . '"' . $_size . ' loading="lazy" decoding="async" />';
+		}
+
+		// Encoder les espaces dans le chemin source (noms de fichiers avec espaces)
+		// et décoder &amp; → & car srcset est lu directement par le navigateur
+		$src        = str_replace(' ', '%20', $src);
+		$conf_base  = preg_replace('/&(?:amp;)?[wh]=\d+/', '', str_replace('&amp;', '&', $conf_noformat));
+
+		$phpthumb_base = \Joomla\CMS\Uri\Uri::root(true)
+			. '/components/com_flexicontent/librairies/phpthumb/phpThumb.php?src='
+			. $base_url . $src;
+
+		$ratio = ($w > 0 && $h > 0) ? ($h / $w) : 0;
+
+		$levels = self::SRCSET_BREAKPOINTS;
+		$levels[] = ['viewport' => 0, 'img_w' => $w ?: 800];
+
+		$srcset_webp = $srcset_img = $sizes_parts = [];
+		$fallback_url = '';
+
+		foreach ($levels as $level) {
+			$lw = (int) $level['img_w'];
+			$lh = $ratio > 0 ? (int) round($lw * $ratio) : 0;
+			$conf_level = '&w=' . $lw . ($lh ? '&h=' . $lh : '') . $conf_base;
+			$url_img   = $phpthumb_base . $conf_level;
+
+			if ($use_webp) {
+				$srcset_webp[] = $phpthumb_base . $conf_level . '&f=webp' . ' ' . $lw . 'w';
+			}
+			$srcset_img[] = $url_img . ' ' . $lw . 'w';
+
+			if ($level['viewport'] > 0) {
+				$sizes_parts[] = '(max-width:' . $level['viewport'] . 'px) ' . $lw . 'px';
+			} else {
+				$sizes_parts[] = $lw . 'px';
+				$fallback_url  = $url_img;
+			}
+		}
+
+		$desktop_w = (int) end($levels)['img_w'];
+		$desktop_h = $ratio > 0 ? (int) round($desktop_w * $ratio) : 0;
+		$_style = 'width: 100%; height: auto; display: block !important; border: 0 !important;'
+			. ($desktop_w ? ' max-width:' . $desktop_w . 'px;' : '')
+			. ($desktop_h ? ' max-height:' . $desktop_h . 'px;' : '');
+		$_size = ($desktop_w ? ' width="' . $desktop_w . '"' : '')
+			. ($desktop_h ? ' height="' . $desktop_h . '"' : '');
+		$sizes_str = implode(', ', $sizes_parts);
+
+$html = '<picture>';
+if ($use_webp) {
+    $html .= '<source type="image/webp" sizes="' . $sizes_str . '" srcset="' . implode(', ', $srcset_webp) . '">';
+}
+// Fallback absolu pour navigateurs sans support <picture> ou sans WebP
+$html .= '<img src="' . $fallback_url . '" alt="' . $alt . '" style="' . $_style . '"' . $_size . ' loading="lazy" decoding="async" />';
+$html .= '</picture>';
+
+return $html;
+	}
+
 	public static function getList($params, &$totals = null)
 	{
 		global $modfc_jprof, $mod_fc_run_times;
 
 		$forced_itemid = $params->get('forced_itemid');
-		$db   = \Joomla\CMS\Factory::getDbo();
-		$user = \Joomla\CMS\Factory::getUser();
+		$db   = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
+		$user = \Joomla\CMS\Factory::getApplication()->getIdentity();
 		$app  = \Joomla\CMS\Factory::getApplication();
 
 		$jinput  = $app->input;
@@ -89,19 +377,31 @@ class modFlexicontentHelper
 		$mod_image_custom_url	= $params->get('mod_image_custom_url');
 		$mod_image_fallback_img = $params->get('mod_image_fallback_img');
 
+		// ---
+		// Lire generate_webp depuis les attribs du champ image FLEXIcontent ($mod_image).
+		// Ce paramètre contrôle si les WebP ont été générés par le champ.
+		// Pour les sources non-FC (custom URL, custom display, extractimagesrc),
+		// on ne peut pas garantir la présence du WebP → $mod_use_webp = false par sécurité.
+		// ---
+		$mod_use_webp = false;
+
 		// Retrieve default image for the image field and also create field parameters so that they can be used
 		if ($mod_image)
 		{
 			$query = 'SELECT attribs, name FROM #__flexicontent_fields WHERE id = '.(int) $mod_image;
 			$db->setQuery($query);
 			$mod_image_dbdata = $db->loadObject();
-			$mod_image_name = $mod_image_dbdata->name;
-			//$img_fieldparams = new \Joomla\Registry\Registry($mod_image_dbdata->attribs);
+			$mod_image_name   = $mod_image_dbdata->name;
+			$img_fieldparams  = new \Joomla\Registry\Registry($mod_image_dbdata->attribs);
+
+			// generate_webp est le paramètre du champ image qui contrôle la génération WebP
+			$mod_use_webp = (bool) $img_fieldparams->get('generate_webp', 0);
 		}
+
 		if ($mod_default_img_show) {
 			$src = $mod_default_img_path;
 
-			// Default image featured
+			// Default image standard (taille normale)
 			$h		= '&amp;h=' . $mod_height;
 			$w		= '&amp;w=' . $mod_width;
 			$aoe	= '&amp;aoe=1';
@@ -115,7 +415,7 @@ class modFlexicontentHelper
 			$base_url = (!preg_match("#^http|^https|^ftp|^/#i", $src)) ?  \Joomla\CMS\Uri\Uri::base(true).'/' : '';
 			$thumb_default = \Joomla\CMS\Uri\Uri::root(true) . '/components/com_flexicontent/librairies/phpthumb/phpThumb.php?src='.$base_url.$src.$conf;
 
-			// Default image standard
+			// Default image featured (taille featured)
 			$h		= '&amp;h=' . $mod_height_feat;
 			$w		= '&amp;w=' . $mod_width_feat;
 			$aoe	= '&amp;aoe=1';
@@ -387,12 +687,12 @@ class modFlexicontentHelper
 			else
 			{
 				$rows = & $filtered_rows;
-			}
 
-			// For Debuging
-			/*foreach ($order_skipcount as $skipordering => $skipcount) {
-			  echo "SKIPS $skipordering ==> $skipcount<br>\n";
-			}*/
+				// Batch-load field values (no rendering) so that the per-row
+				// getFieldDisplay() calls further below do not each trigger a
+				// separate single-item getFields() (~11 queries per item).
+				FlexicontentFields::getFields($rows, 'module');
+			}
 
 			$lists = array();
 
@@ -427,6 +727,15 @@ class modFlexicontentHelper
 							$thumb_rendered = FlexicontentFields::getFieldDisplay($row, $fieldname, null, $varname, 'module');
 							$src = '';
 							$_thumb_w = $_thumb_h = 0;
+							if ($thumb_rendered && preg_match('/src=["\'](.*?)["\']/i', $thumb_rendered, $_m)) {
+								$_rs = html_entity_decode($_m[1]);
+								if (strpos($_rs, 'phpThumb.php') === false) {
+									$_b2  = (!preg_match("#^http|^https|^ftp|^/#i", $_rs)) ? \Joomla\CMS\Uri\Uri::base(true).'/' : '';
+									$_alt2 = htmlspecialchars($row->title ?? '', ENT_COMPAT, 'UTF-8');
+									// custom display : source inconnue, WebP non garanti → false
+									$thumb_rendered = modFlexicontentHelper::makeWebpPicture('', $_rs, '&amp;aoe=1&amp;q=95', $_b2, $_alt2, $mod_width_feat, $mod_height_feat, false);
+								}
+							}
 						}
 						elseif ($mod_image_custom_url)
 						{
@@ -452,14 +761,15 @@ class modFlexicontentHelper
 								}
 								else
 								{
-									$thumb = $img_field->thumbs_src[ $mod_use_image_feat ][0] ?? '';
-									$_thumb_w = $thumb ? $img_field->parameters->get('w_'.$mod_use_image_feat[0], 120) : 0;
-									$_thumb_h = $thumb ? $img_field->parameters->get('h_'.$mod_use_image_feat[0], 90) : 0;
+									// small/medium/large/original : srcset depuis les thumbs FC, sans phpThumb
+									$_alt  = htmlspecialchars($row->title ?? '', ENT_COMPAT, 'UTF-8');
+									$thumb = modFlexicontentHelper::makePictureFromThumbs($img_field, $mod_use_image_feat, $_alt, $mod_width_feat, $mod_height_feat, $mod_use_webp);
 								}
 							}
 
 							if ((!$src && $mod_image_fallback_img==1) || ($src && $mod_image_fallback_img==2 && $img_field->using_default_value))
 							{
+								// extractimagesrc : WebP non garanti → false
 								$src = flexicontent_html::extractimagesrc($row);
 							}
 							elseif(!$src && $mod_image_ff && $mod_image_fallback_img==3)
@@ -476,15 +786,17 @@ class modFlexicontentHelper
 									}
 									else
 									{
-										$thumb = $img_field2->thumbs_src[ $mod_use_image_feat ][0] ?? '';
-										$_thumb_w = $thumb ? $img_field2->parameters->get('w_'.$mod_use_image_feat[0], 120) : 0;
-										$_thumb_h = $thumb ? $img_field2->parameters->get('h_'.$mod_use_image_feat[0], 90) : 0;
+										// small/medium/large/original : srcset depuis les thumbs FC, sans phpThumb
+										// champ fallback : webp désactivé (generate_webp inconnu)
+										$_alt  = htmlspecialchars($row->title ?? '', ENT_COMPAT, 'UTF-8');
+										$thumb = modFlexicontentHelper::makePictureFromThumbs($img_field2, $mod_use_image_feat, $_alt, $mod_width_feat, $mod_height_feat, false);
 									}
 								}
 							}
 						}
 						else
 						{
+							// extractimagesrc : source inconnue, WebP non garanti → false
 							$src = flexicontent_html::extractimagesrc($row);
 						}
 
@@ -493,18 +805,12 @@ class modFlexicontentHelper
 						}
 
 						if ($src) {
-							$h		= '&amp;h=' . $mod_height_feat;
-							$w		= '&amp;w=' . $mod_width_feat;
-							$aoe	= '&amp;aoe=1';
-							$q		= '&amp;q=95';
-							$zc		= $mod_method_feat ? '&amp;zc=' . $mod_method_feat : '';
-							$ext = strtolower(pathinfo($src, PATHINFO_EXTENSION));
-							$f = in_array( $ext, array('png', 'gif', 'jpeg', 'jpg', 'webp', 'wbmp', 'bmp', 'ico') ) ? '&amp;f='.$ext : '';
-							$conf	= $w . $h . $aoe . $q . $zc . $f;
-
-    					$base_url = (!preg_match("#^http|^https|^ftp|^/#i", $src)) ?  \Joomla\CMS\Uri\Uri::base(true).'/' : '';
-    					$thumb = \Joomla\CMS\Uri\Uri::root(true) . '/components/com_flexicontent/librairies/phpthumb/phpThumb.php?src='.$base_url.$src.$conf;
-		    		}
+							$_b   = (!preg_match("#^http|^https|^ftp|^/#i", $src)) ? \Joomla\CMS\Uri\Uri::base(true).'/' : '';
+							$_cf  = '&amp;aoe=1&amp;q=95' . ($mod_method_feat ? '&amp;zc=' . $mod_method_feat : '');
+							$_alt = htmlspecialchars(isset($row->title) ? $row->title : '', ENT_COMPAT, 'UTF-8');
+							// $src provient soit du champ FC ($mod_use_webp), soit d'extractimagesrc (false)
+							$thumb = modFlexicontentHelper::makeWebpPicture('', $src, $_cf, $_b, $_alt, $mod_width_feat, $mod_height_feat, $mod_use_webp);
+						}
 					}
 					$lists[$ord]['featured'][$i] = new stdClass();
 					$lists[$ord]['featured'][$i]->_row = $row;
@@ -532,6 +838,10 @@ class modFlexicontentHelper
 							$modified_date = ($row->modified != $db->getNullDate()) ? \Joomla\CMS\HTML\HTMLHelper::_('date', $row->modified, $dateformat) : \Joomla\CMS\Language\Text::_( 'FLEXI_DATE_NEVER' );
 							$lists[$ord]['featured'][$i]->date_modified .= '<span class="date_value_feat">' . $modified_date . '</span>';
 						}
+					}
+					if (!$thumb_rendered && $thumb && strpos($thumb, '<') !== false) {
+						$thumb_rendered = $thumb;
+						$thumb = '';
 					}
 					$lists[$ord]['featured'][$i]->image_rendered = $thumb_rendered;
 					$lists[$ord]['featured'][$i]->image = $thumb;
@@ -588,10 +898,6 @@ class modFlexicontentHelper
 						$lists[$ord]['featured'][$i]->fields = array();
 						foreach ($fields_feat as $field) {
 							if ( !isset($row->fields[$field]) ) continue;
-							/*$lists[$ord]['featured'][$i]->fields[$field] = new stdClass();
-							$lists[$ord]['featured'][$i]->fields[$field]->display 	= @$row->fields[$field]->display ? $row->fields[$field]->display : '';
-							$lists[$ord]['featured'][$i]->fields[$field]->name = $row->fields[$field]->name;
-							$lists[$ord]['featured'][$i]->fields[$field]->id   = $row->fields[$field]->id;*/
 							// Expose field to the module template  ... the template should NOT modify this ...
 							if ( !isset($row->fields[$field]->display) )
 							{
@@ -618,6 +924,15 @@ class modFlexicontentHelper
 							$thumb_rendered = FlexicontentFields::getFieldDisplay($row, $fieldname, null, $varname, 'module');
 							$src = '';  // Clear src no rendering needed
 							$_thumb_w = $_thumb_h = 0;
+							if ($thumb_rendered && preg_match('/src=["\'](.*?)["\']/i', $thumb_rendered, $_m)) {
+								$_rs = html_entity_decode($_m[1]);
+								if (strpos($_rs, 'phpThumb.php') === false) {
+									$_b2  = (!preg_match("#^http|^https|^ftp|^/#i", $_rs)) ? \Joomla\CMS\Uri\Uri::base(true).'/' : '';
+									$_alt2 = htmlspecialchars($row->title ?? '', ENT_COMPAT, 'UTF-8');
+									// custom display : source inconnue, WebP non garanti → false
+									$thumb_rendered = modFlexicontentHelper::makeWebpPicture('', $_rs, '&amp;aoe=1&amp;q=95', $_b2, $_alt2, $mod_width, $mod_height, false);
+								}
+							}
 						}
 						elseif ($mod_image_custom_url)
 						{
@@ -643,14 +958,15 @@ class modFlexicontentHelper
 								}
 								else
 								{
-									$thumb = $img_field->thumbs_src[ $mod_use_image ][0] ?? '';
-									$_thumb_w = $thumb ? $img_field->parameters->get('w_'.$mod_use_image[0], 120) : 0;
-									$_thumb_h = $thumb ? $img_field->parameters->get('h_'.$mod_use_image[0], 90) : 0;
+									// small/medium/large/original : srcset depuis les thumbs FC, sans phpThumb
+									$_alt  = htmlspecialchars($row->title ?? '', ENT_COMPAT, 'UTF-8');
+									$thumb = modFlexicontentHelper::makePictureFromThumbs($img_field, $mod_use_image, $_alt, $mod_width, $mod_height, $mod_use_webp);
 								}
 							}
 
 							if ((!$src && $mod_image_fallback_img==1) || ($src && $mod_image_fallback_img==2 && $img_field->using_default_value))
 							{
+								// extractimagesrc : WebP non garanti → false
 								$src = flexicontent_html::extractimagesrc($row);
 							}
 							elseif(!$src && $mod_image_ff && $mod_image_fallback_img==3)
@@ -667,15 +983,17 @@ class modFlexicontentHelper
 									}
 									else
 									{
-										$thumb = $img_field2->thumbs_src[ $mod_use_image ][0] ?? '';
-										$_thumb_w = $thumb ? $img_field2->parameters->get('w_'.$mod_use_image[0], 120) : 0;
-										$_thumb_h = $thumb ? $img_field2->parameters->get('h_'.$mod_use_image[0], 90) : 0;
+										// small/medium/large/original : srcset depuis les thumbs FC, sans phpThumb
+										// champ fallback : webp désactivé (generate_webp inconnu)
+										$_alt  = htmlspecialchars($row->title ?? '', ENT_COMPAT, 'UTF-8');
+										$thumb = modFlexicontentHelper::makePictureFromThumbs($img_field2, $mod_use_image, $_alt, $mod_width, $mod_height, false);
 									}
 								}
 							}
 						}
 						else
 						{
+							// extractimagesrc : source inconnue, WebP non garanti → false
 							$src = flexicontent_html::extractimagesrc($row);
 						}
 
@@ -684,18 +1002,12 @@ class modFlexicontentHelper
 						}
 
 						if ($src) {
-							$h		= '&amp;h=' . $mod_height;
-							$w		= '&amp;w=' . $mod_width;
-							$aoe	= '&amp;aoe=1';
-							$q		= '&amp;q=95';
-							$zc		= $mod_method ? '&amp;zc=' . $mod_method : '';
-							$ext = strtolower(pathinfo($src, PATHINFO_EXTENSION));
-							$f = in_array( $ext, array('png', 'gif', 'jpeg', 'jpg', 'webp', 'wbmp', 'bmp', 'ico') ) ? '&amp;f='.$ext : '';
-							$conf	= $w . $h . $aoe . $q . $zc . $f;
-
-    					$base_url = (!preg_match("#^http|^https|^ftp|^/#i", $src)) ?  \Joomla\CMS\Uri\Uri::base(true).'/' : '';
-    					$thumb = \Joomla\CMS\Uri\Uri::root(true) . '/components/com_flexicontent/librairies/phpthumb/phpThumb.php?src='.$base_url.$src.$conf;
-		    		}
+							$_b   = (!preg_match("#^http|^https|^ftp|^/#i", $src)) ? \Joomla\CMS\Uri\Uri::base(true).'/' : '';
+							$_cf  = '&amp;aoe=1&amp;q=95' . ($mod_method ? '&amp;zc=' . $mod_method : '');
+							$_alt = htmlspecialchars(isset($row->title) ? $row->title : '', ENT_COMPAT, 'UTF-8');
+							// $src provient soit du champ FC ($mod_use_webp), soit d'extractimagesrc (false)
+							$thumb = modFlexicontentHelper::makeWebpPicture('', $src, $_cf, $_b, $_alt, $mod_width, $mod_height, $mod_use_webp);
+						}
 					}
 
 					// START population of item's custom properties
@@ -726,6 +1038,10 @@ class modFlexicontentHelper
 							$modified_date = ($row->modified != $db->getNullDate()) ? \Joomla\CMS\HTML\HTMLHelper::_('date', $row->modified, $dateformat) : \Joomla\CMS\Language\Text::_( 'FLEXI_DATE_NEVER' );
 							$lists[$ord]['standard'][$i]->date_modified .= '<span class="date_value_feat">' . $modified_date . '</span>';
 						}
+					}
+					if (!$thumb_rendered && $thumb && strpos($thumb, '<') !== false) {
+						$thumb_rendered = $thumb;
+						$thumb = '';
 					}
 					$lists[$ord]['standard'][$i]->image_rendered = $thumb_rendered;
 					$lists[$ord]['standard'][$i]->image = $thumb;
@@ -782,10 +1098,6 @@ class modFlexicontentHelper
 						foreach ($fields as $field)
 						{
 							if ( !isset($row->fields[$field]) ) continue;
-							/*$lists[$ord]['standard'][$i]->fields[$field] = new stdClass();
-							$lists[$ord]['standard'][$i]->fields[$field]->display 	= @$row->fields[$field]->display ? $row->fields[$field]->display : '';
-							$lists[$ord]['standard'][$i]->fields[$field]->name = $row->fields[$field]->name;
-							$lists[$ord]['standard'][$i]->fields[$field]->id   = $row->fields[$field]->id;*/
 							// Expose field to the module template  ... the template should NOT modify this ...
 							if ( !isset($row->fields[$field]->display) )
 							{
@@ -851,8 +1163,8 @@ class modFlexicontentHelper
 		}
 
 		// Initialize variables
-		$db   = \Joomla\CMS\Factory::getDbo();
-		$user = \Joomla\CMS\Factory::getUser();
+		$db   = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
+		$user = \Joomla\CMS\Factory::getApplication()->getIdentity();
 		$app  = \Joomla\CMS\Factory::getApplication();
 
 		$jinput  = $app->input;
@@ -2438,7 +2750,7 @@ class modFlexicontentHelper
 	{
 		if (!$params->get('apply_config_per_category', 0)) return false;
 
-		$db   = \Joomla\CMS\Factory::getDbo();
+		$db   = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 		$app  = \Joomla\CMS\Factory::getApplication();
 
 		$jinput  = $app->input;
@@ -2562,7 +2874,7 @@ class modFlexicontentHelper
 				$catdata->introtext = & $catdata->description;
 				$catdata->fulltext = "";
 
-				if ($catconf->image_source && $catdata->image && \Joomla\CMS\Filesystem\File::exists(JPATH_SITE .DS. $joomla_image_path .DS. $catdata->image))
+				if ($catconf->image_source && $catdata->image && file_exists(JPATH_SITE .DS. $joomla_image_path .DS. $catdata->image))
 				{
 					$src = \Joomla\CMS\Uri\Uri::base(true)."/".$joomla_image_path."/".$catdata->image;
 
@@ -2667,7 +2979,7 @@ class modFlexicontentHelper
 	 */
 	public static function getComments($params, &$items)
 	{
-		$db = \Joomla\CMS\Factory::getDbo();
+		$db = \Joomla\CMS\Factory::getContainer()->get(DatabaseInterface::class);
 
 		$list_comments = $params->get('list_comments');
 		$list_comments_feat = $params->get('list_comments_feat');
@@ -2746,7 +3058,7 @@ class modFlexicontentHelper
 		 */
 		flexicontent_html::loadframework('grapesjs_view');
 
-		\Joomla\CMS\Factory::getDocument()->addStyleSheet(
+		\Joomla\CMS\Factory::getApplication()->getDocument()->addStyleSheet(
 			\Joomla\CMS\Uri\Uri::base(true) . $location . $css_file,
 			array('version' => $params->get($layout_name . '_hash'))
 		);

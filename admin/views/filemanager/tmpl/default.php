@@ -69,7 +69,7 @@ else
 {
 	HTMLHelper::_('script', Uri::base() . 'components/com_flexicontent/assets/js/clipboard_v2.0.11.min.js', ['version' => 'auto', 'relative' => false]);
 }
-HtmlHelper::_('bootstrap.modal', 'modal');
+HTMLHelper::_('bootstrap.modal', 'modal');
 
 /**
  * COMMON CSS classes and COMMON repeated texts
@@ -1337,8 +1337,8 @@ if ($js)
 										<td class="center hidden-phone">
 											<?php
 											echo $this->CanFiles && ($this->CanViewAllFiles || $user->id == $row->uploaded_by)
-												? flexicontent_html::userlevel('access['.$row->id.']', $row->access, 'class="fcfield_selectval" onchange="return setAccessLevel(this, '.$row->id.');"')
-												: (strlen($row->access_level) ? $this->escape($row->access_level) : '-');
+												? flexicontent_html::userlevel('access['.$row->id.']', $row->access ?? 1, 'class="fcfield_selectval" onchange="return setAccessLevel(this, '.$row->id.');"')
+												: (strlen($row->access_level ?? '') ? $this->escape($row->access_level) : '-');
 											?>
 										</td>
 									<?php endif; ?>
@@ -1355,7 +1355,7 @@ if ($js)
 										</td>
 									<?php endif; ?>
 
-									<td class="center"><?php echo $row->url != 1 ? (file_exists($file_abspath) ? $row->size : '<span class="badge badge-box badge-important">'.Text::_('FLEXI_FILE_NOT_FOUND').'</span>') : '-'; ?></td>
+									<td class="center"><?php echo $row->url != 1 ? (file_exists($file_abspath) ? $row->size : '<span class="badge badge-box badge-important">'.Text::_('FLEXI_FILE_NOT_FOUND').'</span>') : $row->size; ?></td>
 
 									<?php if (!empty($this->cols['hits'])) : ?>
 										<td class="center hidden-phone"><span class="badge"><?php echo empty($row->hits) ? 0 : $row->hits; ?></span></td>
@@ -2029,7 +2029,7 @@ if ($js)
 																			'<a class="form-control btn btn-info customform-btn fit-contents"
 													onclick="'.$onclick_js.'" href="javascript:" data-href="'.$modal_url.'"
 												><i class="icon-search"></i></a>';  // &nbsp; Select
-																		$juri_root = JURI::root(true);
+																		$juri_root = \Joomla\CMS\Uri\Uri::root(true);
 																		$file_placeholder_text = 'No file selected';
 																		$file_placeholder_src  = $juri_root . '/' .'administrator/components/com_events/assets/images/person_placeholder.jpg';
 																		$file_clear_value_js   = "jQuery(this).parent().find('input[type=text]').val(''); jQuery(this).parent().parent().find('.inline-preview-img').attr('src', '".$file_placeholder_src."'); ";

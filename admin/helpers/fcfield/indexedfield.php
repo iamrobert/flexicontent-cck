@@ -77,7 +77,7 @@ class FCIndexedField extends FCField
 		$tooltip_class = 'hasTooltip';
 		$add_on_class    = $cparams->get('bootstrap_ver', 2)==2  ?  'add-on' : 'input-group-addon';
 		$input_grp_class = $cparams->get('bootstrap_ver', 2)==2  ?  'input-append input-prepend' : 'input-group';
-		$btn_item_class  = $cparams->get('bootstrap_ver', 2)==2  ?  'btn' : 'btn';
+		$btn_item_class  = $cparams->get('bootstrap_ver', 2)==2  ?  'btn' : 'btn btn-outline-secondary';
 		$btn_group_class = $cparams->get('bootstrap_ver', 2)==2  ?  'btn-group' : 'btn-group';
 		$form_font_icons = $cparams->get('form_font_icons', 1);
 		$font_icon_class = $form_font_icons ? ' fcfont-icon' : '';
@@ -914,7 +914,8 @@ class FCIndexedField extends FCField
 			$_fields = FlexicontentFields::getFieldsByIds(array($cascade_after), array($item->id));
 			if (!isset($_fields[$cascade_after]))
 			{
-				return array('Master field not found');
+				$_result = ['Master field not found'];
+				return $_result;
 			}
 			$master_field = $_fields[$cascade_after];
 			FlexicontentFields::loadFieldConfig($master_field, $item);
@@ -1132,13 +1133,16 @@ class FCIndexedField extends FCField
 				$icon_color = $field->parameters->get( 'icon_color_form' ) ;
 			}
 
+			$form_image_width = $field->parameters->get( 'form_image_width', '1.2em');
+			$form_image_height = $field->parameters->get( 'form_image_height', '1.2em');
+
 			foreach ($elements as $element)
 			{
 				if ($form_vals_display > 0 && !isset($element->image_html) && empty($element->isprompt))
 				{
 					if (!$image_type)
 						$element->image_html = file_exists($imgfolder . $element->image) ?
-							'<img style="vertical-align:unset!important;" src="'.$imgpath . $element->image .'"  alt="'.$element->text.'" />' :
+							'<img style="vertical-align:unset!important;'.($form_image_width ? 'width: '.$form_image_width.';' : '').($form_image_height ? 'height: '.$form_image_height.';' : '').'" src="'.$imgpath . $element->image .'"  alt="'.$element->text.'" />' :
 							'[NOT found]: '. $imgpath . $element->image;
 					else
 						$element->image_html = '<span style="vertical-align:unset!important; '.($icon_color ? 'color: '.$icon_color.';' : '').'" class="fcfield_radiocheck_icon '. $element->image . ($icon_size ? ' fc-icon-'.$icon_size : '').'"></span>';

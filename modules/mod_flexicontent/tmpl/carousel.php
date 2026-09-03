@@ -15,6 +15,12 @@
 // no direct access
 defined('_JEXEC') or die('Restricted access');
 
+use Joomla\CMS\Factory;
+
+$wa = Factory::getApplication()->getDocument()->getWebAssetManager();
+
+$wa->useScript('jquery');
+
 $tooltip_class = FLEXI_J30GE ? ' hasTooltip' : ' hasTip';
 
 $mod_width_feat 	= (int)$params->get('mod_width_feat', 110);
@@ -38,20 +44,32 @@ $mod_do_hlight .= $hl_items_onnav == 2 || $hl_items_onnav == 3 ? ' mod_hl_hover'
 
 // Item Dimensions featured
 $inner_inline_css_feat = (int)$params->get($layout.'_inner_inline_css_feat', 0);
-$padding_top_bottom_feat = (int)$params->get($layout.'_padding_top_bottom_feat', 8);
-$padding_left_right_feat = (int)$params->get($layout.'_padding_left_right_feat', 12);
-$margin_top_bottom_feat = (int)$params->get($layout.'_margin_left_right_feat', 4);
-$margin_left_right_feat = (int)$params->get($layout.'_margin_left_right_feat', 4);
-$border_width_feat = (int)$params->get($layout.'_border_width_feat', 1);
-
+$padding_top_bottom_feat = $params->get($layout.'_padding_top_bottom_feat', '0');
+$padding_left_right_feat = $params->get($layout.'_padding_left_right_feat', '0');
+$margin_top_bottom_feat = $params->get($layout.'_margin_top_bottom_feat', '2rem');
+$margin_left_right_feat = $params->get($layout.'_margin_left_right_feat', '2rem');
+$border_width_feat = $params->get($layout.'_border_width_feat', '1px');
+$border_style_feat = $params->get($layout.'_border_style_feat', 'solid');
+$border_color_feat = $params->get($layout.'_border_color_feat', '#cccccc');
+$border_radius_feat = $params->get($layout.'_border_radius_feat', '0');
+$item_column_mode_feat = (int)$params->get($layout.'_column_mode_feat', 0);// 0 column mode old, 1 grid minmax size
+$item_width_feat = $params->get($layout.'_item_width_feat', '200px');
+$item_fit_feat = $params->get($layout.'_content_width_fit_feat', 'auto-fill');
+$item_height_feat = $params->get($layout.'_content_height_fit_feat', 1); //0 Content height, 1 Force same height
 
 // Item Dimensions standard
-$inner_inline_css = (int)$params->get($layout.'_inner_inline_css', 0);
-$padding_top_bottom = (int)$params->get($layout.'_padding_top_bottom', 8);
-$padding_left_right = (int)$params->get($layout.'_padding_left_right', 12);
-$margin_top_bottom = (int)$params->get($layout.'_margin_left_right', 4);
-$margin_left_right = (int)$params->get($layout.'_margin_left_right', 4);
-$border_width = (int)$params->get($layout.'_border_width', 1);
+// NOTE: standard items are positioned by the carousel JS (fcxSlide), not via CSS Grid,
+// so there is no column-mode/grid-width equivalent for them (no matching XML fields either).
+$inner_inline_css_std = (int)$params->get($layout.'_inner_inline_css', 0);
+$padding_top_bottom_std = $params->get($layout.'_padding_top_bottom', '8px');
+$padding_left_right_std = $params->get($layout.'_padding_left_right', '12px');
+$margin_top_bottom_std = $params->get($layout.'_margin_top_bottom', '0');
+$margin_left_right_std = $params->get($layout.'_margin_left_right', '0');
+$border_width_std = $params->get($layout.'_border_width', '0');
+$border_style_std = $params->get($layout.'_border_style', 'solid');
+$border_color_std = $params->get($layout.'_border_color', '#cccccc');
+$border_radius_std = $params->get($layout.'_border_radius', '0');
+$item_height_std = $params->get($layout.'_content_height_fit_std', 1); //0 Content height, 1 Force same height
 
 
 // *****************************************************
@@ -88,30 +106,30 @@ switch ($content_layout_feat) {
 // ***
 // *** Content placement and default image of standard items
 // ***
-$content_display = $params->get($layout.'_content_display', 0);  // 0: always visible, 1: On mouse over / item active, 2: On mouse over
-$content_layout = $params->get($layout.'_content_layout', 3);  // 0/1: floated (right/left), 2/3: cleared (above/below), 4/5/6: overlayed (top/bottom/full)
-$item_img_fit = $params->get($layout.'_img_fit', 1);   // 0: Auto-fit, 1: Auto-fit and stretch to larger
+$content_display_std = $params->get($layout.'_content_display', 0);  // 0: always visible, 1: On mouse over / item active, 2: On mouse over
+$content_layout_std = $params->get($layout.'_content_layout', 3);  // 0/1: floated (right/left), 2/3: cleared (above/below), 4/5/6: overlayed (top/bottom/full)
+$item_img_fit_std = $params->get($layout.'_img_fit', 1);   // 0: Auto-fit, 1: Auto-fit and stretch to larger
 
-switch ($content_layout) {
+switch ($content_layout_std) {
 	case 0: case 1:
-		$img_container_class = ($content_layout==0 ? 'fc_float_left' : 'fc_float_right');
-		$content_container_class = 'fc_floated';
+		$img_container_class_std = ($content_layout_std==0 ? 'fc_float_left' : 'fc_float_right');
+		$content_container_class_std = 'fc_floated';
 		break;
 	case 2: case 3:
-		$img_container_class = 'fc_stretch fc_clear';
-		$content_container_class = '';
+		$img_container_class_std = 'fc_stretch fc_clear';
+		$content_container_class_std = '';
 		break;
 	case 4: case 5: case 6:
-		$img_container_class = 'fc_stretch';
-		$content_container_class = 'fc_overlayed '
-			.($content_layout==4 ? 'fc_top' : '')
-			.($content_layout==5 ? 'fc_bottom' : '')
-			.($content_layout==6 ? 'fc_full' : '')
+		$img_container_class_std = 'fc_stretch';
+		$content_container_class_std = 'fc_overlayed '
+			.($content_layout_std ==4 ? 'fc_top' : '')
+			.($content_layout_std ==5 ? 'fc_bottom' : '')
+			.($content_layout_std ==6 ? 'fc_full' : '')
 			;
-		if ($content_display >= 1) $content_container_class .= ' fc_auto_show';
-		if ($content_display == 1) $content_container_class .= ' fc_show_active';
+		if ($content_display_std >= 1) $content_container_class_std .= ' fc_auto_show';
+		if ($content_display_std == 1) $content_container_class_std .= ' fc_show_active';
 		break;
-	default: $img_container_class = '';  break;
+	default: $img_container_class_std = '';  break;
 }
 
 
@@ -123,10 +141,10 @@ $mod_default_img_path = $params->get('mod_default_img_path', 'components/com_fle
 $img_path = \Joomla\CMS\Uri\Uri::base(true) .'/'; 
 
 // image of FEATURED items, auto-fit and (optionally) limit to image max-dimensions to avoid stretching
-$img_auto_dims_css_feat=" width: 100%; height: auto; display: block !important; border: 0 !important;";
+$img_auto_dims_css_feat =" width: 100%; height: auto; display: block !important; border: 0 !important;";
 
 // image of STANDARD items, auto-fit and (optionally) limit to image max-dimensions to avoid stretching
-$img_auto_dims_css=" width: 100%; height: auto; display: block !important; border: 0 !important;";
+$img_auto_dims_css_std =" width: 100%; height: auto; display: block !important; border: 0 !important;";
 
 
 /**
@@ -224,14 +242,24 @@ if ($transition=='fold')
 $_fcx_fxOptions    = '{ '.$_fcx_fxOptions.' }';
 
 $_fcx_responsive   = $responsive;  // 0: px, 1: percentage
-$_fcx_item_size    = $item_size_px;  // item width (horizontal) OR height (vertical) in case of fixed item size
-$_fcx_items_per_page = $items_per_page;  // ZERO for horizontal, this value will be overwritten by auto-calulation, after page load ends
+// Parse margin_left_right_std as integer px (strip unit suffix if any).
+// $_fcx_item_size must be the TOTAL space per item (visual width + margin-right),
+// because the JS uses it for both item width AND scroll step.
+// We pass item_size_px as the visual width, and add the margin for the scroll step.
+// The JS sets width = item_size on each item, so we override it via CSS to item_size_px.
+$_fcx_margin_std     = (int) $margin_left_right_std;  // strips unit suffix e.g. "10px" → 10
+$_fcx_item_size      = $item_size_px + $_fcx_margin_std;  // total space = visual width + right margin
+$_fcx_items_per_page = $items_per_page;
 
 if ($interval < $duration)
 {
 	echo '<div class="alert">autoplay interval must not be smaller than the EFFECT (scroll/fade/etc) duration (even if autoplay is disabled), please correct in module configuration</div>';
 }
 
+$readmore_align_feat = $params->get('readmore_align_feat', 'center');
+$readmore_align_std = $params->get('readmore_align_std', 'center');
+$readmore_class_feat = $params->get('readmore_class_feat', 'readon btn feat');
+$readmore_class_std = $params->get('readmore_class_std', 'readon btn std');
 
 /**
  * Featured
@@ -239,16 +267,21 @@ if ($interval < $duration)
  */
 $item_placement_feat = (int) $params->get($layout.'_item_placement_feat', 0);
 $item_columns_feat   = (int) $params->get('item_columns_feat', 3);
-$cols_class_feat     = $item_columns_feat <= 1 ? '' : 'cols_' . $item_columns_feat;
+/** add column class or no class for grid mode */
+if ($item_columns_feat  >= 1 && $item_column_mode_feat == 1 ){
+	$cols_class_feat = '';
+}else {
+	$cols_class_feat  ='cols_' .$item_columns_feat;
+}
 
 /**
  * Standard
- * Note: these are ignored / unsed since we items are place inside the carousel
- * item placement 0: cleared, 1: as masonry tiles, 2: tabs, 3: accordion (sliders)
+ * Note: standard items are placed inside the carousel and positioned by its JS (fcxSlide),
+ * not via CSS Grid/masonry/tabs/accordion, so item_placement_std is fixed and the
+ * column-mode/class logic that exists for featured items does not apply here.
  */
 $item_placement_std = -1;
 $item_columns_std   = 1;
-$cols_class_std     = $item_columns_std  <= 1 ? '' : 'cols_' . $item_columns_std;
 
 $document = \Joomla\CMS\Factory::getDocument();
 $jcookie  = \Joomla\CMS\Factory::getApplication()->input->cookie;
@@ -275,7 +308,7 @@ if (($item_placement_feat === 1 && $item_columns_feat > 1) || ($item_placement_s
  */
 if ($transition)
 {
-	$file_path = \Joomla\CMS\Filesystem\Path::clean(JPATH_SITE.'/components/com_flexicontent/librairies/jquery/js/jquery-ui/jquery.ui.effect-'.$transition.'.min.js');
+	$file_path = \Joomla\Filesystem\Path::clean(JPATH_SITE.'/components/com_flexicontent/librairies/jquery/js/jquery-ui/jquery.ui.effect-'.$transition.'.min.js');
 
 	if (file_exists($file_path))
 	{
@@ -400,7 +433,7 @@ $container_id = $module->id . (count($catdata_arr) > 1 && $catdata ? '_' . $catd
 
 <!-- BOF DIV mod_flexicontent_wrapper -->
 
-<div class="carousel mod_flexicontent_wrapper mod_flexicontent_wrap<?php echo $moduleclass_sfx; ?>" id="mod_flexicontent_carousel<?php echo $container_id; ?>">
+<div class="carousel mod_flexicontent_wrapper mod_flexicontent_wrap" id="mod_flexicontent_carousel<?php echo $container_id; ?>">
 
 
 	<?php
@@ -484,7 +517,7 @@ $container_id = $module->id . (count($catdata_arr) > 1 && $catdata ? '_' . $catd
 
 		<!-- BOF DIV mod_flexicontent_featured (featured items) -->
 
-		<div class="mod_flexicontent_featured mod_fcitems_box_featured_<?php echo $uniq_ord_id; ?>" id="mod_fcitems_box_featured_<?php echo $uniq_ord_id; ?>">
+		<div class="mod_flexicontent_featured mod_fcitems_box_featured_<?php echo $uniq_ord_id; ?> <?php echo ($cols_class_feat ? ' '.$cols_class_feat : ''); ?>" id="mod_fcitems_box_featured_<?php echo $uniq_ord_id; ?>">
 
 			<?php
 			$oe_class = $rowtoggler ? 'odd' : 'even';
@@ -541,7 +574,7 @@ $container_id = $module->id . (count($catdata_arr) > 1 && $catdata ? '_' . $catd
 			?>
 
 			<!-- BOF item -->	
-			<div class="mod_flexicontent_featured_wrapper<?php echo $mod_do_hlight_feat; ?><?php echo ' '.$oe_class .($item->is_active_item ? ' fcitem_active' : '') .($cols_class_feat ? ' '.$cols_class_feat : ''); ?>">
+			<div class="mod_flexicontent_featured_wrapper<?php echo $mod_do_hlight_feat; ?><?php echo ' '.$oe_class .($item->is_active_item ? ' fcitem_active' : ''); ?> <?php echo ($item_placement_feat == 1) ? 'masonry' : '';?>">
 			<div class="mod_flexicontent_featured_wrapper_innerbox">
 
 
@@ -555,9 +588,9 @@ $container_id = $module->id . (count($catdata_arr) > 1 && $catdata ? '_' . $catd
 						<div class="fcitem_title_box">
 							<span class="fcitem_title">
 							<?php if ($link_title_feat) : ?>
-								<a href="<?php echo $item->link; ?>"><?php echo $item->title; ?></a>
+								<a href="<?php echo $item->link; ?>"><h3><?php echo $item->title; ?></h3></a>
 							<?php else : ?>
-								<?php echo $item->title; ?>
+								<h3><?php echo $item->title; ?></h3>
 							<?php endif; ?>
 							</span>
 						</div>
@@ -583,12 +616,14 @@ $container_id = $module->id . (count($catdata_arr) > 1 && $catdata ? '_' . $catd
 					<?php elseif ($mod_use_image_feat && $item->image) : ?>
 
 						<div class="image_featured <?php echo $img_container_class_feat;?>">
+							<?php
+							$_alt_f = flexicontent_html::striptagsandcut($item->fulltitle, 60);
+							$_pic_f = modFlexicontentHelper::makeWebpPicture($item->image, '', '', '', $_alt_f, $mod_width_feat, $mod_height_feat);
+							?>
 							<?php if ($mod_link_image_feat) : ?>
-								<a href="<?php echo $item->link; ?>">
-									<img <?php echo $img_size_feat; ?> style="<?php echo $img_force_dims_css_feat; ?>" src="<?php echo $item->image; ?>" alt="<?php echo flexicontent_html::striptagsandcut($item->fulltitle, 60); ?>" />
-								</a>
+								<a href="<?php echo $item->link; ?>"><?php echo $_pic_f; ?></a>
 							<?php else : ?>
-								<img <?php echo $img_size_feat; ?> style="<?php echo $img_force_dims_css_feat; ?>" src="<?php echo $item->image; ?>" alt="<?php echo flexicontent_html::striptagsandcut($item->fulltitle, 60); ?>" />
+								<?php echo $_pic_f; ?>
 							<?php endif; ?>
 						</div>
 
@@ -669,18 +704,17 @@ $container_id = $module->id . (count($catdata_arr) > 1 && $catdata ? '_' . $catd
 					</div>
 					<?php endif; ?>
 
-					<?php if ($mod_readmore_feat) : ?>
-					<div class="fc_block">
-						<div class="fcitem_readon">
-							<a href="<?php echo $item->link; ?>" class="readon"><span><?php echo \Joomla\CMS\Language\Text::_('FLEXI_MOD_READ_MORE'); ?></span></a>
-						</div>
-					</div>
-					<?php endif; ?>
-
-					<div class="clearfix"></div> 
 
 				</div> <!-- EOF item's content -->
 				<?php endif; ?>
+
+				<?php if ($mod_readmore_feat) : ?>
+					<div class="fc_block readmore <?php echo ($item_height_feat == 1) ? "force-height" : ""; ;?>">
+						<div class="fcitem_readon <?php echo $readmore_align_feat;?>">
+							<a href="<?php echo $item->link; ?>" class="<?php echo $readmore_class_feat; ?>"><span><?php echo \Joomla\CMS\Language\Text::_('FLEXI_MOD_READ_MORE'); ?></span></a>
+						</div>
+					</div>
+					<?php endif; ?>
 
 				<?php echo $content_layout_feat==2 ? $captured_image : '';?>
 
@@ -688,11 +722,12 @@ $container_id = $module->id . (count($catdata_arr) > 1 && $catdata ? '_' . $catd
 			<?php endif; /* EOF: Content display via Parameter-based Layout */ ?>
 
 
-			<?php
+			<?php if($feat_builder_layout_num > 0){
 				// Content display via Builder-based Layouts
 				echo $feat_builder_layout
 					? str_replace('{{fc-item-id}}', $item->id, $feat_builder_layout)
 					: '';
+				}
 			?>
 
 
@@ -785,7 +820,7 @@ $container_id = $module->id . (count($catdata_arr) > 1 && $catdata ? '_' . $catd
 		<?php	$rowcount = 0; ?>
 
 		<div id="mod_fc_carousel_mask_<?php echo $uniq_ord_id; ?>_loading" class="mod_fc_carousel_mask_loading">
-			... <?php echo  \Joomla\CMS\Language\Text::_('FLEXI_MOD_CAROUSEL_LOADING_IMAGES'); ?> <img alt="" src="<?php echo \Joomla\CMS\Uri\Uri::root(true); ?>/components/com_flexicontent/assets/images/ajax-loader.gif"/>
+			... <?php echo  \Joomla\CMS\Language\Text::_('FLEXI_MOD_CAROUSEL_LOADING_IMAGES'); ?> <img src="<?php echo \Joomla\CMS\Uri\Uri::root(true); ?>/components/com_flexicontent/assets/images/ajax-loader.gif"/>
 		</div>
 
 
@@ -808,11 +843,11 @@ $container_id = $module->id . (count($catdata_arr) > 1 && $catdata ? '_' . $catd
 
 			foreach ($list[$ord]['standard'] as $item) :
 
-				$img_force_dims_css = $img_auto_dims_css;
+				$img_force_dims_css_std = $img_auto_dims_css_std;
 
-				if ($item_img_fit == 0 /* || $content_layout <= 3*/)
+				if ($item_img_fit_std == 0 /* || $content_layout <= 3*/)
 				{
-					$img_force_dims_css .= ($item->image_w ? ' max-width:'. $item->image_w.'px; ' : '') . ($item->image_h ? ' max-height:'. $item->image_h.'px; ' : '');
+					$img_force_dims_css_std .= ($item->image_w ? ' max-width:'. $item->image_w.'px; ' : '') . ($item->image_h ? ' max-height:'. $item->image_h.'px; ' : '');
 				}
 
 				$img_size = 
@@ -834,7 +869,7 @@ $container_id = $module->id . (count($catdata_arr) > 1 && $catdata ? '_' . $catd
 				onmouseover="if (!mod_fc_carousel_<?php echo $uniq_ord_id; ?>) return; mod_fc_carousel_<?php echo $uniq_ord_id; ?>.stop(); mod_fc_carousel_<?php echo $uniq_ord_id; ?>.autoPlay=false;"
 				onmouseout="if (!mod_fc_carousel_<?php echo $uniq_ord_id; ?>) return; if (mod_fc_carousel_<?php echo $uniq_ord_id; ?>_autoPlay==1) mod_fc_carousel_<?php echo $uniq_ord_id; ?>.play(<?php echo $interval; ?>,'next',true);	else if (mod_fc_carousel_<?php echo $uniq_ord_id; ?>_autoPlay==-1) mod_fc_carousel_<?php echo $uniq_ord_id; ?>.play(<?php echo $interval; ?>,'previous',true);"
 			>
-			<div class="mod_flexicontent_standard_wrapper_innerbox">
+			<div class="mod_flexicontent_standard_wrapper_innerbox <?php echo $img_container_class_std; ?>">
 
 
 			<?php if ($std_params_layout) : /* BOF: Content display via Parameter-based Layout */ ?>
@@ -847,9 +882,9 @@ $container_id = $module->id . (count($catdata_arr) > 1 && $catdata ? '_' . $catd
 						<div class="fcitem_title_box" <?php echo !$display_title ? 'style="display:none!important;"' : ''; ?> >
 							<span class="fcitem_title">
 							<?php if ($link_title) : ?>
-								<a href="<?php echo $item->link; ?>"><?php echo $item->title; ?></a>
+								<a href="<?php echo $item->link; ?>"><h3><?php echo $item->title; ?></h3></a>
 							<?php else : ?>
-								<?php echo $item->title; ?>
+								<h3><?php echo $item->title; ?></h3>
 							<?php endif; ?>
 							</span>
 						</div>
@@ -864,7 +899,7 @@ $container_id = $module->id . (count($catdata_arr) > 1 && $catdata ? '_' . $catd
 
 					<?php if ($mod_use_image && $item->image_rendered) : ?>
 
-						<div class="image_standard <?php echo $img_container_class;?>">
+						<div class="image_standard <?php echo $img_container_class_std;?>">
 							<?php if ($mod_link_image) : ?>
 								<a href="<?php echo $item->link; ?>"><?php echo $item->image_rendered; ?></a>
 							<?php else : ?>
@@ -874,13 +909,15 @@ $container_id = $module->id . (count($catdata_arr) > 1 && $catdata ? '_' . $catd
 
 					<?php elseif ($mod_use_image && $item->image) : ?>
 
-						<div class="image_standard <?php echo $img_container_class;?>">
+						<div class="image_standard <?php echo $img_container_class_std;?>">
+							<?php
+							$_alt_s = flexicontent_html::striptagsandcut($item->fulltitle, 60);
+							$_pic_s = modFlexicontentHelper::makeWebpPicture($item->image, '', '', '', $_alt_s, $mod_width, $mod_height);
+							?>
 							<?php if ($mod_link_image) : ?>
-								<a href="<?php echo $item->link; ?>">
-									<img <?php echo $img_size; ?> style="<?php echo $img_force_dims_css; ?>" src="<?php echo $item->image; ?>" alt="<?php echo flexicontent_html::striptagsandcut($item->fulltitle, 60); ?>" />
-								</a>
+								<a href="<?php echo $item->link; ?>"><?php echo $_pic_s; ?></a>
 							<?php else : ?>
-								<img <?php echo $img_size; ?> style="<?php echo $img_force_dims_css; ?>" src="<?php echo $item->image; ?>" alt="<?php echo flexicontent_html::striptagsandcut($item->fulltitle, 60); ?>" />
+								<?php echo $_pic_s; ?>
 							<?php endif; ?>
 						</div>
 
@@ -889,11 +926,11 @@ $container_id = $module->id . (count($catdata_arr) > 1 && $catdata ? '_' . $catd
 				<?php $captured_image = ob_get_clean(); $hasImage = (boolean) trim($captured_image); ?>
 				<!-- EOF item's image -->
 
-				<?php echo $content_layout!=2 ? $captured_image : '';?>
+				<?php echo $content_layout_std!=2 ? $captured_image : '';?>
 
 				<!-- BOF item's content -->
 				<?php if ($hasTitle || $display_date || $display_text || $display_hits || $display_voting || $display_comments || $mod_readmore || ($use_fields && @$item->fields && $fields)) : ?>
-				<div class="content_standard <?php echo $content_container_class;?>">
+				<div class="content_standard <?php echo $content_container_class_std;?>">
 
 					<?php echo $captured_title; ?>
 
@@ -962,8 +999,8 @@ $container_id = $module->id . (count($catdata_arr) > 1 && $catdata ? '_' . $catd
 
 					<?php if ($mod_readmore) : ?>
 					<div class="fc_block">
-						<div class="fcitem_readon">
-							<a href="<?php echo $item->link; ?>" class="readon"><span><?php echo \Joomla\CMS\Language\Text::_('FLEXI_MOD_READ_MORE'); ?></span></a>
+						<div class="fcitem_readon <?php echo $readmore_align_std;?>">
+							<a href="<?php echo $item->link; ?>" class="<?php echo $readmore_class_std; ?>"><span><?php echo \Joomla\CMS\Language\Text::_('FLEXI_MOD_READ_MORE'); ?></span></a>
 						</div>
 					</div>
 					<?php endif; ?>
@@ -973,7 +1010,7 @@ $container_id = $module->id . (count($catdata_arr) > 1 && $catdata ? '_' . $catd
 				</div> <!-- EOF item's content -->
 				<?php endif; ?>
 
-				<?php echo $content_layout==2 ? $captured_image : '';?>
+				<?php echo $content_layout_std ==2 ? $captured_image : '';?>
 
 
 			<?php endif; /* EOF: Content display via Parameter-based Layout */ ?>
@@ -981,7 +1018,7 @@ $container_id = $module->id . (count($catdata_arr) > 1 && $catdata ? '_' . $catd
 
 			<?php
 				// Content display via Builder-based Layouts
-				if (!empty ($std_builder_layout)){
+				if ($std_builder_layout > 0){
 				echo $std_builder_layout
 					? str_replace('{{fc-item-id}}', $item->id, $std_builder_layout)
 					: '';
@@ -1086,7 +1123,35 @@ $container_id = $module->id . (count($catdata_arr) > 1 && $catdata ? '_' . $catd
 						$classes = $handle_classes . ($tip_html ? $tooltip_class : '');
 					?>
 						<span class="<?php echo $classes; ?>" title="<?php echo $tip_html; ?>" >
-							<img alt="" src="<?php echo @ $item->image ? $item->image : $img_path.$mod_default_img_path; ?>" style="<?php echo 'width:'.$item_handle_width.'px; height:'.$item_handle_height.'px'; ?>" />
+							<?php
+							// Pour les handles : extraire le src depuis image_rendered (<picture>) ou image (URL directe)
+							$_handle_raw = '';
+							if (@ $item->image_rendered && preg_match('/src=["\'](.*?)["\' ]/i', $item->image_rendered, $_hm)) {
+								// Extraire l'URL src du fallback JPEG dans le <picture> généré par le helper
+								$_raw = html_entity_decode($_hm[1]);
+								// Récupérer le paramètre src= de phpThumb si c'est une URL phpThumb
+								if (strpos($_raw, 'phpThumb.php') !== false && preg_match('/[?&]src=([^&]+)/', $_raw, $_sm)) {
+									$_handle_raw = urldecode($_sm[1]);
+								} else {
+									$_handle_raw = $_raw;
+								}
+							} elseif (@ $item->image) {
+								$_handle_raw = $item->image;
+							}
+							if (!$_handle_raw) $_handle_raw = $img_path.$mod_default_img_path;
+							$_hw = (int) $item_handle_width;
+							$_hh = (int) $item_handle_height;
+							$_hb = (!preg_match("#^http|^https|^ftp|^/#i", $_handle_raw)) ? \Joomla\CMS\Uri\Uri::base(true).'/' : '';
+							// Encoder les espaces (noms de fichiers) ; & pas &amp; car srcset est lu directement par le navigateur
+							$_handle_raw_enc = str_replace(' ', '%20', $_handle_raw);
+							$_hconf = '&w='.$_hw.'&h='.$_hh.'&aoe=1&q=85&zc=1';
+							$_hbase = \Joomla\CMS\Uri\Uri::root(true).'/components/com_flexicontent/librairies/phpthumb/phpThumb.php?src='.$_hb.$_handle_raw_enc;
+							$_style_h = 'width:'.$_hw.'px; height:'.$_hh.'px; display:block; object-fit:cover;';
+							echo '<picture>'
+								. '<source type="image/webp" srcset="'.$_hbase.$_hconf.'&f=webp">'
+								. '<img src="'.$_hbase.$_hconf.'&amp;f=jpg" alt="" width="'.$_hw.'" height="'.$_hh.'" style="'.$_style_h.'" loading="lazy" decoding="async" />'
+								. '</picture>';
+							?>
 						</span>
 					<?php endforeach; ?>
 
@@ -1153,6 +1218,7 @@ $container_id = $module->id . (count($catdata_arr) > 1 && $catdata ? '_' . $catd
 				responsive: '.$_fcx_responsive.',
 				items_per_page: '.$_fcx_items_per_page.',
 				item_size: '.$_fcx_item_size.',
+				item_margin: '.$_fcx_margin_std.',
 
 				'.( !$show_page_handles ? '' : '
 				page_handles: jQuery("#mod_fc_page_handles_'.$uniq_ord_id.'").find("span.mod_fc_page_handle"),
@@ -1231,11 +1297,44 @@ $container_id = $module->id . (count($catdata_arr) > 1 && $catdata ? '_' . $catd
 		});
 		';
 
-	if ($js) $document->addScriptDeclaration($js);
+	if ($js) $wa->addInlineScript($js);;
 
 	// ***********************************************************
 	// Module specific styling (we use names containing module ID)
 	// ***********************************************************
+
+	if ($item_column_mode_feat == 0 ){
+		switch ($item_columns_feat) {
+			case 1:
+				$item_columns_feat = '100%';
+				break;
+			case 2:
+				$item_columns_feat = '50%';
+				break;
+			case 3:
+				$item_columns_feat = '33%';
+				break;
+			case 4:
+				$item_columns_feat = '25%';
+				break;
+			case 5:
+				$item_columns_feat = '20%';
+				break;
+			case 6:
+				$item_columns_feat = '16%';
+				break;
+			case 7:
+				$item_columns_feat = '14%';
+				break;
+			case 8:
+				$item_columns_feat = '12%';
+				break;
+		}
+	}else{
+		$item_columns_feat = $item_width_feat;
+	}
+	// NOTE: no equivalent switch for standard items: they have no column-mode/grid-width
+	// parameter (no XML fields), as they are positioned by the carousel JS, not CSS Grid.
 
 	$css = ''.
 	/* CONTAINER of featured items */'
@@ -1244,27 +1343,48 @@ $container_id = $module->id . (count($catdata_arr) > 1 && $catdata ? '_' . $catd
 	/* CONTAINER of each featured item */'
 	#mod_fcitems_box_featured_'.$uniq_ord_id.' div.mod_flexicontent_standard_wrapper {
 	}'.
-	/* inner CONTAINER of each standard item */'
-	#mod_fcitems_box_featured_'.$uniq_ord_id.' div.mod_flexicontent_standard_wrapper_innerbox {
+	/* inner CONTAINER (grid parent) of feat items: gap & column sizing apply here */'
+	#mod_fcitems_box_featured_'.$uniq_ord_id.'.mod_flexicontent_featured {
 		'.($inner_inline_css_feat ? '
-		padding: '.$padding_top_bottom_feat.'px '.$padding_left_right_feat.'px !important;
-		border-width: '.$border_width_feat.'px!important;
-		margin: '.$margin_top_bottom_feat.'px '.$margin_left_right_feat.'px !important;
+		row-gap: '.$margin_top_bottom_feat.' !important ;
+		gap:'.$margin_left_right_feat.' !important;
+		' : '').'
+		grid-template-columns: repeat('.$item_fit_feat.', minmax('.$item_columns_feat.', 1fr));
+	}'.
+	/* contour (padding/border) of EACH feat item, not the grid container */'
+	#mod_fcitems_box_featured_'.$uniq_ord_id.' .mod_flexicontent_featured_wrapper_innerbox {
+		'.($inner_inline_css_feat ? '
+		padding: '.$padding_top_bottom_feat.' '.$padding_left_right_feat.' !important;
+		border-width: '.$border_width_feat.' !important;
+		border-style: '.$border_style_feat.' !important;
+		border-color: '.$border_color_feat.' !important;
+		border-radius: '.$border_radius_feat.' !important;
+		' : '').'
+		'.($inner_inline_css_feat && trim($border_radius_feat) !== '' && trim($border_radius_feat) !== '0' ? '
+		overflow: hidden !important;
 		' : '').'
 	}'.
 
 	/* CONTAINER of standard items */'
 	#mod_fcitems_box_standard_'.$uniq_ord_id.' {
 	}'.
-	/* CONTAINER of each standard item */'
+	/* contour (padding/border) of EACH standard item — items are positioned by carousel JS (float:left), margin applies on wrapper */'
 	#mod_fcitems_box_standard_'.$uniq_ord_id.' div.mod_flexicontent_standard_wrapper {
+		'.($inner_inline_css_std && $_fcx_margin_std > 0 ? '
+		margin-right: '.$_fcx_margin_std.'px !important;
+		' : '').'
 	}'.
-	/* inner CONTAINER of each standard item */'
+	/* inner box: border, padding, radius */'
 	#mod_fcitems_box_standard_'.$uniq_ord_id.' div.mod_flexicontent_standard_wrapper_innerbox {
-		'.($inner_inline_css ? '
-		padding: '.$padding_top_bottom.'px '.$padding_left_right.'px !important;
-		border-width: '.$border_width.'px!important;
-		margin: '.$margin_top_bottom.'px '.$margin_left_right.'px !important;
+		'.($inner_inline_css_std ? '
+		padding: '.$padding_top_bottom_std.' '.$padding_left_right_std.' !important;
+		border-width: '.$border_width_std.' !important;
+		border-style: '.$border_style_std.' !important;
+		border-color: '.$border_color_std.' !important;
+		border-radius: '.$border_radius_std.' !important;
+		' : '').'
+		'.($inner_inline_css_std && trim($border_radius_std) !== '' && trim($border_radius_std) !== '0' ? '
+		overflow: hidden !important;
 		' : '').'
 	}'.
 
@@ -1285,26 +1405,48 @@ $container_id = $module->id . (count($catdata_arr) > 1 && $catdata ? '_' . $catd
 	}
 	#mod_fc_page_handles_'.$uniq_ord_id.' span.mod_fc_page_handle:hover {
 		'.($page_handle_event=='click' ? 'cursor:pointer;' : 'cursor:default;').'
-	}'
+	}'.
+		/* column size for masonry (featured only — standard items are positioned by the carousel JS, never get the .masonry class) */'
+		#mod_fcitems_box_featured_'.$uniq_ord_id.' .mod_flexicontent_featured_wrapper.masonry{
+			'.($inner_inline_css_feat ? '
+				width: calc('.$item_columns_feat.' - '.$margin_left_right_feat.') !important;
+				margin-right:'.$margin_left_right_feat.' !important;
+				margin-bottom:'.$margin_top_bottom_feat.' !important ;
+				' : '
+				width: calc('.$item_columns_feat.' - 20px) !important;
+				margin-right:20px !important;
+				margin-bottom:20px !important ;
+				').'
+			}'.
+		/* responsive for masonry */'
+		@media only screen and (min-device-width : 320px) and (max-device-width : 480px) {
+		#mod_fcitems_box_featured_'.$uniq_ord_id.' .mod_flexicontent_featured_wrapper.masonry{
+			width: 100% !important;
+		}
+		}'
 	;
 
-	if ($css) $document->addStyleDeclaration($css);
+	if ($css) $wa->addInlineStyle($css);
 
 	if ($item_placement_feat == 1 && $item_columns_feat > 1)
 	{
 		$js = "
 		jQuery(document).ready(function(){
-			var container = document.querySelector('div#mod_fcitems_box_featured_".$uniq_ord_id."');
+			var container_feat = document.querySelector('div#mod_fcitems_box_featured_".$uniq_ord_id."');
 			var msnry;
 			// initialize Masonry after all images have loaded
-			if (container) {
-				imagesLoaded( container, function() {
-					msnry = new Masonry( container );
+			if (container_feat) {
+				imagesLoaded( container_feat, function() {
+					msnry = new Masonry( container_feat, {
+					columnWidth: '#mod_fcitems_box_featured_$uniq_ord_id .mod_flexicontent_featured_wrapper.masonry',
+					horizontalOrder: true,
+					percentPosition: true
+					});
 				});
 			}
 		});
 		";
-		if ($js) $document->addScriptDeclaration($js);
+		if ($js) $wa->addInlineScript($js);
 	}
 	if ($item_placement_std == 1 && $item_columns_std > 1)
 	{
@@ -1320,7 +1462,7 @@ $container_id = $module->id . (count($catdata_arr) > 1 && $catdata ? '_' . $catd
 			}
 		});
 		";
-		if ($js) $document->addScriptDeclaration($js);
+		if ($js) $wa->addInlineScript($js);
 	}
 	?>
 
@@ -1334,4 +1476,3 @@ $container_id = $module->id . (count($catdata_arr) > 1 && $catdata ? '_' . $catd
 </div>
 
 <!-- EOF DIV mod_flexicontent_wrapper -->
-

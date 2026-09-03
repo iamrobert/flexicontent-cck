@@ -63,7 +63,7 @@ class plgFlexicontent_fieldsMediafile extends FCField
 		$tooltip_class = 'hasTooltip';
 		$add_on_class    = $cparams->get('bootstrap_ver', 2)==2  ?  'add-on' : 'input-group-addon';
 		$input_grp_class = $cparams->get('bootstrap_ver', 2)==2  ?  'input-append input-prepend' : 'input-group';
-		$btn_item_class  = $cparams->get('bootstrap_ver', 2)==2  ?  'btn' : 'btn';
+		$btn_item_class  = $cparams->get('bootstrap_ver', 2)==2  ?  'btn' : 'btn btn-outline-secondary';
 		$btn_group_class = $cparams->get('bootstrap_ver', 2)==2  ?  'btn-group' : 'btn-group';
 		$form_font_icons = $cparams->get('form_font_icons', 1);
 		$font_icon_class = $form_font_icons ? ' fcfont-icon' : '';
@@ -106,19 +106,22 @@ class plgFlexicontent_fieldsMediafile extends FCField
 			? array_map('trim', explode(',', $media_params->get('doc_extensions', 'doc,odg,odp,ods,odt,pdf,ppt,txt,xcf,xls,csv')))
 			: [];
 
+		$mediaTypes = [];
+		$mediaTypeNames = [];
 		if (version_compare(\Joomla\CMS\Version::MAJOR_VERSION, '4', 'ge'))
 		{
 			// 0: images, 1: audios, 2: videos, 3: documents * 'folders' is always included in J4
 			$mediaTypes = [];
-			if (in_array('images', $jmedia_filetypes)) $mediaTypes[] = '0';
-			if (in_array('audios', $jmedia_filetypes)) $mediaTypes[] = '1';
-			if (in_array('videos', $jmedia_filetypes)) $mediaTypes[] = '2';
-			if (in_array('docs',   $jmedia_filetypes)) $mediaTypes[] = '3';
-			$mediaTypes = implode(',', $mediaTypes);  // * 'folders' is always included in J4
+			if (in_array('images', $jmedia_filetypes)) { $mediaTypes[] = '0'; $mediaTypeNames[] = 'Images'; }
+			if (in_array('audios', $jmedia_filetypes)) { $mediaTypes[] = '1'; $mediaTypeNames[] = 'Audios'; }
+			if (in_array('videos', $jmedia_filetypes)) { $mediaTypes[] = '2'; $mediaTypeNames[] = 'Videos'; }
+			if (in_array('docs',   $jmedia_filetypes)) { $mediaTypes[] = '3'; $mediaTypeNames[] = 'Documents'; }
 		}
 		else {
 			$fileTypes = implode(',', $jmedia_filetypes); // Supported values: 'folders,images,docs,videos' * audios will be ignored in J3
 		}
+		// Only implode the mediaTypes array , but not the mediaTypeNames array, since it is not used in the layout file as an array
+		$mediaTypes = implode(',', $mediaTypes);  // * 'folders' is always included in J4
 
 		// Classes for marking field required
 		$required_class = $required ? ' required' : '';
@@ -730,9 +733,8 @@ class plgFlexicontent_fieldsMediafile extends FCField
 			//flexicontent_html::loadFramework('wavesurfer');
 			flexicontent_html::loadFramework('flexi-lib');
 			\Joomla\CMS\HTML\HTMLHelper::addIncludePath(JPATH_SITE . '/components/com_flexicontent/helpers/html');
-			$document->addScript('https://unpkg.com/wavesurfer.js/dist/wavesurfer.min.js');
-			//$document->addScript('https://unpkg.com/wavesurfer.js/dist/plugin/wavesurfer.cursor.js');
-			$document->addScript(\Joomla\CMS\Uri\Uri::root(true) . '/plugins/flexicontent_fields/mediafile/js/form.js', array('version' => FLEXI_VHASH));
+			$document->addScript('https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js');
+			$document->addScript(\Joomla\CMS\Uri\Uri::root(true) . '/plugins/flexicontent_fields/mediafile/js/form.js', array('version' => filemtime(JPATH_ROOT . '/plugins/flexicontent_fields/mediafile/js/form.js')));
 
 			$js .= "
 			jQuery(document).ready(function()
@@ -1112,9 +1114,8 @@ class plgFlexicontent_fieldsMediafile extends FCField
 			//flexicontent_html::loadFramework('wavesurfer');
 			flexicontent_html::loadFramework('flexi-lib');
 			\Joomla\CMS\HTML\HTMLHelper::addIncludePath(JPATH_SITE . '/components/com_flexicontent/helpers/html');
-			$document->addScript('https://unpkg.com/wavesurfer.js/dist/wavesurfer.min.js');
-			//$document->addScript('https://unpkg.com/wavesurfer.js/dist/plugin/wavesurfer.cursor.js');
-			$document->addScript(\Joomla\CMS\Uri\Uri::root(true) . '/plugins/flexicontent_fields/mediafile/js/view.js', array('version' => FLEXI_VHASH));
+			$document->addScript('https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js');
+			$document->addScript(\Joomla\CMS\Uri\Uri::root(true) . '/plugins/flexicontent_fields/mediafile/js/view.js', array('version' => filemtime(JPATH_ROOT . '/plugins/flexicontent_fields/mediafile/js/view.js')));
 			//$document->addScript(\Joomla\CMS\Uri\Uri::root(true) . '/components/com_flexicontent/assets/js/pako.min.js', array('version' => FLEXI_VHASH));
 			//$document->addScript(\Joomla\CMS\Uri\Uri::root(true) . '/components/com_flexicontent/assets/js/pako_deflate.min.js', array('version' => FLEXI_VHASH));
 			//$document->addScript(\Joomla\CMS\Uri\Uri::root(true) . '/components/com_flexicontent/assets/js/pako_inflate.min.js', array('version' => FLEXI_VHASH));
@@ -1393,7 +1394,7 @@ class plgFlexicontent_fieldsMediafile extends FCField
 			$initialized = 1;
 			jimport('joomla.filesystem.folder');
 			jimport('joomla.filesystem.path');
-			$srcpath_original  = \Joomla\CMS\Filesystem\Path::clean( JPATH_SITE .DS. $import_docs_folder .DS );
+			$srcpath_original  = \Joomla\Filesystem\Path::clean( JPATH_SITE .DS. $import_docs_folder .DS );
 		}
 
 
@@ -1438,10 +1439,56 @@ class plgFlexicontent_fieldsMediafile extends FCField
 					$upload_errs = null;
 					$file_ids = $fman->addlocal($Fobj, $upload_errs);
 
+					if (empty($file_ids))
+					{
+						\Joomla\CMS\Log\Log::add(
+							'mediafile import: file "' . $filename . '" not found in folder "' . $import_docs_folder . $sub_folder . '"',
+							\Joomla\CMS\Log\Log::WARNING,
+							'com_flexicontent.importcsv'
+						);
+					}
+
 					// Get fist element
 					$v = !empty($file_ids) ? reset($file_ids) : ($use_ingroup ? null : false);
 					$v = $v ?: ($use_ingroup ? null : false);
 					//$_filetitle = key($file_ids);  // This is the cleaned up filename, currently not needed
+
+					// Run media processing for newly added file (skipped by addlocal)
+					if (!empty($v) && is_numeric($v))
+					{
+						try
+						{
+							$_file_id = (int) $v;
+							$_db = Factory::getDbo();
+							$_fileObj = $_db->setQuery('SELECT * FROM #__flexicontent_files WHERE id = ' . $_file_id)->loadObject();
+
+							if ($_fileObj)
+							{
+								$_destpath = $_fileObj->secure ? COM_FLEXICONTENT_FILEPATH : COM_FLEXICONTENT_MEDIAPATH;
+								$_fileObj->full_path = $_destpath . DS . $_fileObj->filename;
+
+								$_fmodel = new FlexicontentModelFilemanager();
+
+								$_res = $_fmodel->createMediaData($field, $_fileObj);
+
+								if ($_res && !empty($_fileObj->mediaData))
+								{
+									$_fmodel->createAudioPreview($field, $_fileObj);
+								}
+
+								// Schedule FTP transfer if field uses remote storage
+								$_estorage_mode = $field->parameters->get('estorage_mode', '0');
+								if ($_estorage_mode === 'FTP' && !empty($field->id))
+								{
+									$_db->setQuery('UPDATE #__flexicontent_files SET estorage_fieldid = ' . (int) $field->id . ' WHERE id = ' . $_file_id)->execute();
+								}
+							}
+						}
+						catch (\Throwable $_e)
+						{
+							Factory::getApplication()->enqueueMessage('mediafile import post-processing error (file id ' . (int) $v . '): ' . $_e->getMessage() . ' in ' . $_e->getFile() . ' on line ' . $_e->getLine(), 'warning');
+						}
+					}
 				}
 			}
 

@@ -1698,16 +1698,18 @@ class FlexicontentModelItems extends FCModelAdminList
 
 
 	/**
-	 * Method to copy items
+	 * Method to copy items 
 	 *
 	 * @access	public
 	 * @return	boolean	True on success
 	 * @since	1.5
 	 */
-	function copyitems($cid, $keeptags = 1, $prefix = '', $suffix = '', $copynr = 1, $lang_arr = null, $state = null, $method = 1, $maincat = null, $seccats = null, $type_id = null, $access = null)
+	function copyitems($cid, $keeptags = 2, $prefix = '', $suffix = '', $copynr = 1, $lang_arr = null, $state = null, $method = 1, $maincat = null, $seccats = null, $type_id = null, $access = null, $tags = array())
 	{
 		$app    = \Joomla\CMS\Factory::getApplication();
 		$jinput = $app->input;
+
+		$tags = array_values(array_filter(ArrayHelper::toInteger((array) $tags)));
 
 		$dbprefix = $app->getCfg('dbprefix');
 
@@ -1777,23 +1779,57 @@ class FlexicontentModelItems extends FCModelAdminList
 		$total_cnt = 0;
 		global $globalcats;
 
+		$items = array();
+		$assoc_data_map = array();
+		$cat_assoc_ids_map = array();
+
 		foreach ($cid_reverse as $itemid)
 		{
-			// Associations added to current item
-			$assoc_data = null;
-			$cat_assoc_ids = null;
-
-			// (a) Get existing item
 			$item = \Joomla\CMS\Table\Table::getInstance('flexicontent_items', '');
 			$item->load($itemid);
 
-			// Note: an empty $lang_arr means maintain item language
-			$langs = $lang_arr ?: array($item->language);
+			$items[$itemid] = $item;
+			$assoc_data_map[$itemid] = null;
+			$cat_assoc_ids_map[$itemid] = null;
+		}
 
-			foreach($langs as $lang)
+		$processing_pairs = array();
+		$loop_by_language = $method == 99 && is_array($lang_arr) && count($lang_arr) > 1;
+
+		if ($loop_by_language)
+		{
+			foreach ($lang_arr as $lang)
 			{
-				for( $nr=0; $nr < $copynr; $nr++ )  // Number of copies to create, meaningful only when copying without TRANSLATING items
+				foreach ($cid_reverse as $itemid)
 				{
+					$processing_pairs[] = array($itemid, $lang);
+				}
+			}
+		}
+		else
+		{
+			foreach ($cid_reverse as $itemid)
+			{
+				$item = $items[$itemid];
+				$langs = $lang_arr ?: array($item->language);
+
+				foreach ($langs as $lang)
+				{
+					$processing_pairs[] = array($itemid, $lang);
+				}
+			}
+		}
+
+		foreach ($processing_pairs as $processing_pair)
+		{
+			list($itemid, $lang) = $processing_pair;
+			$item = $items[$itemid];
+
+			for( $nr=0; $nr < $copynr; $nr++ )  // Number of copies to create, meaningful only when copying without TRANSLATING items
+			{
+				$assoc_data = & $assoc_data_map[$itemid];
+				$cat_assoc_ids = & $cat_assoc_ids_map[$itemid];
+
 					// Some shortcuts
 					$sourceid 	= (int)$item->id;
 					$curversion = (int)$item->version;
@@ -2021,27 +2057,61 @@ class FlexicontentModelItems extends FCModelAdminList
 						$this->_db->setQuery($query)->execute();
 					}
 
-					if ($keeptags)
+					// Collect tags: existing ones if keeping, plus user selection
+					// keeptags values:
+					// 0 = Do not copy tags from source, use only new tags (or empty if no new tags)
+					// 1 = Do not copy tags from source, use only new tags (or empty if no new tags)
+					// 2 = Copy tags from source and add new tags (skip duplicates)
+					$tags_source = array();
+
+					if ($keeptags === 2)
 					{
-						// get the item tags
 						$query 	= 'SELECT tid'
 							. ' FROM #__flexicontent_tags_item_relations'
-							. ' WHERE itemid = '. $sourceid
-						;
-						$tags = $this->_db->setQuery($query)->loadColumn();
+							. ' WHERE itemid = '. $sourceid;
+						$tags_source = $this->_db->setQuery($query)->loadColumn();
+					}
 
-						foreach($tags as $tag)
+					if ($keeptags === 0 || $keeptags === 1)
+					{
+						// Do not copy tags from source, use only new tags
+						$tags_final = $tags;
+					}
+					elseif ($keeptags === 2)
+					{
+						// Copy tags from source and add new tags (skip duplicates)
+						$tags_final = array_unique(array_merge($tags_source, $tags));
+					}
+					else
+					{
+						// Fallback to old behavior for compatibility
+						if ($keeptags)
+						{
+							$query 	= 'SELECT tid'
+								. ' FROM #__flexicontent_tags_item_relations'
+								. ' WHERE itemid = '. $sourceid;
+							$tags_source = $this->_db->setQuery($query)->loadColumn();
+						}
+						$tags_final = array_unique(array_merge($tags_source, $tags));
+						if (!$keeptags && empty($tags))
+						{
+							$tags_final = array();
+						}
+					}
+
+					if (!empty($tags_final))
+					{
+						foreach($tags_final as $tag)
 						{
 							$query 	= 'INSERT INTO #__flexicontent_tags_item_relations (`tid`, `itemid`)'
-								.' VALUES(' . $tag . ',' . $row->id . ')'
-							;
+								.' VALUES(' . (int) $tag . ',' . (int) $row->id . ')';
 							$this->_db->setQuery($query)->execute();
 						}
 					}
 
 					if ($method == 3)
 					{
-						$this->moveitem($row->id, $maincat, $seccats);
+						$this->moveitem($row->id, $maincat, $seccats, null, null, 0, null, $tags, $keeptags);
 					}
 					elseif ($method == 99 && ($maincat || $seccats))
 					{
@@ -2082,7 +2152,7 @@ class FlexicontentModelItems extends FCModelAdminList
 							$row->catid = $maincat ? $maincat : $row->catid;
 						}
 
-						$this->moveitem($row->id, $row->catid, $seccats);
+						$this->moveitem($row->id, $row->catid, $seccats, null, null, 0, null, $tags, $keeptags);
 					}
 
 					/**
@@ -2105,16 +2175,18 @@ class FlexicontentModelItems extends FCModelAdminList
 						$assoc_data['associations'][$row->language]  = $row->id;  // Add new item itself
 						$assoc_data['associations'][$item->language] = $item->id; // Add current item (needed if association group is empty)
 					}
-					$total_cnt++;
-				}
-			}
-
-			// Save new associations for current item
-			if ($assoc_data)
-			{
-				flexicontent_db::saveAssociations($item, $assoc_data, $_context = 'com_content.item');
+				$total_cnt++;
 			}
 		}
+
+		foreach ($items as $itemid => $item)
+		{
+			if ($assoc_data_map[$itemid])
+			{
+				flexicontent_db::saveAssociations($item, $assoc_data_map[$itemid], $_context = 'com_content.item');
+			}
+		}
+
 		return $total_cnt;
 	}
 
@@ -2249,8 +2321,10 @@ class FlexicontentModelItems extends FCModelAdminList
 	 * @return	boolean	True on success
 	 * @since	1.5
 	 */
-	function moveitem($itemid, $maincat, $seccats = null, $lang = null, $state = null, $type_id = 0, $access = null)
+	function moveitem($itemid, $maincat, $seccats = null, $lang = null, $state = null, $type_id = 0, $access = null, $tags = array(), $keeptags = 2)
 	{
+		$tags = array_values(array_filter(ArrayHelper::toInteger((array) $tags)));
+
 		$item = $this->getTable($this->records_jtable, '');
 		$item->load($itemid);
 
@@ -2316,6 +2390,66 @@ class FlexicontentModelItems extends FCModelAdminList
 			;
 			$this->_db->setQuery($query);
 			$this->_db->execute();
+		}
+
+		/**
+		 * Tags handling
+		 * keeptags values:
+		 * 0 = Remove existing tags only (even if no new tags are provided)
+		 * 1 = Remove existing tags and add new tags (only if new tags are provided)
+		 * 2 = Keep existing tags and add new tags (skip duplicates, keep existing if no new tags)
+		 */
+		if ($keeptags === 0 || ($keeptags === 1 && !empty($tags)) || $keeptags === 2)
+		{
+			$query = 'SELECT tid FROM #__flexicontent_tags_item_relations WHERE itemid = ' . (int) $itemid;
+			$currentTags = $this->_db->setQuery($query)->loadColumn();
+			
+			if ($keeptags === 0)
+			{
+				// Remove existing tags only
+				$tags_final = array();
+			}
+			elseif ($keeptags === 1)
+			{
+				// Remove existing and add new tags
+				$tags_final = $tags;
+			}
+			elseif ($keeptags === 2)
+			{
+				// Keep existing and add new tags (skip duplicates)
+				if (!empty($tags))
+				{
+					// Merge existing and new tags, removing duplicates
+					$tags_final = array_unique(array_merge($currentTags, $tags));
+				}
+				else
+				{
+					// No new tags provided, keep existing tags as is
+					$tags_final = $currentTags;
+				}
+			}
+			else
+			{
+				// Fallback to old behavior for compatibility
+				$tags_final = $keeptags
+					? array_unique(array_merge($currentTags, $tags))
+					: $tags;
+			}
+
+			// reset relations
+			$this->_db->setQuery('DELETE FROM #__flexicontent_tags_item_relations WHERE itemid = ' . (int) $itemid);
+			$this->_db->execute();
+
+			if (!empty($tags_final))
+			{
+				foreach ($tags_final as $tag)
+				{
+					$this->_db->setQuery(
+						'INSERT INTO #__flexicontent_tags_item_relations (`tid`, `itemid`) VALUES (' . (int) $tag . ', ' . (int) $itemid . ')'
+					);
+					$this->_db->execute();
+				}
+			}
 		}
 
 		return true;

@@ -107,30 +107,41 @@
 		// accepts a delegate like such: function(slide, caption, isSync, callback) { ... }
 		onTransitionOut:           function(slide, caption, isSync, callback)
 		{
-			slide.fadeTo(this.getDefaultTransitionDuration(isSync), 0.0, callback);
-			caption.fadeTo(this.getDefaultTransitionDuration(isSync), 0.0);
+			//slide.fadeTo(this.getDefaultTransitionDuration(isSync), 0.0, callback);
+			//caption.fadeTo(this.getDefaultTransitionDuration(isSync), 0.0);
+
+			slide.css('opacity', 0.0);
+			caption.css('opacity', 0.0);
+
+			setTimeout(function() {
+				typeof callback === 'function' && callback();
+			}, this.getDefaultTransitionDuration(isSync));
 		},
 
 		// accepts a delegate like such: function(slide, caption, isSync) { ... }
 		onTransitionIn:            function(slide, caption, isSync)
 		{
-			var duration = this.getDefaultTransitionDuration(isSync);
-			slide.fadeTo(duration, 1.0);
+			const duration = this.getDefaultTransitionDuration(isSync);
+
+			// Delay the opacity change slightly to allow the slide element to be added to the DOM before the fade occurs
+			setTimeout(function() {
+				//slide.fadeTo(duration, 1.0);
+				slide.css('opacity', 1.0);
+			}, 20);
 
 			// Position the caption at the bottom of the image and set its opacity
-			var slideImage = slide.find('img');
+			const slideImage = slide.find('img');
 
-			var left = Math.ceil((slide.width() - slideImage.width()) / 2),
+			const left = Math.ceil((slide.width() - slideImage.width()) / 2),
 				offTop = slideImage.get(0).offsetTop,
-				height = Math.floor( slideImage.outerHeight(true) ),
+				height = Math.floor(slideImage.outerHeight(true)),
 				bottom = Math.ceil(slide.height() - slideImage.outerHeight(true)),
-				left   = Math.ceil((slide.width() - slideImage.width()) / 2),
-				width  = slideImage.width() < slide.width() ? slideImage.width() : slide.width();
+				width = slideImage.width() < slide.width() ? slideImage.width() : slide.width();
 
 			//slide.closest('.slideshow-container').find('.nav-controls-box').find('a').css({'height': height});
 			//slide.closest('.slideshow-container').find('.loader').css({'height': height});
 
-			var caption_el = caption.get(0);
+			const caption_el = caption.get(0);
 			caption_el.style.width = width + 'px';
 			caption_el.style.display = 'block';
 			caption_el.style.bottom = (bottom - offTop) + 'px';
@@ -345,6 +356,7 @@
 			// Initalizes the image preloader
 			preloadInit: function() {
 				if (this.preloadAhead == 0) return this;
+				if(!this.currentImage) return this;
 
 				this.preloadStartIndex = this.currentImage.index;
 				var nextIndex = this.getNextIndex(this.preloadStartIndex);
@@ -571,6 +583,7 @@
 			// This function is garaunteed to be called anytime a gallery slide changes.
 			// @param {Object} imageData An object holding the image metadata of the image to navigate to.
 			gotoImage: function(imageData) {
+				if (!imageData) return this;
 				var index = imageData.index;
 
 				// Prevent reloading same image
@@ -676,9 +689,14 @@
 					if (this.onTransitionOut) {
 						this.onTransitionOut(previousSlide, previousCaption, isSync, transitionOutCallback);
 					} else {
-						previousSlide.fadeTo(this.getDefaultTransitionDuration(isSync), 0.0, transitionOutCallback);
-						if (previousCaption)
-							previousCaption.fadeTo(this.getDefaultTransitionDuration(isSync), 0.0);
+						//previousSlide.fadeTo(this.getDefaultTransitionDuration(isSync), 0.0, transitionOutCallback);
+						previousSlide.css('opacity', 0.0);
+						setTimeout(function() {
+							typeof transitionOutCallback === 'function' && transitionOutCallback();
+						}, this.getDefaultTransitionDuration(isSync));
+
+						//previousCaption && previousCaption.fadeTo(this.getDefaultTransitionDuration(isSync), 0.0);
+						previousCaption && previousCaption.css('opacity', 0.0);
 					}
 				}
 
@@ -724,7 +742,7 @@
 				var nextIndex = this.getNextIndex(imageData.index);
 
 				// Check for already created slide
-				var newSlide = this.$imageContainer.find('.index_' + imageData.index).removeClass('previous').addClass('current').css({display: 'block', opacity: 1});
+				var newSlide = this.$imageContainer.find('.index_' + imageData.index).removeClass('previous').addClass('current').css({display: 'block', opacity: 0});
 
 				// Construct new hidden span for the image
 				if (!newSlide.length)
@@ -763,13 +781,16 @@
 					{
 						// Construct new hidden caption for the image
 						newCaption = this.$captionContainer
-							.append('<span class="image-caption current index_' + imageData.index + '"></span>')
-							.find('span.image-caption.current').css('opacity', '0')
+							.append('<span class="image-caption current index_' + imageData.index + '" style="opacity: 0"></span>')
 							.append(imageData.caption);
 					}
 
-					newCaption.fadeTo(this.getDefaultTransitionDuration(isSync), 1.0);
-					setTimeout(function() { newCaption.removeClass('transitioning'); }, this.getDefaultTransitionDuration(isSync));
+					//newCaption.fadeTo(this.getDefaultTransitionDuration(isSync), 1.0);
+
+					newCaption.css('opacity', 1.0);
+					setTimeout(function() {
+						newCaption.removeClass('transitioning');
+					}, this.getDefaultTransitionDuration(isSync));
 				}
 
 				// Hide the loading conatiner
@@ -781,9 +802,10 @@
 				if (this.onTransitionIn) {
 					this.onTransitionIn(newSlide, newCaption, isSync);
 				} else {
-					newSlide.fadeTo(this.getDefaultTransitionDuration(isSync), 1.0);
-					if (newCaption)
-						newCaption.fadeTo(this.getDefaultTransitionDuration(isSync), 1.0);
+					//newSlide.fadeTo(this.getDefaultTransitionDuration(isSync), 1.0);
+					//newCaption && newCaption.fadeTo(this.getDefaultTransitionDuration(isSync), 1.0);
+					newSlide.css('opacity', 1.0);
+					newCaption && newCaption.css('opacity', 1.0);
 				}
 
 				if (this.isSlideshowRunning) {
@@ -798,6 +820,7 @@
 
 			// Returns the current page index that should be shown for the currentImage
 			getCurrentPage: function() {
+				if(!this.currentImage) return 0;
 				return Math.floor(this.currentImage.index / this.numThumbs);
 			},
 

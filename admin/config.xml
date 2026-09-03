@@ -78,6 +78,11 @@
 		<field name="" type="separator" default="FLEXI_PAGE_RELOADING_FE_BE" label="" level="level0" />
 		<field name="" type="separator" default="FLEXI_PAGE_RELOADING_FE_BE_ABOUT" label="" level="level3" class="alert alert-info fcpadded" />
 
+			<field name="page_reloading_enable" type="radio" default="1" label="FLEXI_PAGE_RELOADING_ENABLE" description="FLEXI_PAGE_RELOADING_ENABLE_DESC" class="btn-group btn-group-yesno" labelclass="label label-success">
+				<option value="0">FLEXI_NO</option>
+				<option value="1">FLEXI_YES</option>
+			</field>
+
 			<field name="" type="separator" default="FLEXI_PAGE_RELOADING_OVERLAY_BOX" label="" level="level2" />
 			<field name="page_reloading_overlay_bg_color" type="color" label="FLEXI_BACKGROUND" default="rgba(0, 0, 0, 0.3)" format="rgba" keywords="transparent,initial,inherit" />
 
@@ -183,6 +188,11 @@
 			<field name="recompile_core_less" type="fcradio" default="0" label="FLEXI_RECOMPILE_CORE_LESS" description="FLEXI_RECOMPILE_CORE_LESS_DESC" class="btn-group btn-group-yesno">
 				<option value="0">FLEXI_NO</option>
 				<option value="1">FLEXI_YES</option>
+			</field>
+
+			<field name="compress_core_less" type="fcradio" default="0" label="FLEXI_COMPRESS_CORE_LESS" description="FLEXI_COMPRESS_CORE_LESS_DESC" class="btn-group btn-group-yesno">
+    			<option value="0">FLEXI_NO</option>
+    			<option value="1">FLEXI_YES</option>
 			</field>
 
 
@@ -726,6 +736,16 @@
 				<option value="0">FLEXI_NO</option>
 				<option value="1">FLEXI_YES</option>
 			</field>
+			<field name="filter_ajax" type="fcradio" default="0" label="FLEXI_USE_AJAX_FILTERING" description="FLEXI_USE_AJAX_FILTERING_DESC" class="btn-group btn-group-yesno">
+
+				<option value="0">FLEXI_NO</option>
+				<option value="1">FLEXI_YES</option>
+			</field>
+			<field name="badge_position" type="fcradio" default="2" label="FLEXI_BADGE_FILTER" description="FLEXI_BADGE_FILTER_DESC" class="btn-group btn-group-yesno">
+				<option value="0">FLEXI_NO</option>
+				<option value="1">FLEXI_TOP</option>
+            <option value="2">FLEXI_BOTTOM</option>
+			</field>
 			<field name="filter_instructions" type="fcradio" default="1" label="FLEXI_SEARCH_FILTER_INSTRUCTIONS" description="FLEXI_SEARCH_FILTER_INSTRUCTIONS_DESC" class="btn-group btn-group-yesno">
 				<option value="0">FLEXI_HIDE</option>
 				<option value="1">FLEXI_YES_AS_TIP</option>
@@ -1066,6 +1086,12 @@
 			<field name="" type="separator" default="FLEXI_LIMIT_SUPPRESS_ITEMS_LIST_VIA_CUSTOM_FIELDS" level="level4" class="alert alert-info fcpadded"/>
 
 		<field name="" type="separator" default="FLEXI_PAGINATION" description="FLEXI_PAGINATION_DESC" level="level1" />
+			<field name="infinite_scroll" type="fcradio" default="0" label="FLEXI_INFINITE_SCROLL" description="FLEXI_INFINITE_SCROLL_DESC" class="btn-group btn-group-yesno">
+				<option value="0">FLEXI_CLASSIC_PAGINATION</option>
+				<option value="1">FLEXI_INFINITE_LOAD_MORE_BUTTON</option>
+				<option value="2">FLEXI_INFINITE_SCROLLING</option>
+			</field>
+
 			<field name="show_item_total" type="fcradio" default="1" label="FLEXI_SHOW_ITEM_TOTAL" description="FLEXI_SHOW_ITEM_TOTAL_DESC" class="btn-group btn-group-yesno">
 				<option value="0">FLEXI_HIDE</option>
 				<option value="1">FLEXI_SHOW</option>
@@ -2109,7 +2135,15 @@
 				label="FLEXI_IMAN_DISABLE_COLUMNS" description="FLEXI_IMAN_DISABLE_COLUMNS_DESC" cols="3" />
 
 			<field name="items_manager_extra_fields" type="textarea" default="" rows="2" cols="60" label="FLEXI_ITEMS_MANAGER_EXTRA_FIELDS" description="FLEXI_ITEMS_MANAGER_EXTRA_FIELDS_DESC" class="input-xxlarge" />
-			<field name="items_manager_custom_filters" type="filters" default="" isfilter="*" field_type="select,selectmutiple,radio,radioimage,checkbox,checkboximage" label="FLEXI_ITEMS_MANAGER_CUSTOM_FILTERS_LIST" description="FLEXI_ITEMS_MANAGER_CUSTOM_FILTERS_LIST_DESC" />
+
+			<field name="items_manager_cols_appearance" type="multilist" subtype="radio" default="0" label="FLEXI_ITEMS_MANAGER_COLS_APPEARANCE" description="FLEXI_ITEMS_MANAGER_COLS_APPEARANCE_DESC" toggle_related="1" class="btn-group group-fcmethod">
+				<option value="0" show_list="" hide_list="items-manager-trim-chars">FLEXI_DEFAULT</option>
+				<option value="1" show_list="" hide_list="items-manager-trim-chars">FLEXI_CHECK_MARK</option>
+				<option value="2" show_list="items-manager-trim-chars" hide_list="">FLEXI_CLEAN_HTML_AND_TRIM</option>
+			</field>
+			<field name="items_manager_trim_chars" type="text" default="100" label="FLEXI_TRIM_LENGTH" description="FLEXI_TRIM_LENGTH_DESC" depend_class="items-manager-trim-chars" />
+
+			<field name="items_manager_custom_filters" type="filters" default="" isfilter="*" field_type="select,selectmultiple,radio,radioimage,checkbox,checkboximage" label="FLEXI_ITEMS_MANAGER_CUSTOM_FILTERS_LIST" description="FLEXI_ITEMS_MANAGER_CUSTOM_FILTERS_LIST_DESC" />
 			<field name="items_manager_order" type="list" default="a.id" label="FLEXI_ITEMS_MANAGER_ORDER" description="FLEXI_ITEMS_MANAGER_ORDER_DESC" class="use_select2_lib">
 				<option value="1">FLEXI_ITEMS_MANAGER_ORDER_UNORDERED</option>
 				<option value="lang">FLEXI_ITEMS_MANAGER_ORDER_LANGUAGE</option>
@@ -2293,6 +2327,19 @@
 		<field name="" type="separator" default="FLEXI_FILES_CONF" level="tabset_close" box_type="1" remove_boxes="2" />
 	</fieldset>
 
+			<field name="" type="separator" default="FLEXI_UPDATES" label="" level="level0" />
+
+		<fieldset name="update" label="Flexi update" description="FLEXI_UPDATE_CHANNEL_DESC">
+		<field name="update_channel"
+			type="radio"
+			label="FLEXI_UPDATE_CHANNEL"
+			description="FLEXI_UPDATE_CHANNEL_DESC"
+			default="stable"
+			class="btn-group btn-group-yesno">
+			<option value="stable">FLEXI_UPDATE_CHANNEL_STABLE</option>
+			<option value="beta">FLEXI_UPDATE_CHANNEL_BETA</option>
+		</field>
+</fieldset>
 
 	<fieldset name="permissions" label="JCONFIG_PERMISSIONS_LABEL" description="JCONFIG_PERMISSIONS_DESC">
 		<field name="rules" type="rules" label="JCONFIG_PERMISSIONS_LABEL" filter="rules" component="com_flexicontent" section="component" />

@@ -578,6 +578,9 @@ dl#content-pane.tabs {
 }
 
 /* fix btn */
+.editor-xtd-buttons > .btn {
+    display: inline-block !important;
+}
 #flexicontent .btn, .btn {
 	border: 1px solid var(--template-bg-dark-20);
 }
@@ -641,6 +644,7 @@ div#tags #input-tags {
 #toolbar .buttons.btn-group > .toolbar {
 	margin: auto !important;
 	margin-left: -2px !important;
+	display:block;
 }
 #fcform_language_container .input-append input {
 	height: 43px !important;
@@ -1032,9 +1036,6 @@ body .form-grid {
 #flexicontent .fc-xpended-btns > [class^="fcfield-"], #flexicontent .fc-xpended-btns > [class*=" fcfield-"], #flexicontent .fc-xpended-btns > .fcfield-button-add a {
 	line-height: 1.6rem !important;
 }
-#flexicontent .fc-xpended-btns {
-	height: 2.74rem;
-}
 /*** correct order filter type **/
 .input-group-text.fc-lbl-inverted.fc-lbl-short.icon-info-2.hasPopover,
 .fc-filter.nowrap_box .input-group-text.fc-lbl-inverted.fc-lbl-short {
@@ -1368,4 +1369,14 @@ div#tags #input_new_tag {
 }
 .icon-test:before {
 	content: "\f0ae";
+}
+.fc_gm_marker_anchor_row button.btn.btn-small.btn-sm.hasPopover {
+    display: none;
+}
+#adminListTableFCtemplates .btn.btn-sm{
+    align-items: center;
+    justify-content: space-around !important;
+}
+#adminListTableFCfields .btn.btn-small {
+    display: block !important;
 }

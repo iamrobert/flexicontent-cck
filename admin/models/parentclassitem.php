@@ -1420,21 +1420,20 @@ class ParentClassItem extends FCModelAdmin
 		}
 		else
 		{
-			// Split text to introtext & fulltext
-			if ( !StringHelper::strlen(StringHelper::trim(@$data['introtext'])) && !StringHelper::strlen(StringHelper::trim(@$data['fulltext'])) )
-			{
-				$this->splitText($data);
-			}
-
-			if ($this->_record)
-			{
-				if ( StringHelper::strlen(StringHelper::trim(@$data['text'])) )      $this->_record->text      = $data['text'];
-				if ( StringHelper::strlen(StringHelper::trim(@$data['introtext'])) ) $this->_record->introtext = $data['introtext'];
-				if ( StringHelper::strlen(StringHelper::trim(@$data['fulltext'])) )  $this->_record->fulltext  = $data['fulltext'];
-				if ( isset($data['language']) )  $this->_record->language  = $data['language'];
-				if ( isset($data['catid']) )     $this->_record->catid  = $data['catid'];
-			}
-		}
+   			// Split text to introtext & fulltext
+    		if ( !StringHelper::strlen(StringHelper::trim((string)($data['introtext'] ?? ''))) && !StringHelper::strlen(StringHelper::trim((string)($data['fulltext'] ?? ''))) )
+    	{
+        	$this->splitText($data);
+   		 }
+    		if ($this->_record)
+    	{
+        if ( StringHelper::strlen(StringHelper::trim((string)($data['text'] ?? ''))) )      $this->_record->text      = $data['text'];
+        if ( StringHelper::strlen(StringHelper::trim((string)($data['introtext'] ?? ''))) ) $this->_record->introtext = $data['introtext'];
+        if ( StringHelper::strlen(StringHelper::trim((string)($data['fulltext'] ?? ''))) )  $this->_record->fulltext  = $data['fulltext'];
+        if ( isset($data['language']) )  $this->_record->language  = $data['language'];
+        if ( isset($data['catid']) )     $this->_record->catid  = $data['catid'];
+    }
+}
 
 		$events_context = $this->events_context ?: $this->option.'.'.$this->getName();
 		$this->preprocessData($events_context, $data);
@@ -6120,107 +6119,120 @@ class ParentClassItem extends FCModelAdmin
 	}
 
 
-	/**
-	 * Method to sync FLEXIcontent item's tags with their respective Joomla article tags
-	 *
-	 * @return  void
-	 *
-	 * @since   3.3.0
-	 */
-	protected function syncJTagAssignments($fctags, $pks, $contexts, $replaceTags = true)
-	{
-		// Make sure re-usable member properties have been initialized
-		$this->initBatch();
+/**
+     * Method to sync FLEXIcontent item's tags with their respective Joomla article tags
+     *
+     * @return   void
+     *
+     * @since   3.3.0
+     */
+    protected function syncJTagAssignments($fctags, $pks, $contexts, $replaceTags = true)
+    {
+        // Force le type booléen immédiatement pour satisfaire la stricte conformité de Joomla 6
+        $replaceTags = (bool) $replaceTags;
 
-		$jtag_ids = array();
-		$jtags = $this->createFindJoomlaTags($fctags, true, $indexCol = 'id');
+        // Make sure re-usable member properties have been initialized
+        $this->initBatch();
 
-		foreach($jtags as $fctag_id => $jtag)
-		{
-			$fctags[$fctag_id]->jtag_id_new = $jtag ? $jtag->id : 0;
+        $jtag_ids = array();
+        $jtags = $this->createFindJoomlaTags($fctags, true, $indexCol = 'id');
 
-			/**
-			 * Warning ... the TagsHelper method expects that Tag Ids are 'STRING' type ! or if we want to pass tag
-			 * titles of existing tags, ... we need to prefix them with '#new#' to avoid being interpreted as Tag Ids
-			 */
-			if ($jtag)
-			{
-				$jtag_ids[] = (string) $jtag->id;
-			}
+        foreach($jtags as $fctag_id => $jtag)
+        {
+            $fctags[$fctag_id]->jtag_id_new = $jtag ? $jtag->id : 0;
 
-			$DEBUG_fctag_TO_jtag[$fctag_id] = $jtag ? $jtag->id : 0;
-		}
+            /**
+             * Warning ... the TagsHelper method expects that Tag Ids are 'STRING' type ! or if we want to pass tag
+             * titles of existing tags, ... we need to prefix them with '#new#' to avoid being interpreted as Tag Ids
+             */
+            if ($jtag)
+            {
+                $jtag_ids[] = (string) $jtag->id;
+            }
 
-		echo empty($this->debug_tags) ? null : '<b>' . __FUNCTION__ . '()</b><blockquote>'
-			. (count($jtags) ?
-				' FCTAG to JTAG ids: ' . print_r($DEBUG_fctag_TO_jtag, true) . '<br>'
-					. ' Assigning Joomla Tags to item ' . reset($pks)
-				: ' Deleting Joomla Tags assignments of item ' . reset($pks)
-			) . '</blockquote>';
+            $DEBUG_fctag_TO_jtag[$fctag_id] = $jtag ? $jtag->id : 0;
+        }
 
-		foreach ($pks as $pk)
-		{
-			if ($this->user->authorise('core.edit', $contexts[$pk]))
-			{
-				$this->table->reset();
-				$this->table->load($pk);
+        if (!empty($this->debug_tags))
+        {
+            echo '<b>' . __FUNCTION__ . '()</b><blockquote>'
+                . (count($jtags) ?
+                    ' FCTAG to JTAG ids: ' . print_r($DEBUG_fctag_TO_jtag, true) . '<br>'
+                        . ' Assigning Joomla Tags to item ' . reset($pks)
+                    : ' Deleting Joomla Tags assignments of item ' . reset($pks)
+                ) . '</blockquote>';
+        }
 
-				// Add new tags, keeping existing ones
-				if (FLEXI_J40GE)
-				{
-					$setTagsEvent = \Joomla\CMS\Event\AbstractEvent::create(
-						'onTableSetNewTags',
-						array(
-							'subject'     => $this->table,
-							'newTags'     => $jtag_ids,
-							'replaceTags' => $replaceTags,
-						)
-					);
+        foreach ($pks as $pk)
+        {
+            if ($this->user->authorise('core.edit', $contexts[$pk]))
+            {
+                $this->table->reset();
+                $this->table->load($pk);
 
-					try
-					{
-						$this->table->getDispatcher()->dispatch('onTableSetNewTags', $setTagsEvent);
-					}
-					catch (\RuntimeException $e)
-					{
-						$this->setError($e->getMessage());
+                // Joomla 6 : On injecte la propriété dans l'objet Table car le plugin Taggable l'y cherche
+                $this->table->replaceTags = $replaceTags;
+                
+                // Optionnel mais recommandé : injecter les tags dans l'objet table pour le Helper
+                $this->table->newTags = $jtag_ids;
 
-						return false;
-					}
-				}
-				else
-				{
-					if (!$jtag_ids)
-					{
-						//$this->table->tagsHelper->deleteTagData($this->table, $this->table->id);
-						$this->tagsObserver->onBeforeDelete($this->table->id);
-					}
-					else
-					{
-						$result = $this->tagsObserver->setNewTags($jtag_ids, $replaceTags);
+                // Add new tags, keeping existing ones
+                if (FLEXI_J40GE)
+                {
+                    $setTagsEvent = \Joomla\CMS\Event\AbstractEvent::create(
+                        'onTableSetNewTags',
+                        array(
+                            'subject'     => $this->table,
+                            'newTags'     => $jtag_ids,
+                            'replaceTags' => $replaceTags,
+                        )
+                    );
 
-						if (!$result)
-						{
-							$this->setError($this->table->getError());
+                    // On force l'argument dans l'événement pour être certain qu'il ne soit pas NULL
+                    $setTagsEvent->setArgument('replaceTags', $replaceTags);
 
-							return false;
-						}
-					}
-				}
-				//$this->table->store();
-			}
-			else
-			{
-				$this->setError(\Joomla\CMS\Language\Text::_('JLIB_APPLICATION_ERROR_BATCH_CANNOT_EDIT'));
+                    try
+                    {
+                        $this->table->getDispatcher()->dispatch('onTableSetNewTags', $setTagsEvent);
+                    }
+                    catch (\Throwable $e) // Utilisation de Throwable pour capturer les erreurs de type PHP 8
+                    {
+                        $this->setError('Joomla Tags Error: ' . $e->getMessage());
 
-				return false;
-			}
-		}
+                        return false;
+                    }
+                }
+                else
+                {
+                    if (!$jtag_ids)
+                    {
+                        $this->tagsObserver->onBeforeDelete($this->table->id);
+                    }
+                    else
+                    {
+                        $result = $this->tagsObserver->setNewTags($jtag_ids, $replaceTags);
 
-		// Clean the cache
-		$this->cleanCache(null, 0);
-		$this->cleanCache(null, 1);
-	}
+                        if (!$result)
+                        {
+                            $this->setError($this->table->getError());
+
+                            return false;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                $this->setError(\Joomla\CMS\Language\Text::_('JLIB_APPLICATION_ERROR_BATCH_CANNOT_EDIT'));
+
+                return false;
+            }
+        }
+
+        // Clean the cache
+        $this->cleanCache(null, 0);
+        $this->cleanCache(null, 1);
+    }
 
 
 	/**

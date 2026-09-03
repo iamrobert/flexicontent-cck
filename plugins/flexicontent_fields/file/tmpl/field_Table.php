@@ -145,7 +145,7 @@ foreach ($field->value as $file_id)
 				'<a class="form-control btn btn-info customform-btn fit-contents"
 												   onclick="'.$onclick_js.'" href="javascript:" data-href="'.$modal_url.'"
 	><i class="icon-search"></i></a>';  // &nbsp; Select
-			$juri_root = JURI::root(true);
+			$juri_root = \Joomla\CMS\Uri\Uri::root(true);
 			$file_placeholder_text = 'No file selected';
 			$file_placeholder_src  = '';//$juri_root . '/' .'......./person_placeholder.jpg';
 			$file_clear_value_js   = "jQuery(this).parent().find('input[type=text]').val(''); fcfield_file.clearMediaFile(this, '".$file_placeholder_src."');";
@@ -224,7 +224,8 @@ HTML;
 					'dataAttribute' => '',
 
 					// J4 only, supported media types for the Media Manager
-					'mediatypes'   => $mediaTypes,  // e.g. '0,3' Supported values '0,1,2,3', 0: images, 1: audios, 2: videos, 3: documents * 'folders' is always included in J4
+					'mediaTypes'   => $mediaTypes,  // e.g. '0,3' Supported values '0,1,2,3', 0: images, 1: audios, 2: videos, 3: documents * 'folders' is always included in J4
+					'mediaTypeNames' => $mediaTypeNames,  // Layout expects the types names as an array and not as an comma separated string
 					'imagesExt'    => $imagesExt,
 					'audiosExt'    => $audiosExt,
 					'videosExt'    => $videosExt,
