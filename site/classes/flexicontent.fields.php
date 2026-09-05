@@ -4430,7 +4430,7 @@ class FlexicontentFields
 				else if ($format_output === -1)
 				{
 					$value = & $results[$i]->text;
-					$results[$i]->text = eval( "\$value= \"{$value}\";" . $output_custom_func);
+					$results[$i]->text = eval($output_custom_func);
 				}
 
 				if ($lang_filter_values)
@@ -4535,7 +4535,7 @@ class FlexicontentFields
 				else if ($format_output === -1)
 				{
 					$value = & $results[$i]->text;
-					$results[$i]->text = eval( "\$value= \"{$value}\";" . $output_custom_func);
+					$results[$i]->text = eval($output_custom_func);
 				}
 
 				if ($lang_filter_values)

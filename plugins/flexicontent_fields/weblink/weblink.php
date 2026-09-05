@@ -1134,7 +1134,7 @@ class plgFlexicontent_fieldsWeblink extends FCField
 			// *** Validate data, skipping values that are empty after validation
 			// ***
 
-			$link = flexicontent_html::dataFilter($v['link'] ?? '', $maxlength, 'URL', 0);  // Clean bad text/html
+			$link = flexicontent_security::safeUrl(flexicontent_html::dataFilter($v['link'] ?? '', $maxlength, 'URL', 0), true, array('http', 'https', 'ftp', 'ftps', 'mailto', 'tel', 'sms'));  // Clean bad text/html
 
 			// Restore double slash without protocol, if this was removed
 			$link = $link && $double_slash_without_proto && strpos($link, '//') !== 0

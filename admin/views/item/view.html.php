@@ -501,7 +501,8 @@ class FlexicontentViewItem extends FlexicontentViewBaseRecord
 						if ($tbl_exists)
 						{
 							$query = 'SELECT * FROM #__flexicontent_edit_coupons '
-								. ' WHERE token = ' . $db->Quote($edittok) . ' AND id = ' . $model->get('id')	;
+								. ' WHERE token = ' . $db->Quote($edittok) . ' AND id = ' . (int) $model->get('id')
+								. ' AND CHAR_LENGTH(token) = 64 AND timestamp >= ' . (time() - 7 * 86400);
 							$db->setQuery( $query );
 							$tokdata = $db->loadObject();
 							if ($tokdata)
