@@ -7,7 +7,7 @@ namespace Joomla\CMS {
         public static function getDbo() { return self::$db; }
         public static function getUser() { return self::$user; }
         public static function getDocument() { return self::$app->getDocument(); }
-        public static function getContainer() { return new class { public function get($id) { return $this; } public function createMailer() { return Factory::$mailer = new \TestMailer(); } }; }
+        public static function getContainer() { return new class { public function get($id) { return $id === \Joomla\Database\DatabaseInterface::class ? Factory::$db : $this; } public function createMailer() { return Factory::$mailer = new \TestMailer(); } }; }
     }
 }
 namespace Joomla\CMS\Component { class ComponentHelper { public static function getParams($name) { return new \Joomla\Registry\Registry(); } } }
@@ -57,6 +57,7 @@ namespace {
         public function get($key,$default=null) {if(array_key_exists($key,$this->config))return $this->config[$key];return ['secret'=>'fixture-secret','captcha'=>'fixture','sitename'=>'Test site','mailfrom'=>'site@example.test','fromname'=>'Test sender','tmp_path'=>getenv('FLEXI_TEST_SITE')][$key] ?? $default;}
         public function getLanguageFilter(){return false;}
         public function getUserState($key,$default=null) {return $this->state[$key] ?? $default;}
+        public function setUserState($key,$value) {$this->state[$key]=$value;}
         public function getCfg($key,$default=null) {return $this->get($key,$default);}
         public function getLanguage() {return new class { public function load(...$args) {} };}
         public function getDocument() {return new class { public function addStyleSheet(...$args) {} };}

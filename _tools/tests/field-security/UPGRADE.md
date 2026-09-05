@@ -23,3 +23,23 @@ Follow-up fixes for save and download regressions:
 - Ordinary editors can preserve PHP settings when the browser only changes line endings in PHP whitespace or comments. Actual code changes, including changes inside string literals, still require Super User permission.
 
 The protected mail and selector endpoints still enforce their publication/access policy. Ordinary visitors cannot use them for archived items; authorized editors retain the existing edit-permission exception. Rejected direct HTTP requests retain their error status instead of redirecting to a success page.
+
+Temporary upload wrapper follow-up:
+
+- Both native and embedded forms use one issuer that accepts a retry ID only when it already appears in the session issuance registry. New IDs use 128 random bits.
+- Embedded article forms establish the ID before field HTML builds upload URLs. Verified issuance is recorded in both the embedding component and FLEXIContent file-manager namespaces.
+- Folder removal no longer accepts the single retry-state value as authorization. Saved items retain their item edit/edit-own checks, and absent items are refused. Registries retain at most 20 IDs for up to 24 hours.
+
+Custom template decoding:
+
+Updating FLEXIContent does not replace native PHP unserialize() calls in custom code. Existing serialized arrays still work, but those calls bypass the new protection. Even a call made only to test whether data is serialized can instantiate an object; @ only suppresses diagnostics. Decode once through the updated helper when reading field values:
+
+```php
+$decoded = flexicontent_db::unserialize($v);
+if ($decoded !== false || $v === 'b:0;')
+{
+    $v = $decoded;
+}
+```
+
+The updated helper must be installed and loaded first. No database conversion is required. Use this data-only helper for field values; it intentionally rejects serialized PHP objects.

@@ -17,3 +17,5 @@ Coverage includes array/scalar compatibility, object and enum rejection before a
 A production installation still needs its own page and workflow regression checks, especially any custom template overrides.
 
 The runner also starts fresh PHP processes to check helper availability before any database-helper load, invokes the actual basic indexer and weblink/image save validators, checks temporary-ID namespaces and retries, and tests unavailable CAPTCHA rendering. It validates benign PHP line-ending conversions while rejecting edits inside executable code and string literals.
+
+The wrapper regression invokes the actual form wrapper and folder-removal permission method. It covers poisoned retry state, numeric/malformed/expired IDs, separate sessions, embedded component forms, legacy issued IDs, registry bounds, and saved-item ownership/edit permissions.

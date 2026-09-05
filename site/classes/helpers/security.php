@@ -119,6 +119,40 @@ class flexicontent_security
         return isset($issued[$id]) && (int) $issued[$id] >= time() - 86400;
     }
 
+    /** Reuse only session-issued IDs; retry form data is not an authority registry. */
+    public static function getOrCreateTemporaryItemId($app, $option = 'com_flexicontent')
+    {
+        $stateKey = $option . '.edit.item.unique_tmp_itemid';
+        $id = $app->getUserState($stateKey);
+        if (!self::isIssuedTemporaryItemId($app, $id, $option))
+        {
+            $id = date('_Y_m_d_H_i_s_') . bin2hex(random_bytes(16));
+        }
+
+        // Embedded wrappers save under their component's namespace, while upload
+        // removal always runs through com_flexicontent. Record verified issuance
+        // in both namespaces; never promote an unchecked retry value here.
+        $now = time();
+        foreach (array_unique(array($option, 'com_flexicontent')) as $namespace)
+        {
+            $registryKey = $namespace . '.edit.item.active_tmp_itemids';
+            $issued = (array) $app->getUserState($registryKey, array());
+            $issued = array_filter($issued, function ($timestamp) use ($now) {
+                return (int) $timestamp >= $now - 86400;
+            });
+            unset($issued[$id]);
+            $issued[$id] = $now;
+            if (count($issued) > 20)
+            {
+                asort($issued);
+                $issued = array_slice($issued, -20, null, true);
+            }
+            $app->setUserState($registryKey, $issued);
+        }
+        $app->setUserState($stateKey, $id);
+        return $id;
+    }
+
     public static function canViewItemState($item, $user)
     {
         $now = time();

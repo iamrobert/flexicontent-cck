@@ -22,6 +22,8 @@ let server, browser;
   }
   const regression=spawnSync(php,[...phpArgs,path.join(__dirname,'regressions.php')],{env,encoding:'utf8',windowsHide:true});
   process.stdout.write(regression.stdout);process.stderr.write(regression.stderr);assert.equal(regression.status,0,'Save-path regression checks');
+  const temporaryIds=spawnSync(php,[...phpArgs,path.join(__dirname,'temporary-ids.php')],{env,encoding:'utf8',windowsHide:true});
+  process.stdout.write(temporaryIds.stdout);process.stderr.write(temporaryIds.stderr);assert.equal(temporaryIds.status,0,'Wrapper and removal authorization checks');
   const unit=spawnSync(php,[...phpArgs,path.join(__dirname,'unit.php')],{env,encoding:'utf8',windowsHide:true});
   process.stdout.write(unit.stdout);process.stderr.write(unit.stderr);assert.equal(unit.status,0,'PHP regression assertions');
   const socket=net.createServer();await new Promise(resolve=>socket.listen(0,'127.0.0.1',resolve));const port=socket.address().port;await new Promise(resolve=>socket.close(resolve));
