@@ -12,3 +12,14 @@
 - Image folder copies require source-item edit permission; temporary folder moves require a session-issued identifier and contained paths.
 - Relation selectors enforce item, category, type and appended-field visibility.
 - Existing configured PHP remains available. Enabling or changing executable field/type settings requires Super User permission. Title PHP comes from saved type configuration. Filter values are passed as data instead of being interpolated into executable code.
+
+Follow-up fixes for save and download regressions:
+
+- Basic search indexing initializes the field's search array before reading it; Apply no longer emits an undefined-property warning.
+- The shared security helper is registered with Joomla's loader and explicitly loaded by the download controller and file/media sharing plugins. A fresh download request no longer depends on the database helper loading first.
+- Invalid non-empty weblinks fail normal field validation, retaining the submitted form rather than silently clearing a saved link. Spaces must be encoded as %20; the URL scheme and character restrictions remain.
+- If CAPTCHA is required but missing or its plugin fails to render, the contact form displays an unavailable message. The rest of the item page renders and the server still refuses unverified submissions.
+- Image folder errors return through normal field validation. A new configured base directory can be created after authorization; folder copy/move failures stop the save. Temporary IDs use the issuing component's session namespace. Retries cannot register an arbitrary client-supplied ID. Old or expired forms may still need their images reselected.
+- Ordinary editors can preserve PHP settings when the browser only changes line endings in PHP whitespace or comments. Actual code changes, including changes inside string literals, still require Super User permission.
+
+The protected mail and selector endpoints still enforce their publication/access policy. Ordinary visitors cannot use them for archived items; authorized editors retain the existing edit-permission exception. Rejected direct HTTP requests retain their error status instead of redirecting to a success page.

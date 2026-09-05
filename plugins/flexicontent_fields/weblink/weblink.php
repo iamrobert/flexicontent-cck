@@ -1136,6 +1136,13 @@ class plgFlexicontent_fieldsWeblink extends FCField
 
 			$link = flexicontent_security::safeUrl(flexicontent_html::dataFilter($v['link'] ?? '', $maxlength, 'URL', 0), true, array('http', 'https', 'ftp', 'ftps', 'mailto', 'tel', 'sms'));  // Clean bad text/html
 
+			// Invalid non-empty input must fail validation, not silently erase a saved link.
+			if (trim((string) ($v['link'] ?? '')) !== '' && $link === '')
+			{
+				$app->enqueueMessage(\Joomla\CMS\Language\Text::_('Invalid web link. Use a supported URL scheme, encode spaces as %20, and remove raw quotes, backslashes or angle brackets.'), 'error');
+				return false;
+			}
+
 			// Restore double slash without protocol, if this was removed
 			$link = $link && $double_slash_without_proto && strpos($link, '//') !== 0
 				? '//' . $link

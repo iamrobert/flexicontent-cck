@@ -10,12 +10,13 @@ namespace Joomla\CMS {
         public static function getContainer() { return new class { public function get($id) { return $this; } public function createMailer() { return Factory::$mailer = new \TestMailer(); } }; }
     }
 }
+namespace Joomla\CMS\Component { class ComponentHelper { public static function getParams($name) { return new \Joomla\Registry\Registry(); } } }
 namespace Joomla\CMS\Session { class Session { public static function checkToken($method = 'post') { return ($_POST['test_token'] ?? '') === 'valid'; } } }
-namespace Joomla\CMS\Captcha { class Captcha { public static function getInstance($plugin) { return new self; } public function checkAnswer($code) { return $code === 'passed'; } public function display($name, $id, $class) { return '<input name="captcha" value="passed">'; } } }
+namespace Joomla\CMS\Captcha { class Captcha { public static function getInstance($plugin) { if ($plugin === 'broken') throw new \RuntimeException('Captcha plugin unavailable'); return new self; } public function checkAnswer($code) { return $code === 'passed'; } public function display($name, $id, $class) { return '<input name="captcha" value="passed">'; } } }
 namespace Joomla\CMS\Plugin { class PluginHelper { public static function getPlugin($group,$name) { return (object)['params'=>'{"email_user_copy":1,"email_admin_copy":0}']; } } }
 namespace Joomla\CMS\Language { class Text { public static function _($text, ...$args) { return $text; } public static function sprintf($key,...$args) { return $key . ' ' . implode(' ', $args); } } }
 namespace Joomla\CMS\Router { class Route { public static function _($url,...$args) { return '/' . ltrim($url,'/'); } } }
-namespace Joomla\CMS\Uri { class Uri { public static function root(...$args) { return 'https://example.test/'; } public static function isInternal($url) { return strpos($url,'https://example.test/') === 0; } } }
+namespace Joomla\CMS\Uri { class Uri { public static function getInstance(...$args) {return new self;} public function getHost(){return 'example.test';} public static function root(...$args) { return 'https://example.test/'; } public static function isInternal($url) { return strpos($url,'https://example.test/') === 0; } } }
 namespace Joomla\CMS\String { class PunycodeHelper { public static function emailToUTF8($v) {return $v;} public static function urlToUTF8($v) {return $v;} } }
 namespace Joomla\CMS\HTML { class HTMLHelper { public static function _($name,...$args) {return $name === 'form.token' ? '<input name="test_token" value="valid" type="hidden">' : ''; } } }
 namespace {
@@ -25,7 +26,12 @@ namespace {
     require getenv('JOOMLA_ROOT') . '/libraries/vendor/autoload.php';
     require dirname(__DIR__, 3) . '/site/classes/helpers/db.php';
     class JLoader { public static function register(...$args) {} }
-    class FCField {}
+    class FCField { public $field, $item; public function setField($field){$this->field=$field;} public function setItem($item){$this->item=$item;} public function getExistingFieldValues(){return [];} public function unserialize_array(...$args){return flexicontent_db::unserialize_array(...$args);} }
+    function jimport($name) {}
+    define('FLEXI_J30GE', true); define('DS', DIRECTORY_SEPARATOR); define('JPATH_BASE', JPATH_SITE);
+    class flexicontent_html { public static function dataFilter($value,...$args){return trim((string)$value);} }
+    class FLEXIUtilities { public static function call_FC_Field_Func(...$args){return true;} }
+    class plgFlexicontent_fieldsIndexFixture { public function onIndexSearch(){} }
     class FlexicontentHelperRoute { public static function getItemRoute($id,$cat) { return 'index.php?option=com_flexicontent&id=' . $id; } }
     class TestUser {
         public $guest = true, $block = 0, $id = 0, $email = 'verified@example.test';
@@ -46,9 +52,11 @@ namespace {
         public function Send() {$this->sent=true;return true;}
     }
     class TestApp {
-        public $input, $messages=[];
+        public $input, $messages=[], $state=[], $config=[];
         public function __construct() {$this->input=new \Joomla\Input\Input();}
-        public function get($key,$default=null) {return ['secret'=>'fixture-secret','captcha'=>'fixture','sitename'=>'Test site','mailfrom'=>'site@example.test','fromname'=>'Test sender','tmp_path'=>getenv('FLEXI_TEST_SITE')][$key] ?? $default;}
+        public function get($key,$default=null) {if(array_key_exists($key,$this->config))return $this->config[$key];return ['secret'=>'fixture-secret','captcha'=>'fixture','sitename'=>'Test site','mailfrom'=>'site@example.test','fromname'=>'Test sender','tmp_path'=>getenv('FLEXI_TEST_SITE')][$key] ?? $default;}
+        public function getLanguageFilter(){return false;}
+        public function getUserState($key,$default=null) {return $this->state[$key] ?? $default;}
         public function getCfg($key,$default=null) {return $this->get($key,$default);}
         public function getLanguage() {return new class { public function load(...$args) {} };}
         public function getDocument() {return new class { public function addStyleSheet(...$args) {} };}

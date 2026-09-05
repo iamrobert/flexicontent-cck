@@ -12,6 +12,7 @@ try {
         header('Content-Type: application/json');echo json_encode(Factory::$mailer);return;
     }
     if ($path==='/form') {
+        if(isset($_GET['captcha'])) Factory::$app->config['captcha']=$_GET['captcha'];
         list($item,$field)=flexicontent_security::loadItemField(10,20,'email');
         $values=[['addr'=>'owner@example.test','text'=>'Contact']];$prop='display';$is_ingroup=false;$usetitle=1;$default_title='Contact';$app=Factory::$app;$realview='item';$pretext=$posttext='';$multiple=false;
         include dirname(__DIR__,3).'/plugins/flexicontent_fields/email/tmpl/value_form.php';echo implode('',$field->display);return;

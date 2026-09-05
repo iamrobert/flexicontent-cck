@@ -3156,7 +3156,7 @@ class FlexicontentFields
 			if ( !$for_advsearch )
 			{
 				// Ensure search is an array before assigning
-				if (!is_array($field->search)) {
+				if (!isset($field->search) || !is_array($field->search)) {
 					$field->search = array();
 				}
 				

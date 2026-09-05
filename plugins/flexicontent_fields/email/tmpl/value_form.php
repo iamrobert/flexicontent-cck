@@ -147,9 +147,24 @@ foreach ($values as $value)
 
     if ($display_captcha)
     {
-        $captcha = $captcha_plgname && $captcha_plgname !== '0' ? \Joomla\CMS\Captcha\Captcha::getInstance($captcha_plgname) : null;
-        if (!$captcha) throw new \RuntimeException('Contact form CAPTCHA is not configured', 500);
-        $captcha_html = '<div class="captcha form-group control-group">' . $captcha->display('captcha', 'captcha_' . $formid, 'required') . '</div>';
+        // Fail closed for this form without breaking the rest of the item page.
+        try
+        {
+            $captcha = $captcha_plgname && $captcha_plgname !== '0' ? \Joomla\CMS\Captcha\Captcha::getInstance($captcha_plgname) : null;
+            $captcha_display = $captcha ? $captcha->display('captcha', 'captcha_' . $formid, 'required') : '';
+        }
+        catch (\Exception $error)
+        {
+            $captcha_display = '';
+        }
+        if (!is_string($captcha_display) || trim($captcha_display) === '')
+        {
+            $field->{$prop}[$n++] = '<p class="alert alert-warning fc-contact-unavailable">'
+                . htmlspecialchars(\Joomla\CMS\Language\Text::_('Contact form temporarily unavailable. Please try again later.'), ENT_QUOTES, 'UTF-8') . '</p>';
+            if (!$multiple) break;
+            continue;
+        }
+        $captcha_html = '<div class="captcha form-group control-group">' . $captcha_display . '</div>';
     }
 
 

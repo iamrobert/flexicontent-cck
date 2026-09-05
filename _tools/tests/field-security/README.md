@@ -15,3 +15,5 @@ Optional environment settings: PHP_BINARY, PHP_SQLITE_EXTENSION (for example pdo
 Coverage includes array/scalar compatibility, object and enum rejection before autoloading, recursion limits, resource-scoped coupons, executable configuration permissions, item/field/type/category ACLs, publication windows, recipient and metadata tampering, CAPTCHA/CSRF, consent, sender copies, real multipart attachment validation, mail quotas, and rendered link/embed injection.
 
 A production installation still needs its own page and workflow regression checks, especially any custom template overrides.
+
+The runner also starts fresh PHP processes to check helper availability before any database-helper load, invokes the actual basic indexer and weblink/image save validators, checks temporary-ID namespaces and retries, and tests unavailable CAPTCHA rendering. It validates benign PHP line-ending conversions while rejecting edits inside executable code and string literals.

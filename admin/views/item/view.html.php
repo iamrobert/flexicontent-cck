@@ -283,7 +283,12 @@ class FlexicontentViewItem extends FlexicontentViewBaseRecord
 		else
 		{
 			$unique_tmp_itemid = $app->getUserState($this->option.'.edit.item.unique_tmp_itemid');
-			$unique_tmp_itemid = $unique_tmp_itemid ? $unique_tmp_itemid : date('_Y_m_d_h_i_s_', time()) . uniqid(true);
+			// Only reuse an id that this session actually issued. A failed POST can
+			// populate unique_tmp_itemid in user state with an untrusted value.
+			if (!flexicontent_security::isIssuedTemporaryItemId($app, $unique_tmp_itemid, $this->option))
+			{
+				$unique_tmp_itemid = date('_Y_m_d_h_i_s_', time()) . uniqid(true);
+			}
 		}
 
 		//print_r($unique_tmp_itemid);

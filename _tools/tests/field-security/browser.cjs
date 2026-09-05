@@ -13,8 +13,15 @@ const phpArgs = process.env.PHP_SQLITE_EXTENSION ? ['-d', 'extension='+process.e
 const write = (relative, data) => {const p=path.join(temporary,relative);fs.mkdirSync(path.dirname(p),{recursive:true});fs.writeFileSync(p,data);};
 write('components/com_flexicontent/classes/helpers/security.php', '<?php require_once '+JSON.stringify(root.replaceAll('\\','/')+'/site/classes/helpers/security.php')+';');
 write('components/com_flexicontent/helpers/route.php','<?php // Routing test double is declared in bootstrap.php.');
+write('administrator/components/com_flexicontent/defineconstants.php','<?php // Constants are supplied by the isolated test bootstrap.');
 let server, browser;
 (async()=>{
+  for (const kind of ['controller','file','mediafile','helper']) {
+    const result=spawnSync(php,[...phpArgs,path.join(__dirname,'entrypoints.php'),kind],{env,encoding:'utf8',windowsHide:true});
+    process.stdout.write(result.stdout);process.stderr.write(result.stderr);assert.equal(result.status,0,'Fresh '+kind+' entry point');
+  }
+  const regression=spawnSync(php,[...phpArgs,path.join(__dirname,'regressions.php')],{env,encoding:'utf8',windowsHide:true});
+  process.stdout.write(regression.stdout);process.stderr.write(regression.stderr);assert.equal(regression.status,0,'Save-path regression checks');
   const unit=spawnSync(php,[...phpArgs,path.join(__dirname,'unit.php')],{env,encoding:'utf8',windowsHide:true});
   process.stdout.write(unit.stdout);process.stderr.write(unit.stderr);assert.equal(unit.status,0,'PHP regression assertions');
   const socket=net.createServer();await new Promise(resolve=>socket.listen(0,'127.0.0.1',resolve));const port=socket.address().port;await new Promise(resolve=>socket.close(resolve));
@@ -26,6 +33,9 @@ let server, browser;
   await context.route('**/*',route=>new URL(route.request().url()).origin===url ? route.continue() : route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><title>Fixture</title>'}));
   const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
   for(let i=0;i<100;i++){try{await context.request.get(url+'/missing');break;}catch(e){if(i===99)throw e;await new Promise(r=>setTimeout(r,50));}}
+  for (const captcha of ['0','broken']) {
+    const unavailable=await page.goto(url+'/form?captcha='+captcha);assert.equal(unavailable.status(),200);assert.equal(await page.locator('form').count(),0);assert.equal(await page.locator('.fc-contact-unavailable').count(),1);
+  }
   const response=await page.goto(url+'/form');assert.equal(response.status(),200);
   await page.locator('input[name$="[name]"]').fill('Visitor');
   await page.locator('input[name$="[emailfrom]"]').fill('visitor@example.test');

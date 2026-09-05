@@ -11,6 +11,9 @@
 
 defined('_JEXEC') or die;
 
+// Public handlers may run before the database helper is autoloaded.
+require_once JPATH_SITE . '/components/com_flexicontent/classes/helpers/security.php';
+
 use Joomla\Filesystem\Path;
 use Joomla\String\StringHelper;
 use Joomla\Utilities\ArrayHelper;

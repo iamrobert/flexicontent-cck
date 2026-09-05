@@ -111,6 +111,14 @@ class flexicontent_security
         return strpos($path, $base) === 0;
     }
 
+    /** A saved form retry must not turn a client-supplied id into an issued id. */
+    public static function isIssuedTemporaryItemId($app, $id, $option = 'com_flexicontent')
+    {
+        if (!is_string($id) || !preg_match('/^_\d{4}_\d{2}_\d{2}_\d{2}_\d{2}_\d{2}_[0-9a-f.]{13,}$/D', $id)) return false;
+        $issued = (array) $app->getUserState($option . '.edit.item.active_tmp_itemids', array());
+        return isset($issued[$id]) && (int) $issued[$id] >= time() - 86400;
+    }
+
     public static function canViewItemState($item, $user)
     {
         $now = time();
@@ -165,11 +173,28 @@ class flexicontent_security
             list($mode, $active, $code) = $setting;
             if (((int) $old->get($mode, 0) === $active || (int) $new->get($mode, 0) === $active)
                 && ((int) $old->get($mode, 0) !== (int) $new->get($mode, 0)
-                    || (string) $old->get($code, '') !== (string) $new->get($code, '')))
+                    || self::comparablePhpConfiguration((string) $old->get($code, '')) !== self::comparablePhpConfiguration((string) $new->get($code, ''))))
             {
                 throw new \RuntimeException('Only Super Users may change executable PHP configuration', 403);
             }
         }
+    }
+
+    /** Ignore browser line-ending conversion only outside PHP string literals. */
+    private static function comparablePhpConfiguration($code)
+    {
+        $normalized = '';
+        foreach (token_get_all('<?php ' . $code) as $token)
+        {
+            if (!is_array($token)) { $normalized .= $token; continue; }
+            $text = $token[1];
+            if (in_array($token[0], array(T_WHITESPACE, T_COMMENT, T_DOC_COMMENT), true))
+            {
+                $text = str_replace(array("\r\n", "\r"), "\n", $text);
+            }
+            $normalized .= $text;
+        }
+        return $normalized;
     }
 
     /** Do not accept GET requests for actions which send mail or issue tokens. */
