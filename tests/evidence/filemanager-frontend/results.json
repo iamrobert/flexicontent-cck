@@ -1,0 +1,302 @@
+{
+  "base": "5943b610c06d9d5da5b97c130575bc5d51d819ac",
+  "source_commit": "41b9fca89589de249d1baaa713a1a399101fd0f7",
+  "wrapper_sha256": "04a032d8484dada87e05e134a96de9be2a48d20953a2b3c066b3aec56e7f1d7b",
+  "phases": {
+    "before": [
+      {
+        "name": "guest-before.txt",
+        "status": 303
+      },
+      {
+        "name": "guest-before.txt",
+        "proof": {
+          "id": 3,
+          "filename": "2026-11-11_18.45.09.txt",
+          "filename_original": "guest-before.txt",
+          "uploaded_by": 0,
+          "secure": 0,
+          "altname": "guest-before.txt",
+          "description": "",
+          "exists": true,
+          "sha256": "a757a5466acd9ef421579e13618b423f5076aa29d6c0801a6c3d0f9fb759071c"
+        }
+      },
+      {
+        "name": "registered-before.txt",
+        "status": 303
+      },
+      {
+        "name": "registered-before.txt",
+        "proof": {
+          "id": 4,
+          "filename": "2026-11-11_18.45.09-1.txt",
+          "filename_original": "registered-before.txt",
+          "uploaded_by": 101,
+          "secure": 0,
+          "altname": "registered-before.txt",
+          "description": "",
+          "exists": true,
+          "sha256": "a15eedfb24dc1d2c7a528753ea4763b75a2415fd053efde15c6a1aa647ddf5fb"
+        }
+      }
+    ],
+    "after": [
+      {
+        "name": "guest-after.txt",
+        "status": 403
+      },
+      {
+        "name": "guest-after.txt",
+        "proof": {
+          "exists": false
+        }
+      },
+      {
+        "screenshot": "after-guest-denied.png"
+      },
+      {
+        "name": "registered-after.txt",
+        "status": 403
+      },
+      {
+        "name": "registered-after.txt",
+        "proof": {
+          "exists": false
+        }
+      },
+      {
+        "name": "author-after.txt",
+        "status": 303
+      },
+      {
+        "name": "author-after.txt",
+        "proof": {
+          "id": 6,
+          "filename": "2026-11-11_18.48.52.txt",
+          "filename_original": "author-after.txt",
+          "uploaded_by": 102,
+          "secure": 0,
+          "altname": "author-after.txt",
+          "description": "",
+          "exists": true,
+          "sha256": "f26bf9c382e1ff752b02cf69323e9a850c6136d9e1daa9c9a41b668d412cec9e"
+        }
+      },
+      {
+        "name": "category-after.txt",
+        "status": 303
+      },
+      {
+        "name": "category-after.txt",
+        "proof": {
+          "id": 7,
+          "filename": "2026-11-11_18.48.52-1.txt",
+          "filename_original": "category-after.txt",
+          "uploaded_by": 103,
+          "secure": 0,
+          "altname": "category-after.txt",
+          "description": "",
+          "exists": true,
+          "sha256": "ba4912dfaf528c2341ea66cf2cd1746c45037d8e1cb330d03d65281612315433"
+        }
+      },
+      {
+        "name": "manager-after.txt",
+        "status": 303
+      },
+      {
+        "name": "manager-after.txt",
+        "proof": {
+          "id": 8,
+          "filename": "2026-11-11_18.48.52-2.txt",
+          "filename_original": "manager-after.txt",
+          "uploaded_by": 104,
+          "secure": 0,
+          "altname": "manager-after.txt",
+          "description": "",
+          "exists": true,
+          "sha256": "a8a768455cb5e33ac83b5180447339db056e76d226237b3815c931a2248dc3dc"
+        }
+      }
+    ],
+    "workflow": [
+      {
+        "name": "author-workflow.txt",
+        "status": 303
+      },
+      {
+        "name": "author-workflow.txt",
+        "proof": {
+          "id": 9,
+          "filename": "2026-11-11_18.53.44.txt",
+          "filename_original": "author-workflow.txt",
+          "uploaded_by": 102,
+          "secure": 0,
+          "altname": "author-workflow.txt",
+          "description": "",
+          "exists": true,
+          "sha256": "bbafa58bfd50919562ab133bc527301e018b73760ffecae8a6873fb26e174dac",
+          "assignments": []
+        }
+      },
+      {
+        "check": "author metadata save",
+        "status": 200,
+        "proof": {
+          "id": 9,
+          "filename": "2026-11-11_18.53.44.txt",
+          "filename_original": "author-workflow.txt",
+          "uploaded_by": 102,
+          "secure": 0,
+          "altname": "Saved author metadata",
+          "description": "Saved through the real file controller.",
+          "exists": true,
+          "sha256": "bbafa58bfd50919562ab133bc527301e018b73760ffecae8a6873fb26e174dac",
+          "assignments": []
+        }
+      },
+      {
+        "check": "author missing CSRF rejected",
+        "status": 200,
+        "unchanged": true
+      },
+      {
+        "name": "category-workflow.txt",
+        "status": 303
+      },
+      {
+        "name": "category-workflow.txt",
+        "proof": {
+          "id": 10,
+          "filename": "2026-11-11_18.53.45.txt",
+          "filename_original": "category-workflow.txt",
+          "uploaded_by": 103,
+          "secure": 0,
+          "altname": "category-workflow.txt",
+          "description": "",
+          "exists": true,
+          "sha256": "c0230a0ed19157c04d96f39b641936b157badfe29a537bb38822262e0fceb84a",
+          "assignments": []
+        }
+      },
+      {
+        "check": "category metadata save",
+        "status": 200,
+        "proof": {
+          "id": 10,
+          "filename": "2026-11-11_18.53.45.txt",
+          "filename_original": "category-workflow.txt",
+          "uploaded_by": 103,
+          "secure": 0,
+          "altname": "Saved category metadata",
+          "description": "Saved through the real file controller.",
+          "exists": true,
+          "sha256": "c0230a0ed19157c04d96f39b641936b157badfe29a537bb38822262e0fceb84a",
+          "assignments": []
+        }
+      },
+      {
+        "check": "category missing CSRF rejected",
+        "status": 200,
+        "unchanged": true
+      },
+      {
+        "name": "manager-workflow.txt",
+        "status": 303
+      },
+      {
+        "name": "manager-workflow.txt",
+        "proof": {
+          "id": 11,
+          "filename": "2026-11-11_18.53.45-1.txt",
+          "filename_original": "manager-workflow.txt",
+          "uploaded_by": 104,
+          "secure": 0,
+          "altname": "manager-workflow.txt",
+          "description": "",
+          "exists": true,
+          "sha256": "515255d20ce9279a9965d0f37beb300162a93ffd9204c735ef0a64d41443c5b1",
+          "assignments": []
+        }
+      },
+      {
+        "check": "manager metadata save",
+        "status": 200,
+        "proof": {
+          "id": 11,
+          "filename": "2026-11-11_18.53.45-1.txt",
+          "filename_original": "manager-workflow.txt",
+          "uploaded_by": 104,
+          "secure": 0,
+          "altname": "Saved manager metadata",
+          "description": "Saved through the real file controller.",
+          "exists": true,
+          "sha256": "515255d20ce9279a9965d0f37beb300162a93ffd9204c735ef0a64d41443c5b1",
+          "assignments": []
+        }
+      },
+      {
+        "check": "manager missing CSRF rejected",
+        "status": 200,
+        "unchanged": true
+      },
+      {
+        "check": "existing file ownership ACL retained",
+        "status": 200,
+        "unchanged": true
+      },
+      {
+        "check": "author internal article upload/save",
+        "status": 303,
+        "proof": {
+          "id": 12,
+          "filename": "2026-11-11_18.53.47.txt",
+          "filename_original": "author-item-save.txt",
+          "uploaded_by": 102,
+          "secure": 1,
+          "altname": "author-item-save.txt",
+          "description": "",
+          "exists": true,
+          "sha256": "fa3b2e0ad0e611da86449ab4c1b1ce245b7e34501ca8e4380544e471ca05fe7e",
+          "assignments": [
+            {
+              "field_id": "100",
+              "item_id": "1102",
+              "value": "12"
+            }
+          ]
+        }
+      },
+      {
+        "screenshot": "author-save-confirmed.png"
+      },
+      {
+        "check": "category internal article upload/save",
+        "status": 303,
+        "proof": {
+          "id": 13,
+          "filename": "2026-11-11_18.53.49.txt",
+          "filename_original": "category-item-save.txt",
+          "uploaded_by": 103,
+          "secure": 1,
+          "altname": "category-item-save.txt",
+          "description": "",
+          "exists": true,
+          "sha256": "5a092f5fa4cefc03d9c4d204c2abbb949234c2ed6244f48ecc0677c1ec6b1218",
+          "assignments": [
+            {
+              "field_id": "100",
+              "item_id": "1103",
+              "value": "13"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "screenshots": {
+    "after-guest-denied.png": "20d0d4f3af26aa4b585e52a4ca7ba767451bdf5ea43dd5b7a4db06b580cd49b8",
+    "before-files-list.png": "d4aa99d1b00b87bc9659cf02370c3e7b563e314c8c1204211529b7d1ed0de40b"
+  }
+}
