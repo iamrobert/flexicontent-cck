@@ -1,0 +1,23 @@
+{
+  "test": "category-baseline",
+  "status": "pass",
+  "observations": {
+    "cases": [
+      {
+        "source": "master",
+        "originalExit": 255,
+        "originalDiagnostic": "PHP Fatal error:  Uncaught RuntimeException: independent secondary flag: array (\n  0 => 20,\n  1 => 30,\n  2 => 31,\n) in /scratch/category-master/_tools/tests/category-association-propagation.php:94\nStack trace:\n#0 /scratch/category-master/_tools/tests/category-association-propagation.php(112): same()\n#1 {main}\n  thrown in /scratch/category-master/_tools/tests/category-association-propagation.php on line 94\n",
+        "fixtureCorrectionExit": 0,
+        "fixtureCorrectionOutput": "54 passed"
+      },
+      {
+        "source": "pr",
+        "originalExit": 255,
+        "originalDiagnostic": "PHP Fatal error:  Uncaught RuntimeException: independent secondary flag: array (\n  0 => 20,\n  1 => 30,\n  2 => 31,\n) in /scratch/category-pr/_tools/tests/category-association-propagation.php:94\nStack trace:\n#0 /scratch/category-pr/_tools/tests/category-association-propagation.php(112): same()\n#1 {main}\n  thrown in /scratch/category-pr/_tools/tests/category-association-propagation.php on line 94\n",
+        "fixtureCorrectionExit": 0,
+        "fixtureCorrectionOutput": "54 passed"
+      }
+    ],
+    "note": "The corrected SQL stub is used only in disposable scratch. Application source is unchanged."
+  }
+}

@@ -1,0 +1,371 @@
+{
+  "sourceCommit": "2625d48be91d66c2df4eba784c8464ad0f141c21",
+  "testedTreeSha256": "3f2f227734b77583aa24cdffeb37ef4104b2a02af71db321d1c69a2e435564a9",
+  "suite": "acl",
+  "joomlaMajor": 5,
+  "php": "PHP 8.4.27 (cli) (built: Nov  5 2026 07:23:05) (NTS)",
+  "checks": [
+    {
+      "name": "Install pre-fix integration package",
+      "status": "pass",
+      "detail": {
+        "status": 303,
+        "message": "\u00d7 Success Installation of the component was successful."
+      }
+    },
+    {
+      "name": "Upgrade via actual candidate ZIP",
+      "status": "pass",
+      "detail": {
+        "status": 303,
+        "message": "\u00d7 info Rebuild the Basic search index in FLEXIcontent Search indexes to restore word suggestions for existing items. Suggestions now respect field viewing permissions. \u00d7 Success Installation of the component was successful."
+      }
+    },
+    {
+      "name": "Post-install initialization",
+      "status": "pass",
+      "detail": "No pending first-use tasks"
+    },
+    {
+      "name": "First-use configuration Save",
+      "status": "pass",
+      "detail": "\u00d7 Success Configuration saved."
+    },
+    {
+      "name": "Installed version metadata matches the submitted PR source",
+      "status": "pass",
+      "detail": {
+        "manifest": "5.1",
+        "runtime": {
+          "version": "4.2.1",
+          "phpMinimum": "7.0.0",
+          "phpRecommended": "8.0.25"
+        }
+      }
+    },
+    {
+      "name": "Mail templates initialized",
+      "status": "pass",
+      "detail": 5
+    },
+    {
+      "name": "File rows preserved",
+      "status": "pass",
+      "detail": 1
+    },
+    {
+      "name": "Representative content preserved through upgrade",
+      "status": "pass",
+      "detail": 1
+    },
+    {
+      "name": "Custom field values preserved through actual extension upgrade",
+      "status": "pass",
+      "detail": 0
+    },
+    {
+      "name": "Upgrade explains Basic index rebuild",
+      "status": "pass",
+      "detail": "\u00d7 info Rebuild the Basic search index in FLEXIcontent Search indexes to restore word suggestions for existing items. Suggestions now respect field viewing permissions. \u00d7 Success Installation of the component was successful."
+    },
+    {
+      "name": "ACL basic index exists after installation or upgrade",
+      "status": "pass",
+      "detail": {
+        "upgrade": true
+      }
+    },
+    {
+      "name": "Approved save writes field-attributed basic-only text",
+      "status": "pass",
+      "detail": {
+        "rows": 12
+      }
+    },
+    {
+      "name": "Actual raw Basic and Advanced rebuild preserve field identity",
+      "status": "pass",
+      "detail": [
+        {
+          "indexer": "basic",
+          "total": 3,
+          "reportedCount": 100
+        },
+        {
+          "indexer": "advanced",
+          "total": 3,
+          "reportedCount": 100
+        }
+      ]
+    },
+    {
+      "name": "Negative control: words source field view-level matrix",
+      "status": "pass",
+      "detail": [
+        {
+          "role": "Guest",
+          "type": "basic_index",
+          "body": "[{\"text\":\"zebrabasiconly\",\"id\":\"zebrabasiconly\"},{\"text\":\"zebrapublic\",\"id\":\"zebrapublic\"},{\"text\":\"zebraregistered\",\"id\":\"zebraregistered\"},{\"text\":\"zebrashared\",\"id\":\"zebrashared\"},{\"text\":\"zebraspecial\",\"id\":\"zebraspecial\"}]"
+        },
+        {
+          "role": "Guest",
+          "type": "adv_index",
+          "body": "[{\"text\":\"zebrapublic\",\"id\":\"zebrapublic\"},{\"text\":\"zebraregistered\",\"id\":\"zebraregistered\"},{\"text\":\"zebrashared\",\"id\":\"zebrashared\"},{\"text\":\"zebraspecial\",\"id\":\"zebraspecial\"}]"
+        },
+        {
+          "role": "Registered",
+          "type": "basic_index",
+          "body": "[{\"text\":\"zebrabasiconly\",\"id\":\"zebrabasiconly\"},{\"text\":\"zebrapublic\",\"id\":\"zebrapublic\"},{\"text\":\"zebraregistered\",\"id\":\"zebraregistered\"},{\"text\":\"zebrashared\",\"id\":\"zebrashared\"},{\"text\":\"zebraspecial\",\"id\":\"zebraspecial\"}]"
+        },
+        {
+          "role": "Registered",
+          "type": "adv_index",
+          "body": "[{\"text\":\"zebrapublic\",\"id\":\"zebrapublic\"},{\"text\":\"zebraregistered\",\"id\":\"zebraregistered\"},{\"text\":\"zebrashared\",\"id\":\"zebrashared\"},{\"text\":\"zebraspecial\",\"id\":\"zebraspecial\"}]"
+        },
+        {
+          "role": "Author",
+          "type": "basic_index",
+          "body": "[{\"text\":\"zebrabasiconly\",\"id\":\"zebrabasiconly\"},{\"text\":\"zebrapublic\",\"id\":\"zebrapublic\"},{\"text\":\"zebraregistered\",\"id\":\"zebraregistered\"},{\"text\":\"zebrashared\",\"id\":\"zebrashared\"},{\"text\":\"zebraspecial\",\"id\":\"zebraspecial\"}]"
+        },
+        {
+          "role": "Author",
+          "type": "adv_index",
+          "body": "[{\"text\":\"zebrapublic\",\"id\":\"zebrapublic\"},{\"text\":\"zebraregistered\",\"id\":\"zebraregistered\"},{\"text\":\"zebrashared\",\"id\":\"zebrashared\"},{\"text\":\"zebraspecial\",\"id\":\"zebraspecial\"}]"
+        }
+      ]
+    },
+    {
+      "name": "Fixed: words source field view-level matrix",
+      "status": "pass",
+      "detail": [
+        {
+          "role": "Guest",
+          "type": "basic_index",
+          "body": "[{\"text\":\"zebrabasiconly\",\"id\":\"zebrabasiconly\"},{\"text\":\"zebrapublic\",\"id\":\"zebrapublic\"},{\"text\":\"zebrashared\",\"id\":\"zebrashared\"}]"
+        },
+        {
+          "role": "Guest",
+          "type": "adv_index",
+          "body": "[{\"text\":\"zebrapublic\",\"id\":\"zebrapublic\"},{\"text\":\"zebrashared\",\"id\":\"zebrashared\"}]"
+        },
+        {
+          "role": "Registered",
+          "type": "basic_index",
+          "body": "[{\"text\":\"zebrabasiconly\",\"id\":\"zebrabasiconly\"},{\"text\":\"zebrapublic\",\"id\":\"zebrapublic\"},{\"text\":\"zebraregistered\",\"id\":\"zebraregistered\"},{\"text\":\"zebrashared\",\"id\":\"zebrashared\"}]"
+        },
+        {
+          "role": "Registered",
+          "type": "adv_index",
+          "body": "[{\"text\":\"zebrapublic\",\"id\":\"zebrapublic\"},{\"text\":\"zebraregistered\",\"id\":\"zebraregistered\"},{\"text\":\"zebrashared\",\"id\":\"zebrashared\"}]"
+        },
+        {
+          "role": "Author",
+          "type": "basic_index",
+          "body": "[{\"text\":\"zebrabasiconly\",\"id\":\"zebrabasiconly\"},{\"text\":\"zebrapublic\",\"id\":\"zebrapublic\"},{\"text\":\"zebraregistered\",\"id\":\"zebraregistered\"},{\"text\":\"zebrashared\",\"id\":\"zebrashared\"},{\"text\":\"zebraspecial\",\"id\":\"zebraspecial\"}]"
+        },
+        {
+          "role": "Author",
+          "type": "adv_index",
+          "body": "[{\"text\":\"zebrapublic\",\"id\":\"zebrapublic\"},{\"text\":\"zebraregistered\",\"id\":\"zebraregistered\"},{\"text\":\"zebrashared\",\"id\":\"zebrashared\"},{\"text\":\"zebraspecial\",\"id\":\"zebraspecial\"}]"
+        }
+      ]
+    },
+    {
+      "name": "Fixed: words deny current item restrictions without rebuild",
+      "status": "pass",
+      "detail": true
+    },
+    {
+      "name": "Fixed: words deny current category restrictions without rebuild",
+      "status": "pass",
+      "detail": true
+    },
+    {
+      "name": "Fixed: words deny current type restrictions without rebuild",
+      "status": "pass",
+      "detail": true
+    },
+    {
+      "name": "Fixed: words deny current field restrictions without rebuild",
+      "status": "pass",
+      "detail": true
+    },
+    {
+      "name": "Fixed: words deny current unpublished restrictions without rebuild",
+      "status": "pass",
+      "detail": true
+    },
+    {
+      "name": "Fixed: words deny current detached restrictions without rebuild",
+      "status": "pass",
+      "detail": true
+    },
+    {
+      "name": "Fixed: words deny current disabled restrictions without rebuild",
+      "status": "pass",
+      "detail": true
+    },
+    {
+      "name": "Basic word suggestions support prefix mode and next-word completion",
+      "status": "pass",
+      "detail": true
+    },
+    {
+      "name": "Negative control: advanced search filter and text-field view levels",
+      "status": "pass",
+      "detail": [
+        {
+          "role": "Guest",
+          "status": 200
+        },
+        {
+          "role": "Registered",
+          "status": 200
+        },
+        {
+          "role": "Author",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "name": "Fixed: advanced search filter and text-field view levels",
+      "status": "pass",
+      "detail": [
+        {
+          "role": "Guest",
+          "status": 200
+        },
+        {
+          "role": "Registered",
+          "status": 200
+        },
+        {
+          "role": "Author",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "name": "Negative control: untranslatable custom fields respect target edit and checkout",
+      "status": "pass",
+      "detail": [
+        {
+          "role": "Author",
+          "owned": false,
+          "locked": false,
+          "clear": false,
+          "changed": true
+        },
+        {
+          "role": "Author",
+          "owned": true,
+          "locked": false,
+          "clear": false,
+          "changed": true
+        },
+        {
+          "role": "Author",
+          "owned": true,
+          "locked": true,
+          "clear": false,
+          "changed": true
+        },
+        {
+          "role": "Editor",
+          "owned": false,
+          "locked": false,
+          "clear": false,
+          "changed": true
+        },
+        {
+          "role": "Editor",
+          "owned": false,
+          "locked": true,
+          "clear": false,
+          "changed": true
+        },
+        {
+          "role": "Author",
+          "owned": false,
+          "locked": false,
+          "clear": true,
+          "changed": true
+        },
+        {
+          "role": "Author",
+          "owned": true,
+          "locked": false,
+          "clear": true,
+          "changed": true
+        }
+      ]
+    },
+    {
+      "name": "Fixed: untranslatable custom fields respect target edit and checkout",
+      "status": "pass",
+      "detail": [
+        {
+          "role": "Author",
+          "owned": false,
+          "locked": false,
+          "clear": false,
+          "changed": false
+        },
+        {
+          "role": "Author",
+          "owned": true,
+          "locked": false,
+          "clear": false,
+          "changed": true
+        },
+        {
+          "role": "Author",
+          "owned": true,
+          "locked": true,
+          "clear": false,
+          "changed": false
+        },
+        {
+          "role": "Editor",
+          "owned": false,
+          "locked": false,
+          "clear": false,
+          "changed": true
+        },
+        {
+          "role": "Editor",
+          "owned": false,
+          "locked": true,
+          "clear": false,
+          "changed": false
+        },
+        {
+          "role": "Author",
+          "owned": false,
+          "locked": false,
+          "clear": true,
+          "changed": false
+        },
+        {
+          "role": "Author",
+          "owned": true,
+          "locked": false,
+          "clear": true,
+          "changed": true
+        }
+      ]
+    },
+    {
+      "name": "Translatable custom field does not propagate to an editable association",
+      "status": "pass",
+      "detail": true
+    },
+    {
+      "name": "Unapproved revision preserves the approved basic autocomplete index",
+      "status": "pass",
+      "detail": true
+    }
+  ],
+  "receipt": "run-20261115-120321-884-76441fea.json"
+}

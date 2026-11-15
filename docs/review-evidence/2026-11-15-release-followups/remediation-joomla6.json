@@ -1,0 +1,385 @@
+{
+  "sourceCommit": "2625d48be91d66c2df4eba784c8464ad0f141c21",
+  "testedTreeSha256": "3f2f227734b77583aa24cdffeb37ef4104b2a02af71db321d1c69a2e435564a9",
+  "suite": "remediation",
+  "joomlaMajor": 6,
+  "php": "PHP 8.4.27 (cli) (built: Nov  5 2026 07:23:05) (NTS)",
+  "checks": [
+    {
+      "name": "Fresh FLEXIcontent via actual ZIP",
+      "status": "pass",
+      "detail": {
+        "status": 303,
+        "message": "\u00d7 Success Installation of the component was successful."
+      }
+    },
+    {
+      "name": "Post-install initialization",
+      "status": "pass",
+      "detail": "No pending first-use tasks"
+    },
+    {
+      "name": "First-use configuration Save",
+      "status": "pass",
+      "detail": "\u00d7 Success Configuration saved."
+    },
+    {
+      "name": "Installed version metadata matches the submitted PR source",
+      "status": "pass",
+      "detail": {
+        "manifest": "5.1",
+        "runtime": {
+          "version": "4.2.1",
+          "phpMinimum": "7.0.0",
+          "phpRecommended": "8.0.25"
+        }
+      }
+    },
+    {
+      "name": "Mail templates initialized",
+      "status": "pass",
+      "detail": 5
+    },
+    {
+      "name": "Negative control: raw purge authorization, verb and token",
+      "status": "pass",
+      "detail": [
+        {
+          "who": "admin",
+          "verb": "GET",
+          "tok": "none",
+          "status": 303,
+          "remaining": 0
+        },
+        {
+          "who": "admin",
+          "verb": "GET",
+          "tok": "query",
+          "status": 303,
+          "remaining": 0
+        },
+        {
+          "who": "admin",
+          "verb": "POST",
+          "tok": "none",
+          "status": 303,
+          "remaining": 0
+        },
+        {
+          "who": "admin",
+          "verb": "POST",
+          "tok": "query",
+          "status": 303,
+          "remaining": 0
+        },
+        {
+          "who": "admin",
+          "verb": "POST",
+          "tok": "body",
+          "status": 303,
+          "remaining": 0
+        },
+        {
+          "who": "manager",
+          "verb": "GET",
+          "tok": "none",
+          "status": 303,
+          "remaining": 0
+        },
+        {
+          "who": "manager",
+          "verb": "GET",
+          "tok": "query",
+          "status": 303,
+          "remaining": 0
+        },
+        {
+          "who": "manager",
+          "verb": "POST",
+          "tok": "none",
+          "status": 303,
+          "remaining": 0
+        },
+        {
+          "who": "manager",
+          "verb": "POST",
+          "tok": "query",
+          "status": 303,
+          "remaining": 0
+        },
+        {
+          "who": "manager",
+          "verb": "POST",
+          "tok": "body",
+          "status": 303,
+          "remaining": 0
+        }
+      ]
+    },
+    {
+      "name": "Fixed: raw purge authorization, verb and token",
+      "status": "pass",
+      "detail": [
+        {
+          "who": "admin",
+          "verb": "GET",
+          "tok": "none",
+          "status": 405,
+          "remaining": 1
+        },
+        {
+          "who": "admin",
+          "verb": "GET",
+          "tok": "query",
+          "status": 405,
+          "remaining": 1
+        },
+        {
+          "who": "admin",
+          "verb": "POST",
+          "tok": "none",
+          "status": 403,
+          "remaining": 1
+        },
+        {
+          "who": "admin",
+          "verb": "POST",
+          "tok": "query",
+          "status": 403,
+          "remaining": 1
+        },
+        {
+          "who": "admin",
+          "verb": "POST",
+          "tok": "body",
+          "status": 303,
+          "remaining": 0
+        },
+        {
+          "who": "manager",
+          "verb": "GET",
+          "tok": "none",
+          "status": 403,
+          "remaining": 1
+        },
+        {
+          "who": "manager",
+          "verb": "GET",
+          "tok": "query",
+          "status": 403,
+          "remaining": 1
+        },
+        {
+          "who": "manager",
+          "verb": "POST",
+          "tok": "none",
+          "status": 403,
+          "remaining": 1
+        },
+        {
+          "who": "manager",
+          "verb": "POST",
+          "tok": "query",
+          "status": 403,
+          "remaining": 1
+        },
+        {
+          "who": "manager",
+          "verb": "POST",
+          "tok": "body",
+          "status": 403,
+          "remaining": 1
+        }
+      ]
+    },
+    {
+      "name": "Normal HTML purge denies Manager",
+      "status": "pass",
+      "detail": 403
+    },
+    {
+      "name": "Negative control: file real path HTML encoding",
+      "status": "pass",
+      "detail": {
+        "normal": true,
+        "dialog": true
+      }
+    },
+    {
+      "name": "Fixed: file real path HTML encoding",
+      "status": "pass",
+      "detail": {
+        "normal": true,
+        "dialog": true
+      }
+    },
+    {
+      "name": "Negative control: Joomla user edit and new forms",
+      "status": "pass",
+      "detail": [
+        {
+          "task": "users.edit&id=169",
+          "status": 500,
+          "oldNullDateWarning": false
+        },
+        {
+          "task": "users.add",
+          "status": 500,
+          "oldNullDateWarning": false
+        }
+      ]
+    },
+    {
+      "name": "Fixed: Joomla user edit and new forms",
+      "status": "pass",
+      "detail": [
+        {
+          "task": "users.edit&id=169",
+          "status": 200,
+          "oldNullDateWarning": false
+        },
+        {
+          "task": "users.add",
+          "status": 200,
+          "oldNullDateWarning": false
+        }
+      ]
+    },
+    {
+      "name": "Negative control: user permission report keeps selected principal",
+      "status": "pass",
+      "detail": {
+        "action": "/administrator/index.php?option=com_flexicontent&view=debuguser&user_id=0"
+      }
+    },
+    {
+      "name": "Negative control: group permission report keeps selected principal",
+      "status": "pass",
+      "detail": {
+        "action": "/administrator/index.php?option=com_flexicontent&view=debuggroup&user_id=0"
+      }
+    },
+    {
+      "name": "Fixed: user permission report keeps selected principal",
+      "status": "pass",
+      "detail": {
+        "action": "/administrator/index.php?option=com_flexicontent&view=debuguser&user_id=169"
+      }
+    },
+    {
+      "name": "Fixed: group permission report keeps selected principal",
+      "status": "pass",
+      "detail": {
+        "action": "/administrator/index.php?option=com_flexicontent&view=debuggroup&group_id=6"
+      }
+    },
+    {
+      "name": "Negative control: slider 7 stored text",
+      "status": "pass",
+      "detail": {
+        "mode": 7,
+        "custom": 0,
+        "scriptExecuted": 1
+      }
+    },
+    {
+      "name": "Negative control: slider 7 configured HTML",
+      "status": "pass",
+      "detail": {
+        "nullDeprecationReproduced": false
+      }
+    },
+    {
+      "name": "Negative control: slider 8 stored text",
+      "status": "pass",
+      "detail": {
+        "mode": 8,
+        "custom": 0,
+        "scriptExecuted": 1
+      }
+    },
+    {
+      "name": "Negative control: slider 8 configured HTML",
+      "status": "pass",
+      "detail": {
+        "nullDeprecationReproduced": true
+      }
+    },
+    {
+      "name": "Fixed: slider 7 stored text",
+      "status": "pass",
+      "detail": {
+        "mode": 7,
+        "custom": 0,
+        "scriptExecuted": 0
+      }
+    },
+    {
+      "name": "Fixed: slider 7 configured HTML",
+      "status": "pass",
+      "detail": {
+        "mode": 7,
+        "custom": 1,
+        "scriptExecuted": 0
+      }
+    },
+    {
+      "name": "Fixed: slider 8 stored text",
+      "status": "pass",
+      "detail": {
+        "mode": 8,
+        "custom": 0,
+        "scriptExecuted": 0
+      }
+    },
+    {
+      "name": "Fixed: slider 8 configured HTML",
+      "status": "pass",
+      "detail": {
+        "mode": 8,
+        "custom": 1,
+        "scriptExecuted": 0
+      }
+    },
+    {
+      "name": "Translate progress reports actual translations with Maximum error reporting",
+      "status": "pass",
+      "detail": {
+        "requests": 2,
+        "created": 2,
+        "progress": "FINISHED: 2 translations created. You may close this window.",
+        "trashStatus": 200,
+        "translatedItemTrashed": true
+      }
+    },
+    {
+      "name": "Joomla uninstall removes bundled extensions and keeps both applications usable",
+      "status": "pass",
+      "detail": {
+        "removed": 51
+      }
+    },
+    {
+      "name": "Negative control: original uninstall lifecycle",
+      "status": "pass",
+      "detail": {
+        "remaining": 50,
+        "responses": [
+          {
+            "endpoint": "/index.php",
+            "status": 200,
+            "missingComponentError": true
+          },
+          {
+            "endpoint": "/administrator/index.php",
+            "status": 200,
+            "missingComponentError": true
+          }
+        ],
+        "exit": 0,
+        "diagnostic": "<link type=\"text/css\" href=\"components/com_flexicontent/assets/css/j3x.css\" rel=\"stylesheet\"><div class=\"alert alert-info\" style=\"margin:32px 0px 8px 0px;\">Uninstalling FLEXIcontent 5.1</div>UNINSTALLED=1\n"
+      }
+    }
+  ],
+  "receipt": "run-20261115-120250-273-894b4718.json"
+}

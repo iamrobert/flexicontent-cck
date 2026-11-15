@@ -1,0 +1,148 @@
+[
+  {
+    "php": "8.2.35",
+    "lintChecked": 868,
+    "results": [
+      {
+        "file": "tests/filemanager-frontend-guard.php",
+        "exit": 0,
+        "output": "31 frontend file-manager boundary checks passed.\n"
+      },
+      {
+        "file": "_tools/tests/fileeditor.php",
+        "exit": 0,
+        "output": "14 download-name checks passed\n"
+      },
+      {
+        "file": "_tools/tests/notificationmail-conditions.php",
+        "exit": 0,
+        "output": "ok   - texte sans condition\nok   - pas de brace fermante\nok   - catid vrai\nok   - catid faux\nok   - catid avec espaces\nok   - espace dans les accolades\nok   - majuscules\nok   - else\nok   - elseif premiere branche\nok   - elseif seconde branche\nok   - elseif else\nok   - imbrication\nok   - imbrication fausse\nok   - and vrai\nok   - and faux\nok   - or vrai\nok   - operateur &&\nok   - operateur ||\nok   - negation !\nok   - negation not\nok   - precedence and sur or\nok   - presence champ tableau\nok   - presence champ vide\nok   - negation champ vide\nok   - empty champ vide\nok   - empty champ rempli\nok   - negation empty zero\nok   - zero est vide ? non\nok   - chaine zero empty ? non\nok   - chaine zero truthy ? non\nok   - champ absent presence\nok   - champ absent negation\nok   - champ absent empty\nok   - champ absent not empty\nok   - egalite insensible casse\nok   - egalite insensible casse inverse\nok   - inegalite\nok   - operateur ==\nok   - egalite numerique\nok   - egalite numerique chaine\nok   - in scalaire\nok   - in absent\nok   - not in\nok   - in tableau\nok   - in tableau absent\nok   - in valeurs quotees\nok   - contains\nok   - contains insensible casse\nok   - contains absent\nok   - not contains\nok   - contains tableau\nok   - numerique >\nok   - numerique >=\nok   - numerique <\nok   - numerique <=\nok   - numerique non numerique\nok   - numerique tableau\nok   - incat\nok   - incat absent\nok   - state_id\nok   - lang\nok   - type_id\nok   - item_id\nok   - author_id\nok   - editor_id\nok   - raccourci champ\nok   - champ html normalise\nok   - entites html operateur >=\nok   - entites html operateur <\nok   - entites html guillemets\nok   - entites html comparaison fausse\nok   - condition invalide garde le contenu\nok   - condition inconnue garde le contenu\nok   - if non ferme garde le contenu\nok   - endif orphelin ignore\nok   - else orphelin ignore\nok   - expression vide garde le contenu\nok   - guillemet non ferme\nok   - valeur utilisateur non interpretee\nok   - accolade litterale\nok   - json litteral\nok   - valeur avec accolade entre guillemets\nok   - diagnostics non vides\n\n83 passed, 0 failed\n"
+      },
+      {
+        "file": "_tools/tests/notificationmail-template-loading.php",
+        "exit": 0,
+        "output": "15 passed\n"
+      },
+      {
+        "file": "_tools/tests/notificationmail-template-loading-j6.php",
+        "exit": 0,
+        "output": "11 passed\n"
+      },
+      {
+        "file": "_tools/tests/file-index-custom-properties.php",
+        "exit": 0,
+        "output": "40 passed\n"
+      },
+      {
+        "file": "_tools/tests/category-association-propagation.php",
+        "exit": 255,
+        "output": "\nFatal error: Uncaught RuntimeException: independent secondary flag: array (\n  0 => 20,\n  1 => 30,\n  2 => 31,\n) in /target/_tools/tests/category-association-propagation.php:94\nStack trace:\n#0 /target/_tools/tests/category-association-propagation.php(112): same(Array, Array, 'independent sec...')\n#1 {main}\n  thrown in /target/_tools/tests/category-association-propagation.php on line 94\n"
+      },
+      {
+        "file": "external nullable-value controls",
+        "exit": 0,
+        "output": "23 nullable release value checks passed\n"
+      }
+    ],
+    "knownBaselineFailures": 1
+  },
+  {
+    "php": "8.4.27",
+    "lintChecked": 868,
+    "results": [
+      {
+        "file": "tests/filemanager-frontend-guard.php",
+        "exit": 0,
+        "output": "31 frontend file-manager boundary checks passed.\n"
+      },
+      {
+        "file": "_tools/tests/fileeditor.php",
+        "exit": 0,
+        "output": "14 download-name checks passed\n"
+      },
+      {
+        "file": "_tools/tests/notificationmail-conditions.php",
+        "exit": 0,
+        "output": "ok   - texte sans condition\nok   - pas de brace fermante\nok   - catid vrai\nok   - catid faux\nok   - catid avec espaces\nok   - espace dans les accolades\nok   - majuscules\nok   - else\nok   - elseif premiere branche\nok   - elseif seconde branche\nok   - elseif else\nok   - imbrication\nok   - imbrication fausse\nok   - and vrai\nok   - and faux\nok   - or vrai\nok   - operateur &&\nok   - operateur ||\nok   - negation !\nok   - negation not\nok   - precedence and sur or\nok   - presence champ tableau\nok   - presence champ vide\nok   - negation champ vide\nok   - empty champ vide\nok   - empty champ rempli\nok   - negation empty zero\nok   - zero est vide ? non\nok   - chaine zero empty ? non\nok   - chaine zero truthy ? non\nok   - champ absent presence\nok   - champ absent negation\nok   - champ absent empty\nok   - champ absent not empty\nok   - egalite insensible casse\nok   - egalite insensible casse inverse\nok   - inegalite\nok   - operateur ==\nok   - egalite numerique\nok   - egalite numerique chaine\nok   - in scalaire\nok   - in absent\nok   - not in\nok   - in tableau\nok   - in tableau absent\nok   - in valeurs quotees\nok   - contains\nok   - contains insensible casse\nok   - contains absent\nok   - not contains\nok   - contains tableau\nok   - numerique >\nok   - numerique >=\nok   - numerique <\nok   - numerique <=\nok   - numerique non numerique\nok   - numerique tableau\nok   - incat\nok   - incat absent\nok   - state_id\nok   - lang\nok   - type_id\nok   - item_id\nok   - author_id\nok   - editor_id\nok   - raccourci champ\nok   - champ html normalise\nok   - entites html operateur >=\nok   - entites html operateur <\nok   - entites html guillemets\nok   - entites html comparaison fausse\nok   - condition invalide garde le contenu\nok   - condition inconnue garde le contenu\nok   - if non ferme garde le contenu\nok   - endif orphelin ignore\nok   - else orphelin ignore\nok   - expression vide garde le contenu\nok   - guillemet non ferme\nok   - valeur utilisateur non interpretee\nok   - accolade litterale\nok   - json litteral\nok   - valeur avec accolade entre guillemets\nok   - diagnostics non vides\n\n83 passed, 0 failed\n"
+      },
+      {
+        "file": "_tools/tests/notificationmail-template-loading.php",
+        "exit": 0,
+        "output": "15 passed\n"
+      },
+      {
+        "file": "_tools/tests/notificationmail-template-loading-j6.php",
+        "exit": 0,
+        "output": "11 passed\n"
+      },
+      {
+        "file": "_tools/tests/file-index-custom-properties.php",
+        "exit": 0,
+        "output": "40 passed\n"
+      },
+      {
+        "file": "_tools/tests/category-association-propagation.php",
+        "exit": 255,
+        "output": "\nFatal error: Uncaught RuntimeException: independent secondary flag: array (\n  0 => 20,\n  1 => 30,\n  2 => 31,\n) in /target/_tools/tests/category-association-propagation.php:94\nStack trace:\n#0 /target/_tools/tests/category-association-propagation.php(112): same(Array, Array, 'independent sec...')\n#1 {main}\n  thrown in /target/_tools/tests/category-association-propagation.php on line 94\n"
+      },
+      {
+        "file": "external nullable-value controls",
+        "exit": 0,
+        "output": "23 nullable release value checks passed\n"
+      }
+    ],
+    "knownBaselineFailures": 1
+  },
+  {
+    "php": "PHP 8.3.6 (cli) (built: Oct 19 2026 15:16:58) (NTS)",
+    "lintChecked": 868,
+    "results": [
+      {
+        "script": "tests/filemanager-frontend-guard.php",
+        "exit": 0,
+        "output": "31 frontend file-manager boundary checks passed.\n"
+      },
+      {
+        "script": "_tools/tests/fileeditor.php",
+        "exit": 0,
+        "output": "14 download-name checks passed\n"
+      },
+      {
+        "script": "_tools/tests/notificationmail-conditions.php",
+        "exit": 0,
+        "output": "egation empty zero\nok   - zero est vide ? non\nok   - chaine zero empty ? non\nok   - chaine zero truthy ? non\nok   - champ absent presence\nok   - champ absent negation\nok   - champ absent empty\nok   - champ absent not empty\nok   - egalite insensible casse\nok   - egalite insensible casse inverse\nok   - inegalite\nok   - operateur ==\nok   - egalite numerique\nok   - egalite numerique chaine\nok   - in scalaire\nok   - in absent\nok   - not in\nok   - in tableau\nok   - in tableau absent\nok   - in valeurs quotees\nok   - contains\nok   - contains insensible casse\nok   - contains absent\nok   - not contains\nok   - contains tableau\nok   - numerique >\nok   - numerique >=\nok   - numerique <\nok   - numerique <=\nok   - numerique non numerique\nok   - numerique tableau\nok   - incat\nok   - incat absent\nok   - state_id\nok   - lang\nok   - type_id\nok   - item_id\nok   - author_id\nok   - editor_id\nok   - raccourci champ\nok   - champ html normalise\nok   - entites html operateur >=\nok   - entites html operateur <\nok   - entites html guillemets\nok   - entites html comparaison fausse\nok   - condition invalide garde le contenu\nok   - condition inconnue garde le contenu\nok   - if non ferme garde le contenu\nok   - endif orphelin ignore\nok   - else orphelin ignore\nok   - expression vide garde le contenu\nok   - guillemet non ferme\nok   - valeur utilisateur non interpretee\nok   - accolade litterale\nok   - json litteral\nok   - valeur avec accolade entre guillemets\nok   - diagnostics non vides\n\n83 passed, 0 failed\n"
+      },
+      {
+        "script": "_tools/tests/notificationmail-template-loading.php",
+        "exit": 0,
+        "output": "15 passed\n"
+      },
+      {
+        "script": "_tools/tests/notificationmail-template-loading-j6.php",
+        "exit": 0,
+        "output": "11 passed\n"
+      },
+      {
+        "script": "_tools/tests/file-index-custom-properties.php",
+        "exit": 0,
+        "output": "40 passed\n"
+      },
+      {
+        "script": "_tools/tests/category-association-propagation.php",
+        "exit": 255,
+        "output": "PHP Fatal error:  Uncaught RuntimeException: independent secondary flag: array (\n  0 => 20,\n  1 => 30,\n  2 => 31,\n) in /scratch/candidate/_tools/tests/category-association-propagation.php:94\nStack trace:\n#0 /scratch/candidate/_tools/tests/category-association-propagation.php(112): same()\n#1 {main}\n  thrown in /scratch/candidate/_tools/tests/category-association-propagation.php on line 94\n"
+      },
+      {
+        "script": "external nullable-values control",
+        "exit": 0,
+        "output": "23 nullable release value checks passed\n"
+      },
+      {
+        "script": "loopback remote-size",
+        "exit": 0,
+        "output": "lied size makes no HTTP request\nPASS save trusted file stores exact bytes\nPASS save frontend internal call stores size\nPASS save HTTP failure still stores record\nPASS save unlisted site host stores zero\nPASS save unlisted site host not contacted\nPASS relative redirect inside list\nPASS unlisted redirect rejected\nPASS unlisted redirect destination not contacted\nPASS port mismatch rejected\nPASS unlisted port never contacted\nPASS hostname-only entry permits its other ports\nPASS explicitly listed redirect succeeds\nPASS HEAD without length uses Range total\nPASS HEAD unsupported uses Range total\nPASS ignored Range gets size without buffering body\nPASS Range fallback does not follow unlisted redirect\nPASS missing length remains zero\nPASS zero-byte response supported\nPASS redirect loop fails safely\nPASS redirect loop bounded\nPASS unsafe or unlisted URL rejected: ftp\nPASS unsafe or unlisted URL rejected: http\nPASS unsafe or unlisted URL rejected: http\nPASS invalid URLs cause no HTTP traffic\nPASS legacy headSize retains site-host policy\nPASS legacy proxy retains site-host exception\nPASS strict mode rejects empty list\nPASS save ACL still denies before probing\nPASS frontend dispatch remains blocked: filemanager.addurl\nPASS frontend dispatch remains blocked: ADDURL\nPASS frontend dispatch remains blocked: filemanager.x.AddLocal\nPASS redirects share the supplied HTTP deadline\nPASS slow server yields zero\nPASS shared HTTP budget enforced\nPASS exhausted budget prevents later probes in same save\n53 checks passed (real local HTTP)\nPASS no-cURL process has no cURL\nPASS addurl stores zero without cURL\nPASS addurl preserves supplied size without cURL\nPASS save stores zero without cURL\nPASS save preserves supplied size without cURL\nPASS no cURL means no HTTP requests\n6 checks passed (no cURL)\n"
+      }
+    ],
+    "knownBaselineFailures": 1
+  }
+]

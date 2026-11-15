@@ -1,0 +1,62 @@
+{
+  "head": "2625d48be91d66c2df4eba784c8464ad0f141c21",
+  "base": "fc708eaef013f4283240a3c107de295258c57caa",
+  "gitTree": "ebf6f3a93440b95ae5b1e9aa3c6c3fdfcc7fba72",
+  "testedSourceSha256": "3f2f227734b77583aa24cdffeb37ef4104b2a02af71db321d1c69a2e435564a9",
+  "zipSha256": "7d5f69ddef7ced6563598762151cac8a79b3b20038adb7241c69b53b5105a359",
+  "files": 2637,
+  "allZipEntriesMatchSource": true,
+  "runtimeChecks": 112,
+  "runtimeSuites": [
+    {
+      "suite": "acl",
+      "joomla": 5,
+      "checks": 29,
+      "file": "acl-joomla5.json"
+    },
+    {
+      "suite": "acl",
+      "joomla": 6,
+      "checks": 29,
+      "file": "acl-joomla6.json"
+    },
+    {
+      "suite": "remediation",
+      "joomla": 5,
+      "checks": 27,
+      "file": "remediation-joomla5.json"
+    },
+    {
+      "suite": "remediation",
+      "joomla": 6,
+      "checks": 27,
+      "file": "remediation-joomla6.json"
+    }
+  ],
+  "knownBaselineTestFailure": "category-association-propagation: independent secondary flag; reproduced on unchanged master and corrected in PR #1391",
+  "changedFiles": [
+    "admin/controllers/base/baseadmin.php",
+    "admin/controllers/filemanager.php",
+    "admin/controllers/import.php",
+    "admin/controllers/search.raw.php",
+    "admin/installation/uninstall.mysql.utf8.sql",
+    "admin/language/en-GB/en-GB.com_flexicontent.ini",
+    "admin/models/base/base.php",
+    "admin/models/fields.php",
+    "admin/models/items.php",
+    "admin/models/parentclassitem.php",
+    "admin/views/debuggroup/tmpl/default.php",
+    "admin/views/debuguser/tmpl/default.php",
+    "admin/views/file/tmpl/default.php",
+    "admin/views/items/tmpl/batch.php",
+    "admin/views/user/tmpl/form.php",
+    "admin/views/user/view.html.php",
+    "script.php",
+    "site/classes/flexicontent.fields.php",
+    "site/classes/helpers/db.php",
+    "site/classes/helpers/html.php",
+    "site/layouts/items_list_filters/txtsearch_date_slider.php",
+    "site/tasks/core.php",
+    "site/views/search/view.html.php"
+  ]
+}
