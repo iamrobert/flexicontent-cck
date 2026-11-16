@@ -1,0 +1,1582 @@
+{
+  "head": "cde6e608cd84c1908ea4c84b738511f8c1fad229",
+  "base": "b0f8759c46f9da4ea9c6d51cd4ef08c56a97ba93",
+  "sourceTreeSha256": "89c2bd78de0ee2ebff345110a18571b58f8e69c1a10d16da9c2ad0857be58857",
+  "zipSha256": "8c0548dafdb1abf43f51ebe2b7ddb9a68b79f7121003dcb19727ce5cda243bbd",
+  "sourceVerified": true,
+  "passedChecks": 160,
+  "runs": [
+    {
+      "joomla": "Joomla! 5.4.10 (debug: No)",
+      "major": 5,
+      "php": "PHP 8.4.27 (cli) (built: Nov  5 2026 07:23:05) (NTS)",
+      "receipt": "run-20261116-053205-037-17d7f1f6.json",
+      "receiptSha256": "f1603b1a187c7e8bb3315af6d987bd757921d0fb6c768104ff5fc4f1118aac19",
+      "passedChecks": 80,
+      "checks": [
+        {
+          "name": "Fresh FLEXIcontent via actual ZIP",
+          "status": "pass",
+          "detail": {
+            "status": 303,
+            "message": "\u00d7 Success Installation of the component was successful."
+          }
+        },
+        {
+          "name": "Post-install initialization",
+          "status": "pass",
+          "detail": "No pending first-use tasks"
+        },
+        {
+          "name": "First-use configuration Save",
+          "status": "pass",
+          "detail": "\u00d7 Success Configuration saved."
+        },
+        {
+          "name": "Installed version metadata matches the submitted PR source",
+          "status": "pass",
+          "detail": {
+            "manifest": "5.3",
+            "runtime": {
+              "version": "5.3",
+              "phpMinimum": "8.2.0",
+              "phpRecommended": "8.4.0"
+            }
+          }
+        },
+        {
+          "name": "Mail templates initialized",
+          "status": "pass",
+          "detail": 5
+        },
+        {
+          "name": "Packaged category CSV regression: PHP 8.4",
+          "status": "pass",
+          "detail": "72 category CSV checks passed"
+        },
+        {
+          "name": "before: groups, comma, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: groups, comma, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: groups, semicolon, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: groups, semicolon, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: groups, tab, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: groups, tab, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: singleton-last, comma, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: singleton-last, comma, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: singleton-last, semicolon, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: singleton-last, semicolon, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: singleton-last, tab, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: singleton-last, tab, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: singleton-first, comma, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: singleton-first, comma, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: singleton-first, semicolon, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: singleton-first, semicolon, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: singleton-first, tab, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: singleton-first, tab, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: singletons, comma, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: singletons, comma, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: singletons, semicolon, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: singletons, semicolon, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: singletons, tab, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: singletons, tab, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: zero, comma, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: zero, comma, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: zero, semicolon, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: zero, semicolon, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: zero, tab, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: zero, tab, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: empty, comma, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: empty, comma, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: empty, semicolon, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: empty, semicolon, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: empty, tab, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: empty, tab, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: groups, comma, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: groups, comma, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: groups, semicolon, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: groups, semicolon, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: groups, tab, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: groups, tab, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: singleton-last, comma, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: singleton-last, comma, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: singleton-last, semicolon, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: singleton-last, semicolon, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: singleton-last, tab, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: singleton-last, tab, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: singleton-first, comma, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: singleton-first, comma, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: singleton-first, semicolon, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: singleton-first, semicolon, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: singleton-first, tab, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: singleton-first, tab, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: singletons, comma, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: singletons, comma, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: singletons, semicolon, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: singletons, semicolon, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: singletons, tab, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: singletons, tab, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: zero, comma, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: zero, comma, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: zero, semicolon, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: zero, semicolon, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: zero, tab, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: zero, tab, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: empty, comma, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: empty, comma, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: empty, semicolon, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: empty, semicolon, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: empty, tab, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: empty, tab, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "Fixed export has no new PHP diagnostics",
+          "status": "pass"
+        },
+        {
+          "name": "CSV review browser has no unexpected script or HTTP errors",
+          "status": "pass"
+        }
+      ],
+      "csv": {
+        "responses": [
+          {
+            "phase": "before",
+            "name": "groups",
+            "separator": "comma",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 722,
+            "sha256": "c97999cf37b856953ef20174e44348ddf7396ead45c3543eb7ae4a2565e8e3ce",
+            "line": "CSV;semicolon\tTAB marker,c | d,"
+          },
+          {
+            "phase": "before",
+            "name": "groups",
+            "separator": "semicolon",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 722,
+            "sha256": "fcb05fc87b9d610eb1b1e4764bc7137c856fbac71306650091096bdde72fe83b",
+            "line": "CSV;semicolon\tTAB marker;c | d;"
+          },
+          {
+            "phase": "before",
+            "name": "groups",
+            "separator": "tab",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 722,
+            "sha256": "d9d0599a00bdf8f33c598ef164bd5c79c9ed80b489d914b2caae82c8ca5ccb40",
+            "line": "CSV;semicolon\tTAB marker\tc | d\t"
+          },
+          {
+            "phase": "before",
+            "name": "singleton-last",
+            "separator": "comma",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 4305,
+            "sha256": "0e632ab616c6534d45787845113c03232c657c5614e4eaf3a844b7f380b9ec6a",
+            "line": "CSV;semicolon\tTAB marker,<!DOCTYPE html>"
+          },
+          {
+            "phase": "before",
+            "name": "singleton-last",
+            "separator": "semicolon",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 4305,
+            "sha256": "2ef29615f614ce8e22c3f2c475a6ff3ab4231462f0bdf3fd130a39c85ba7ab25",
+            "line": "CSV;semicolon\tTAB marker;<!DOCTYPE html>"
+          },
+          {
+            "phase": "before",
+            "name": "singleton-last",
+            "separator": "tab",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 4305,
+            "sha256": "de9d0564114f21da6f58c9ea1930aa111eec21f6c76dd446a49d16c49cede68e",
+            "line": "CSV;semicolon\tTAB marker\t<!DOCTYPE html>"
+          },
+          {
+            "phase": "before",
+            "name": "singleton-first",
+            "separator": "comma",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 883,
+            "sha256": "75009f80923c6c2b6690104ac0b737e7a464d8d08f7849ecfa19ed7c929c3bfd",
+            "line": "CSV;semicolon\tTAB marker,<br />"
+          },
+          {
+            "phase": "before",
+            "name": "singleton-first",
+            "separator": "semicolon",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 883,
+            "sha256": "214b29e6b49b296815d69aeeb075574f3a00c0c9a90ca8dd00ef3d428cf74542",
+            "line": "CSV;semicolon\tTAB marker;<br />"
+          },
+          {
+            "phase": "before",
+            "name": "singleton-first",
+            "separator": "tab",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 883,
+            "sha256": "ac3e12142c3bd5aa86a449cd7e3cb79a3a43e919fd755315ea2bc5d3266f042c",
+            "line": "CSV;semicolon\tTAB marker\t<br />"
+          },
+          {
+            "phase": "before",
+            "name": "singletons",
+            "separator": "comma",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 723,
+            "sha256": "2a50b50699868a8af4d8ea807e15dba132fbbe46ce048c5ab68cbb31f39b81da",
+            "line": "CSV;semicolon\tTAB marker,\"a, c\","
+          },
+          {
+            "phase": "before",
+            "name": "singletons",
+            "separator": "semicolon",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 723,
+            "sha256": "cbcb650fe3df57448b6981c54dffcf408823ca5deb0a317d0b227ca712d42ea4",
+            "line": "CSV;semicolon\tTAB marker;\"a, c\";"
+          },
+          {
+            "phase": "before",
+            "name": "singletons",
+            "separator": "tab",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 723,
+            "sha256": "3d3159159678943440a5a8a04b370f6db1a8b5e2c37eabe8291b99a455bbe977",
+            "line": "CSV;semicolon\tTAB marker\t\"a, c\"\t"
+          },
+          {
+            "phase": "before",
+            "name": "zero",
+            "separator": "comma",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 883,
+            "sha256": "2d394139b83a75e85c887f686a47e63adfe85be6a21a6113a7b996523ca8c308",
+            "line": "CSV;semicolon\tTAB marker,<br />"
+          },
+          {
+            "phase": "before",
+            "name": "zero",
+            "separator": "semicolon",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 883,
+            "sha256": "f45f93400d1610c5d8868b4c8af13a8903652546f03ed150ed69e4db70ba7e89",
+            "line": "CSV;semicolon\tTAB marker;<br />"
+          },
+          {
+            "phase": "before",
+            "name": "zero",
+            "separator": "tab",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 883,
+            "sha256": "2815d632808178cb82e5259e71689379a850ad983ee29ee7a26c5ed20ee8cbd7",
+            "line": "CSV;semicolon\tTAB marker\t<br />"
+          },
+          {
+            "phase": "before",
+            "name": "empty",
+            "separator": "comma",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 717,
+            "sha256": "a6d332b562d379d2dde61ec6490bdfb220888fc24752eeba90e23ed3d54e4936",
+            "line": "CSV;semicolon\tTAB marker,,"
+          },
+          {
+            "phase": "before",
+            "name": "empty",
+            "separator": "semicolon",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 717,
+            "sha256": "093c8aa11a903eb1b84f066ff071b7834e5f0383755aac429c3b1c53ceb2c9c0",
+            "line": "CSV;semicolon\tTAB marker;;"
+          },
+          {
+            "phase": "before",
+            "name": "empty",
+            "separator": "tab",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 717,
+            "sha256": "51fc66caa5aee59c3c0ffb9339172f8fe0591aeea7a4b0ef6f491888f3fbd5d8",
+            "line": "CSV;semicolon\tTAB marker\t\t"
+          },
+          {
+            "phase": "after",
+            "name": "groups",
+            "separator": "comma",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 74,
+            "sha256": "694f750e9d9e2be04abcd011b218e1fe12d51a67c354162125d43614aafd4db1",
+            "line": "CSV;semicolon\tTAB marker,\"a | b, c | d\","
+          },
+          {
+            "phase": "after",
+            "name": "groups",
+            "separator": "semicolon",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 74,
+            "sha256": "4d66cdf4ff5786681df49c550611fb635423f6deb46cdd43ec3a3c92ebae7f5f",
+            "line": "\"CSV;semicolon\tTAB marker\";a | b, c | d;"
+          },
+          {
+            "phase": "after",
+            "name": "groups",
+            "separator": "tab",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 74,
+            "sha256": "497d5cd65b61cfe2e1994c46f5f2aaa642d17aa62bb43e4498919c14841a2f6b",
+            "line": "\"CSV;semicolon\tTAB marker\"\ta | b, c | d\t"
+          },
+          {
+            "phase": "after",
+            "name": "singleton-last",
+            "separator": "comma",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 70,
+            "sha256": "65f68383e7ef18ba440e01287755d871a53c4289fc5b9134950f21a7fbf4643d",
+            "line": "CSV;semicolon\tTAB marker,\"a | b, c\","
+          },
+          {
+            "phase": "after",
+            "name": "singleton-last",
+            "separator": "semicolon",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 70,
+            "sha256": "61456cc85e01662170cbfa6f44e1c6e36f3a3c23cfb75f0d2142b20f9cb08b15",
+            "line": "\"CSV;semicolon\tTAB marker\";a | b, c;"
+          },
+          {
+            "phase": "after",
+            "name": "singleton-last",
+            "separator": "tab",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 70,
+            "sha256": "2b90a80e4aa0ce4d8be6a329414dceb26f24cf8b430909a361243050f99bb2c9",
+            "line": "\"CSV;semicolon\tTAB marker\"\ta | b, c\t"
+          },
+          {
+            "phase": "after",
+            "name": "singleton-first",
+            "separator": "comma",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 70,
+            "sha256": "a76433c68e0439f1bae0e37ab755c928c294295d58add0d0824f552b01c77233",
+            "line": "CSV;semicolon\tTAB marker,\"a, b | c\","
+          },
+          {
+            "phase": "after",
+            "name": "singleton-first",
+            "separator": "semicolon",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 70,
+            "sha256": "67a6d7fa15671240971131fb3aa617edfe82e4f5b72a645f656551af05d7b0b5",
+            "line": "\"CSV;semicolon\tTAB marker\";a, b | c;"
+          },
+          {
+            "phase": "after",
+            "name": "singleton-first",
+            "separator": "tab",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 70,
+            "sha256": "55674320e18fa2c3aeb40e44addf3310e5a784103acbc6b0956500eecc861321",
+            "line": "\"CSV;semicolon\tTAB marker\"\ta, b | c\t"
+          },
+          {
+            "phase": "after",
+            "name": "singletons",
+            "separator": "comma",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 66,
+            "sha256": "d2a38e5b717d7f73fc8c42f337610c731031de9982ffc57eab566652275cfe03",
+            "line": "CSV;semicolon\tTAB marker,\"a, c\","
+          },
+          {
+            "phase": "after",
+            "name": "singletons",
+            "separator": "semicolon",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 66,
+            "sha256": "38d6b55c296d02eabf790563b31447c7ba3f1f9fd3f2612b35eae41982ca98fb",
+            "line": "\"CSV;semicolon\tTAB marker\";a, c;"
+          },
+          {
+            "phase": "after",
+            "name": "singletons",
+            "separator": "tab",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 66,
+            "sha256": "62ad319ce40c384e1469e29d19329b05950b1f0f70a9a68894a7196e50a2c59c",
+            "line": "\"CSV;semicolon\tTAB marker\"\ta, c\t"
+          },
+          {
+            "phase": "after",
+            "name": "zero",
+            "separator": "comma",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 70,
+            "sha256": "4f624fa67e514c1c53981cc1c7bd7ac4feb54996a3d2cdbff097c6e83425c3a1",
+            "line": "CSV;semicolon\tTAB marker,\"0, a | b\","
+          },
+          {
+            "phase": "after",
+            "name": "zero",
+            "separator": "semicolon",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 70,
+            "sha256": "068ed765bb112be6ca5c9d0c1f1285e70360474aed01cd6b4bad851d6cb603da",
+            "line": "\"CSV;semicolon\tTAB marker\";0, a | b;"
+          },
+          {
+            "phase": "after",
+            "name": "zero",
+            "separator": "tab",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 70,
+            "sha256": "60fbdee0709d9847f7e9316bb8832e1ca89170dff6a7ba7a3612cabd69f537d5",
+            "line": "\"CSV;semicolon\tTAB marker\"\t0, a | b\t"
+          },
+          {
+            "phase": "after",
+            "name": "empty",
+            "separator": "comma",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 60,
+            "sha256": "7a5f14cfaef497be766b2aa22ec176e99e6745db18393c3b3bc7fbc6f2bf9dd4",
+            "line": "CSV;semicolon\tTAB marker,,"
+          },
+          {
+            "phase": "after",
+            "name": "empty",
+            "separator": "semicolon",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 62,
+            "sha256": "78128402b9cc1a0a61d95e2981fe04053ee885d28d2c0aee1cd932976aeb42d2",
+            "line": "\"CSV;semicolon\tTAB marker\";;"
+          },
+          {
+            "phase": "after",
+            "name": "empty",
+            "separator": "tab",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 62,
+            "sha256": "425c867b59b9f891b6c3578ddb9a539844a710e46218152b45ccd2f2534756d3",
+            "line": "\"CSV;semicolon\tTAB marker\"\t\t"
+          }
+        ],
+        "source": {
+          "before": "21a2f5bb0272e6b4481d86fb3567abe8c5205e40d4d82f0821593c9a9108cbbf",
+          "fixed": "fb30e888759cbecd63d1108c216c9834bc97e18fa0a335471a334921fc875e0f"
+        },
+        "screenshots": [
+          {
+            "name": "csv-before-j5.png",
+            "bytes": 209702,
+            "sha256": "1f9b297a33a641476ccd914eab5cc2e46598f483dfa18c4ec25fb2f06d570f3b"
+          },
+          {
+            "name": "csv-after-j5.png",
+            "bytes": 168113,
+            "sha256": "e1ab7bdf2dfb3b80729ba093cb832404730b10f999516a65e0341191ca37418d"
+          }
+        ],
+        "beforeDiagnostics": {
+          "bytes": 22128,
+          "sha256": "d09958d6b0cdea1eca87bae45b1b2aa39caec9d1d7e36a24192b8b766ac6934f",
+          "unique": [
+            "PHP Warning:  Undefined variable $item_count in /scratch/site/components/com_flexicontent/views/category/view.csv.php on line 267",
+            "PHP Warning:  Undefined variable $start_microtime in /scratch/site/components/com_flexicontent/views/category/view.csv.php on line 377",
+            "PHP Warning:  Undefined variable $_total_runtime in /scratch/site/components/com_flexicontent/views/category/view.csv.php on line 378",
+            "PHP Warning:  Undefined variable $max_execution_time in /scratch/site/components/com_flexicontent/views/category/view.csv.php on line 381",
+            "PHP Warning:  Array to string conversion in /scratch/site/components/com_flexicontent/views/category/view.csv.php on line 363"
+          ]
+        },
+        "afterDiagnostics": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "unique": []
+        },
+        "fixture": {
+          "item": 1,
+          "category": 8,
+          "choices": 40,
+          "secret": 41,
+          "title": "CSV;semicolon\tTAB marker"
+        }
+      }
+    },
+    {
+      "joomla": "Joomla! 6.2.0 (debug: No)",
+      "major": 6,
+      "php": "PHP 8.4.27 (cli) (built: Nov  5 2026 07:23:05) (NTS)",
+      "receipt": "run-20261116-053211-493-36b41add.json",
+      "receiptSha256": "1f7ea659ece5b4ce85ddc6d3c274b5471d5d271283fe830e0315348435ce120e",
+      "passedChecks": 80,
+      "checks": [
+        {
+          "name": "Fresh FLEXIcontent via actual ZIP",
+          "status": "pass",
+          "detail": {
+            "status": 303,
+            "message": "\u00d7 Success Installation of the component was successful."
+          }
+        },
+        {
+          "name": "Post-install initialization",
+          "status": "pass",
+          "detail": "No pending first-use tasks"
+        },
+        {
+          "name": "First-use configuration Save",
+          "status": "pass",
+          "detail": "\u00d7 Success Configuration saved."
+        },
+        {
+          "name": "Installed version metadata matches the submitted PR source",
+          "status": "pass",
+          "detail": {
+            "manifest": "5.3",
+            "runtime": {
+              "version": "5.3",
+              "phpMinimum": "8.2.0",
+              "phpRecommended": "8.4.0"
+            }
+          }
+        },
+        {
+          "name": "Mail templates initialized",
+          "status": "pass",
+          "detail": 5
+        },
+        {
+          "name": "Packaged category CSV regression: PHP 8.4",
+          "status": "pass",
+          "detail": "72 category CSV checks passed"
+        },
+        {
+          "name": "before: groups, comma, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: groups, comma, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: groups, semicolon, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: groups, semicolon, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: groups, tab, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: groups, tab, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: singleton-last, comma, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: singleton-last, comma, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: singleton-last, semicolon, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: singleton-last, semicolon, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: singleton-last, tab, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: singleton-last, tab, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: singleton-first, comma, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: singleton-first, comma, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: singleton-first, semicolon, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: singleton-first, semicolon, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: singleton-first, tab, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: singleton-first, tab, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: singletons, comma, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: singletons, comma, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: singletons, semicolon, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: singletons, semicolon, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: singletons, tab, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: singletons, tab, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: zero, comma, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: zero, comma, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: zero, semicolon, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: zero, semicolon, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: zero, tab, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: zero, tab, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: empty, comma, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: empty, comma, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: empty, semicolon, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: empty, semicolon, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "before: empty, tab, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "before: empty, tab, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: groups, comma, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: groups, comma, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: groups, semicolon, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: groups, semicolon, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: groups, tab, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: groups, tab, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: singleton-last, comma, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: singleton-last, comma, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: singleton-last, semicolon, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: singleton-last, semicolon, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: singleton-last, tab, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: singleton-last, tab, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: singleton-first, comma, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: singleton-first, comma, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: singleton-first, semicolon, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: singleton-first, semicolon, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: singleton-first, tab, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: singleton-first, tab, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: singletons, comma, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: singletons, comma, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: singletons, semicolon, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: singletons, semicolon, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: singletons, tab, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: singletons, tab, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: zero, comma, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: zero, comma, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: zero, semicolon, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: zero, semicolon, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: zero, tab, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: zero, tab, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: empty, comma, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: empty, comma, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: empty, semicolon, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: empty, semicolon, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "after: empty, tab, repeat 1",
+          "status": "pass"
+        },
+        {
+          "name": "after: empty, tab, repeat 2",
+          "status": "pass"
+        },
+        {
+          "name": "Fixed export has no new PHP diagnostics",
+          "status": "pass"
+        },
+        {
+          "name": "CSV review browser has no unexpected script or HTTP errors",
+          "status": "pass"
+        }
+      ],
+      "csv": {
+        "responses": [
+          {
+            "phase": "before",
+            "name": "groups",
+            "separator": "comma",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 722,
+            "sha256": "c97999cf37b856953ef20174e44348ddf7396ead45c3543eb7ae4a2565e8e3ce",
+            "line": "CSV;semicolon\tTAB marker,c | d,"
+          },
+          {
+            "phase": "before",
+            "name": "groups",
+            "separator": "semicolon",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 722,
+            "sha256": "fcb05fc87b9d610eb1b1e4764bc7137c856fbac71306650091096bdde72fe83b",
+            "line": "CSV;semicolon\tTAB marker;c | d;"
+          },
+          {
+            "phase": "before",
+            "name": "groups",
+            "separator": "tab",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 722,
+            "sha256": "d9d0599a00bdf8f33c598ef164bd5c79c9ed80b489d914b2caae82c8ca5ccb40",
+            "line": "CSV;semicolon\tTAB marker\tc | d\t"
+          },
+          {
+            "phase": "before",
+            "name": "singleton-last",
+            "separator": "comma",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 4291,
+            "sha256": "05840d532726b8273b85d676b4780e1d62b683e5f21679b249d81f6cb4ae5b8d",
+            "line": "CSV;semicolon\tTAB marker,<!DOCTYPE html>"
+          },
+          {
+            "phase": "before",
+            "name": "singleton-last",
+            "separator": "semicolon",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 4291,
+            "sha256": "faf6034b9f6b73511ffefd366119bf0b01fcdb94afa72e0ab9020daf1c29be60",
+            "line": "CSV;semicolon\tTAB marker;<!DOCTYPE html>"
+          },
+          {
+            "phase": "before",
+            "name": "singleton-last",
+            "separator": "tab",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 4291,
+            "sha256": "5226f8d267c588641e63f0ccac3deb8eabdfaf3468f697dc7abc62728171ac59",
+            "line": "CSV;semicolon\tTAB marker\t<!DOCTYPE html>"
+          },
+          {
+            "phase": "before",
+            "name": "singleton-first",
+            "separator": "comma",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 883,
+            "sha256": "75009f80923c6c2b6690104ac0b737e7a464d8d08f7849ecfa19ed7c929c3bfd",
+            "line": "CSV;semicolon\tTAB marker,<br />"
+          },
+          {
+            "phase": "before",
+            "name": "singleton-first",
+            "separator": "semicolon",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 883,
+            "sha256": "214b29e6b49b296815d69aeeb075574f3a00c0c9a90ca8dd00ef3d428cf74542",
+            "line": "CSV;semicolon\tTAB marker;<br />"
+          },
+          {
+            "phase": "before",
+            "name": "singleton-first",
+            "separator": "tab",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 883,
+            "sha256": "ac3e12142c3bd5aa86a449cd7e3cb79a3a43e919fd755315ea2bc5d3266f042c",
+            "line": "CSV;semicolon\tTAB marker\t<br />"
+          },
+          {
+            "phase": "before",
+            "name": "singletons",
+            "separator": "comma",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 723,
+            "sha256": "2a50b50699868a8af4d8ea807e15dba132fbbe46ce048c5ab68cbb31f39b81da",
+            "line": "CSV;semicolon\tTAB marker,\"a, c\","
+          },
+          {
+            "phase": "before",
+            "name": "singletons",
+            "separator": "semicolon",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 723,
+            "sha256": "cbcb650fe3df57448b6981c54dffcf408823ca5deb0a317d0b227ca712d42ea4",
+            "line": "CSV;semicolon\tTAB marker;\"a, c\";"
+          },
+          {
+            "phase": "before",
+            "name": "singletons",
+            "separator": "tab",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 723,
+            "sha256": "3d3159159678943440a5a8a04b370f6db1a8b5e2c37eabe8291b99a455bbe977",
+            "line": "CSV;semicolon\tTAB marker\t\"a, c\"\t"
+          },
+          {
+            "phase": "before",
+            "name": "zero",
+            "separator": "comma",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 883,
+            "sha256": "2d394139b83a75e85c887f686a47e63adfe85be6a21a6113a7b996523ca8c308",
+            "line": "CSV;semicolon\tTAB marker,<br />"
+          },
+          {
+            "phase": "before",
+            "name": "zero",
+            "separator": "semicolon",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 883,
+            "sha256": "f45f93400d1610c5d8868b4c8af13a8903652546f03ed150ed69e4db70ba7e89",
+            "line": "CSV;semicolon\tTAB marker;<br />"
+          },
+          {
+            "phase": "before",
+            "name": "zero",
+            "separator": "tab",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 883,
+            "sha256": "2815d632808178cb82e5259e71689379a850ad983ee29ee7a26c5ed20ee8cbd7",
+            "line": "CSV;semicolon\tTAB marker\t<br />"
+          },
+          {
+            "phase": "before",
+            "name": "empty",
+            "separator": "comma",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 717,
+            "sha256": "a6d332b562d379d2dde61ec6490bdfb220888fc24752eeba90e23ed3d54e4936",
+            "line": "CSV;semicolon\tTAB marker,,"
+          },
+          {
+            "phase": "before",
+            "name": "empty",
+            "separator": "semicolon",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 717,
+            "sha256": "093c8aa11a903eb1b84f066ff071b7834e5f0383755aac429c3b1c53ceb2c9c0",
+            "line": "CSV;semicolon\tTAB marker;;"
+          },
+          {
+            "phase": "before",
+            "name": "empty",
+            "separator": "tab",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 717,
+            "sha256": "51fc66caa5aee59c3c0ffb9339172f8fe0591aeea7a4b0ef6f491888f3fbd5d8",
+            "line": "CSV;semicolon\tTAB marker\t\t"
+          },
+          {
+            "phase": "after",
+            "name": "groups",
+            "separator": "comma",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 74,
+            "sha256": "694f750e9d9e2be04abcd011b218e1fe12d51a67c354162125d43614aafd4db1",
+            "line": "CSV;semicolon\tTAB marker,\"a | b, c | d\","
+          },
+          {
+            "phase": "after",
+            "name": "groups",
+            "separator": "semicolon",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 74,
+            "sha256": "4d66cdf4ff5786681df49c550611fb635423f6deb46cdd43ec3a3c92ebae7f5f",
+            "line": "\"CSV;semicolon\tTAB marker\";a | b, c | d;"
+          },
+          {
+            "phase": "after",
+            "name": "groups",
+            "separator": "tab",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 74,
+            "sha256": "497d5cd65b61cfe2e1994c46f5f2aaa642d17aa62bb43e4498919c14841a2f6b",
+            "line": "\"CSV;semicolon\tTAB marker\"\ta | b, c | d\t"
+          },
+          {
+            "phase": "after",
+            "name": "singleton-last",
+            "separator": "comma",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 70,
+            "sha256": "65f68383e7ef18ba440e01287755d871a53c4289fc5b9134950f21a7fbf4643d",
+            "line": "CSV;semicolon\tTAB marker,\"a | b, c\","
+          },
+          {
+            "phase": "after",
+            "name": "singleton-last",
+            "separator": "semicolon",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 70,
+            "sha256": "61456cc85e01662170cbfa6f44e1c6e36f3a3c23cfb75f0d2142b20f9cb08b15",
+            "line": "\"CSV;semicolon\tTAB marker\";a | b, c;"
+          },
+          {
+            "phase": "after",
+            "name": "singleton-last",
+            "separator": "tab",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 70,
+            "sha256": "2b90a80e4aa0ce4d8be6a329414dceb26f24cf8b430909a361243050f99bb2c9",
+            "line": "\"CSV;semicolon\tTAB marker\"\ta | b, c\t"
+          },
+          {
+            "phase": "after",
+            "name": "singleton-first",
+            "separator": "comma",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 70,
+            "sha256": "a76433c68e0439f1bae0e37ab755c928c294295d58add0d0824f552b01c77233",
+            "line": "CSV;semicolon\tTAB marker,\"a, b | c\","
+          },
+          {
+            "phase": "after",
+            "name": "singleton-first",
+            "separator": "semicolon",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 70,
+            "sha256": "67a6d7fa15671240971131fb3aa617edfe82e4f5b72a645f656551af05d7b0b5",
+            "line": "\"CSV;semicolon\tTAB marker\";a, b | c;"
+          },
+          {
+            "phase": "after",
+            "name": "singleton-first",
+            "separator": "tab",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 70,
+            "sha256": "55674320e18fa2c3aeb40e44addf3310e5a784103acbc6b0956500eecc861321",
+            "line": "\"CSV;semicolon\tTAB marker\"\ta, b | c\t"
+          },
+          {
+            "phase": "after",
+            "name": "singletons",
+            "separator": "comma",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 66,
+            "sha256": "d2a38e5b717d7f73fc8c42f337610c731031de9982ffc57eab566652275cfe03",
+            "line": "CSV;semicolon\tTAB marker,\"a, c\","
+          },
+          {
+            "phase": "after",
+            "name": "singletons",
+            "separator": "semicolon",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 66,
+            "sha256": "38d6b55c296d02eabf790563b31447c7ba3f1f9fd3f2612b35eae41982ca98fb",
+            "line": "\"CSV;semicolon\tTAB marker\";a, c;"
+          },
+          {
+            "phase": "after",
+            "name": "singletons",
+            "separator": "tab",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 66,
+            "sha256": "62ad319ce40c384e1469e29d19329b05950b1f0f70a9a68894a7196e50a2c59c",
+            "line": "\"CSV;semicolon\tTAB marker\"\ta, c\t"
+          },
+          {
+            "phase": "after",
+            "name": "zero",
+            "separator": "comma",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 70,
+            "sha256": "4f624fa67e514c1c53981cc1c7bd7ac4feb54996a3d2cdbff097c6e83425c3a1",
+            "line": "CSV;semicolon\tTAB marker,\"0, a | b\","
+          },
+          {
+            "phase": "after",
+            "name": "zero",
+            "separator": "semicolon",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 70,
+            "sha256": "068ed765bb112be6ca5c9d0c1f1285e70360474aed01cd6b4bad851d6cb603da",
+            "line": "\"CSV;semicolon\tTAB marker\";0, a | b;"
+          },
+          {
+            "phase": "after",
+            "name": "zero",
+            "separator": "tab",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 70,
+            "sha256": "60fbdee0709d9847f7e9316bb8832e1ca89170dff6a7ba7a3612cabd69f537d5",
+            "line": "\"CSV;semicolon\tTAB marker\"\t0, a | b\t"
+          },
+          {
+            "phase": "after",
+            "name": "empty",
+            "separator": "comma",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 60,
+            "sha256": "7a5f14cfaef497be766b2aa22ec176e99e6745db18393c3b3bc7fbc6f2bf9dd4",
+            "line": "CSV;semicolon\tTAB marker,,"
+          },
+          {
+            "phase": "after",
+            "name": "empty",
+            "separator": "semicolon",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 62,
+            "sha256": "78128402b9cc1a0a61d95e2981fe04053ee885d28d2c0aee1cd932976aeb42d2",
+            "line": "\"CSV;semicolon\tTAB marker\";;"
+          },
+          {
+            "phase": "after",
+            "name": "empty",
+            "separator": "tab",
+            "repeat": 1,
+            "status": 200,
+            "contentType": "text/csv; charset=UTF-8",
+            "bytes": 62,
+            "sha256": "425c867b59b9f891b6c3578ddb9a539844a710e46218152b45ccd2f2534756d3",
+            "line": "\"CSV;semicolon\tTAB marker\"\t\t"
+          }
+        ],
+        "source": {
+          "before": "21a2f5bb0272e6b4481d86fb3567abe8c5205e40d4d82f0821593c9a9108cbbf",
+          "fixed": "fb30e888759cbecd63d1108c216c9834bc97e18fa0a335471a334921fc875e0f"
+        },
+        "screenshots": [
+          {
+            "name": "csv-before-j6.png",
+            "bytes": 209415,
+            "sha256": "ec1a52da858cd332c208e51e0e2e5d35e401864acffce051618cae98500e25a0"
+          },
+          {
+            "name": "csv-after-j6.png",
+            "bytes": 167828,
+            "sha256": "f92fb7d17ef4b4d0225120b29d0bbecbad2a5dbd8301513792409818edace3b5"
+          }
+        ],
+        "beforeDiagnostics": {
+          "bytes": 22128,
+          "sha256": "9927c924052cb5dbf948217f5f3bca1d41bf1b1a6c095c3a5db24ec458803fc7",
+          "unique": [
+            "PHP Warning:  Undefined variable $item_count in /scratch/site/components/com_flexicontent/views/category/view.csv.php on line 267",
+            "PHP Warning:  Undefined variable $start_microtime in /scratch/site/components/com_flexicontent/views/category/view.csv.php on line 377",
+            "PHP Warning:  Undefined variable $_total_runtime in /scratch/site/components/com_flexicontent/views/category/view.csv.php on line 378",
+            "PHP Warning:  Undefined variable $max_execution_time in /scratch/site/components/com_flexicontent/views/category/view.csv.php on line 381",
+            "PHP Warning:  Array to string conversion in /scratch/site/components/com_flexicontent/views/category/view.csv.php on line 363"
+          ]
+        },
+        "afterDiagnostics": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "unique": []
+        },
+        "fixture": {
+          "item": 1,
+          "category": 8,
+          "choices": 40,
+          "secret": 41,
+          "title": "CSV;semicolon\tTAB marker"
+        }
+      }
+    }
+  ],
+  "excludedSetupAttempts": 2,
+  "excludedSetupReason": "The first fixture attempts had stale category caches before item creation. Both were rerun after explicitly clearing the fixture caches; no failing attempt is counted as a pass."
+}
