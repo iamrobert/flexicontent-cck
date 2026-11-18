@@ -1,0 +1,74 @@
+{
+  "upstream": {
+    "branch": "master",
+    "commit": "66c04c56274e0c00b3a3095be4aa43ffebadd0b3",
+    "version": "5.3"
+  },
+  "candidateCommit": "3021f806ab716f18357cb03d15a5896e86ebe30b",
+  "files": [
+    {
+      "path": "admin/admin.flexicontent.php",
+      "sha256": "058a6d05a05d2ada9bead7c6c60ab812c98ac121a1db704a9775e93deadf6666"
+    },
+    {
+      "path": "admin/assets/js/batchprocess.js",
+      "sha256": "33186727dbcb45912b125b786fd8dc5ac8f40862503fd7fe21ad833e2b779da3"
+    },
+    {
+      "path": "admin/assets/js/flexi-lib.js",
+      "sha256": "b22c06410b47341d76876625a605c3432f6b5faf1fadf3ec77102236d90ee308"
+    },
+    {
+      "path": "admin/controllers/items.raw.php",
+      "sha256": "05c44b6a10471ee1a12624d61b516bbc7c3c7392f22a0e5f3468a3458676a4c1"
+    },
+    {
+      "path": "admin/defineconstants.php",
+      "sha256": "5b0bddf659fa1cff0cbf6ba432365c094b9355949d407ae33bcfede7ea0c8b10"
+    },
+    {
+      "path": "admin/elements/fcsortablelist.php",
+      "sha256": "a85fafb4018953ed7b250a6b69e55ebf373d7dc9e3454263ce03f7f3e5ff2650"
+    },
+    {
+      "path": "site/assets/js/admin.js",
+      "sha256": "ec40e7c83516b2ad9e47dd22ac661b567af560f12deebb95fbebd03d2fe202e0"
+    },
+    {
+      "path": "site/assets/js/flexi-lib-form.js",
+      "sha256": "0f2760d6d630e0ffd7c57e2c7b873977ba7dcfcd500f5d058d2b12420ea8b03e"
+    },
+    {
+      "path": "site/assets/js/flexi-lib.js",
+      "sha256": "e33f24e3d338771936deaafdce5f5fbef39add9df30e2de536224376fc4bc633"
+    },
+    {
+      "path": "site/assets/js/form-utils.js",
+      "sha256": "9089e7fd22f76895957b83093090017dcc48adad90694da6a7c0e32e02568a3a"
+    },
+    {
+      "path": "site/assets/js/tabber-minimized.js",
+      "sha256": "2e8d38e3235642b5585386b5147b166962382a1c5cd299877c877e44d4191b8d"
+    },
+    {
+      "path": "site/assets/js/validate.js",
+      "sha256": "88c25e1bd35f0af97cbee9acb2a05224ccef13f9eff3304df1c3d76bb695a5ba"
+    },
+    {
+      "path": "site/classes/helpers/html.php",
+      "sha256": "814317d5d5e2427281714e922a715fb604ac62ab833569eb30e31be35018f2c6"
+    },
+    {
+      "path": "site/helpers/html/fcuploader.php",
+      "sha256": "2087e8415a3aca192f6e3d119ffac1811674a771f4a3324539bb652bf33856a7"
+    },
+    {
+      "path": "tests/NATIVE-EDITOR-WORKFLOWS.md",
+      "sha256": "300ed0f3acd16fee820d5ab59767fd8097935624edea4118c2fb636d709b284b"
+    },
+    {
+      "path": "tests/native-editor-workflows.cjs",
+      "sha256": "8a000838d27760b25b7945e186a6187da998745823576e02aa4f4c1cd397b939"
+    }
+  ]
+}

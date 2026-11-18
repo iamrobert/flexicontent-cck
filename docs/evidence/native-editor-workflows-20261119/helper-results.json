@@ -1,0 +1,90 @@
+[
+  {
+    "name": "Required, optional, disabled and dynamically added controls",
+    "status": "pass"
+  },
+  {
+    "name": "Checkbox groups, multi-select limits and category assignment",
+    "status": "pass"
+  },
+  {
+    "name": "Hidden rich text is synchronized before required validation",
+    "status": "pass"
+  },
+  {
+    "name": "Idle upload queues do not block saving; completed unassigned uploads retain their validation state",
+    "status": "pass"
+  },
+  {
+    "name": "AJAX serialization submits repeated values, restores disabled state, confirms success",
+    "status": "pass"
+  },
+  {
+    "name": "AJAX failures preserve entries, prevent duplicate requests and permit retry",
+    "status": "pass"
+  },
+  {
+    "name": "Cancelled submission does not serialize or send",
+    "status": "pass"
+  },
+  {
+    "name": "Native toolbar POST for items.publish",
+    "status": "pass"
+  },
+  {
+    "name": "Native toolbar POST for items.unpublish",
+    "status": "pass"
+  },
+  {
+    "name": "Native toolbar POST for items.trash",
+    "status": "pass"
+  },
+  {
+    "name": "Native toolbar POST for items.remove",
+    "status": "pass"
+  },
+  {
+    "name": "Batch mode changes preserve which values will be submitted",
+    "status": "pass"
+  },
+  {
+    "name": "Legacy editor AJAX hooks receive the serialized request and success response",
+    "status": "pass"
+  },
+  {
+    "name": "Native dialogs preserve form ownership, values, focus and repeated openings",
+    "status": "pass"
+  },
+  {
+    "name": "Legacy Select2 stays interactive inside a native properties dialog",
+    "status": "pass"
+  },
+  {
+    "name": "HTML dialogs load their scripts in order without jQuery",
+    "status": "pass"
+  },
+  {
+    "name": "Repeated property values preserve escaping, empty columns, insertions and removal",
+    "status": "pass"
+  },
+  {
+    "name": "Administrator initializers work without optional legacy plugins",
+    "status": "pass"
+  },
+  {
+    "name": "Editor tabs with optional tooltip classes initialize without jQuery",
+    "status": "pass"
+  },
+  {
+    "name": "Dragging rows updates submitted order and rejects crossing ordering groups",
+    "status": "pass"
+  },
+  {
+    "name": "Batch field cards load inputs and scripts, preserve format validation, and can be removed",
+    "status": "pass"
+  },
+  {
+    "name": "Batch assets preserve Joomla import maps and inline module scripts",
+    "status": "pass"
+  }
+]

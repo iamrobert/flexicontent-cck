@@ -1,0 +1,483 @@
+[
+  {
+    "demo": "recipe",
+    "scope": "administrator content lifecycle",
+    "candidate": "621bc742b",
+    "status": "pass",
+    "sourceRecord": "run-20261118-182824.json",
+    "sourceRecordSha256": "7ba6f237324fa0a43f34b560f66a6df15706f4c5ab295a805890290945bdc5ce",
+    "checks": [
+      {
+        "name": "manager items",
+        "status": "pass",
+        "result": {
+          "status": 200
+        }
+      },
+      {
+        "name": "manager types",
+        "status": "pass",
+        "result": {
+          "status": 200
+        }
+      },
+      {
+        "name": "manager fields",
+        "status": "pass",
+        "result": {
+          "status": 200
+        }
+      },
+      {
+        "name": "manager categories",
+        "status": "pass",
+        "result": {
+          "status": 200
+        }
+      },
+      {
+        "name": "manager tags",
+        "status": "pass",
+        "result": {
+          "status": 200
+        }
+      },
+      {
+        "name": "manager filemanager",
+        "status": "pass",
+        "result": {
+          "status": 200
+        }
+      },
+      {
+        "name": "edit and save existing type 2",
+        "status": "pass",
+        "result": {
+          "id": "1",
+          "type": "2",
+          "nativeValidator": true,
+          "saved": true,
+          "richTextEdited": true
+        }
+      },
+      {
+        "name": "edit and save existing type 1",
+        "status": "pass",
+        "result": {
+          "id": "9",
+          "type": "1",
+          "nativeValidator": true,
+          "saved": true,
+          "richTextEdited": true
+        }
+      },
+      {
+        "name": "create, validate and save with the installed fields",
+        "status": "pass",
+        "result": {
+          "id": 21,
+          "type": 2,
+          "blankRejected": true
+        }
+      },
+      {
+        "name": "publish, unpublish, trash and delete the disposable item",
+        "status": "pass",
+        "result": [
+          {
+            "task": "items.publish",
+            "state": 1
+          },
+          {
+            "task": "items.unpublish",
+            "state": 0
+          },
+          {
+            "task": "items.trash",
+            "state": -2
+          },
+          {
+            "task": "items.remove",
+            "state": null
+          }
+        ]
+      },
+      {
+        "name": "after screenshots",
+        "status": "pass"
+      }
+    ],
+    "observedPageErrors": [
+      "fcfield_addrint is not defined",
+      "Transition was skipped"
+    ]
+  },
+  {
+    "demo": "realestate",
+    "scope": "administrator content lifecycle",
+    "candidate": "621bc742b",
+    "status": "pass",
+    "sourceRecord": "run-20261118-183018.json",
+    "sourceRecordSha256": "55b8b026b4579389f944d08ac8960b426a2c87140e648e951e9745dbc8c04832",
+    "checks": [
+      {
+        "name": "manager items",
+        "status": "pass",
+        "result": {
+          "status": 200
+        }
+      },
+      {
+        "name": "manager types",
+        "status": "pass",
+        "result": {
+          "status": 200
+        }
+      },
+      {
+        "name": "manager fields",
+        "status": "pass",
+        "result": {
+          "status": 200
+        }
+      },
+      {
+        "name": "manager categories",
+        "status": "pass",
+        "result": {
+          "status": 200
+        }
+      },
+      {
+        "name": "manager tags",
+        "status": "pass",
+        "result": {
+          "status": 200
+        }
+      },
+      {
+        "name": "manager filemanager",
+        "status": "pass",
+        "result": {
+          "status": 200
+        }
+      },
+      {
+        "name": "edit and save existing type 3",
+        "status": "pass",
+        "result": {
+          "id": "15",
+          "type": "3",
+          "nativeValidator": true,
+          "saved": true,
+          "richTextEdited": true
+        }
+      },
+      {
+        "name": "edit and save existing type 1",
+        "status": "pass",
+        "result": {
+          "id": "61",
+          "type": "1",
+          "nativeValidator": true,
+          "saved": true,
+          "richTextEdited": true
+        }
+      },
+      {
+        "name": "edit and save existing type 6",
+        "status": "pass",
+        "result": {
+          "id": "63",
+          "type": "6",
+          "nativeValidator": true,
+          "saved": true,
+          "richTextEdited": true
+        }
+      },
+      {
+        "name": "edit and save existing type 7",
+        "status": "pass",
+        "result": {
+          "id": "104",
+          "type": "7",
+          "nativeValidator": true,
+          "saved": true,
+          "richTextEdited": true
+        }
+      },
+      {
+        "name": "edit and save existing type 9",
+        "status": "pass",
+        "result": {
+          "id": "108",
+          "type": "9",
+          "nativeValidator": true,
+          "saved": true,
+          "richTextEdited": true
+        }
+      },
+      {
+        "name": "create, validate and save with the installed fields",
+        "status": "pass",
+        "result": {
+          "id": 139,
+          "type": 3,
+          "blankRejected": true
+        }
+      },
+      {
+        "name": "publish, unpublish, trash and delete the disposable item",
+        "status": "pass",
+        "result": [
+          {
+            "task": "items.publish",
+            "state": 1
+          },
+          {
+            "task": "items.unpublish",
+            "state": 0
+          },
+          {
+            "task": "items.trash",
+            "state": -2
+          },
+          {
+            "task": "items.remove",
+            "state": null
+          }
+        ]
+      },
+      {
+        "name": "after screenshots",
+        "status": "pass"
+      }
+    ],
+    "observedPageErrors": [
+      "Transition was skipped"
+    ]
+  },
+  {
+    "demo": "recipe",
+    "scope": "final targeted workflows",
+    "candidate": "3021f806a",
+    "status": "pass",
+    "sourceRecord": "run-20261118-184220.json",
+    "sourceRecordSha256": "18d5d65c91dab242d79bc5045ae470012e955bbfe6a1b49ee0aefbbda9ddf8de",
+    "checks": [
+      {
+        "name": "administrator types form save",
+        "status": "pass",
+        "result": {
+          "id": 1,
+          "saved": true
+        }
+      },
+      {
+        "name": "administrator fields form save",
+        "status": "pass",
+        "result": {
+          "id": 15,
+          "saved": true
+        }
+      },
+      {
+        "name": "administrator tags form save",
+        "status": "pass",
+        "result": {
+          "id": 1,
+          "saved": true
+        }
+      },
+      {
+        "name": "batch dialog loads a configured field card",
+        "status": "pass",
+        "result": {
+          "fieldId": "27",
+          "loaded": true,
+          "removed": true
+        }
+      },
+      {
+        "name": "guest cannot open the frontend editing form",
+        "status": "pass",
+        "result": {
+          "status": 200,
+          "formAbsent": true
+        }
+      },
+      {
+        "name": "frontend administrator can edit and save",
+        "status": "pass",
+        "result": {
+          "id": 1,
+          "saved": true
+        }
+      },
+      {
+        "name": "frontend editor without publish permission has no editable state control",
+        "status": "pass",
+        "result": {
+          "editingAllowed": true,
+          "editableStateControls": 0
+        }
+      }
+    ],
+    "observedPageErrors": []
+  },
+  {
+    "demo": "realestate",
+    "scope": "final targeted workflows",
+    "candidate": "3021f806a",
+    "status": "fail",
+    "sourceRecord": "run-20261118-184338.json",
+    "sourceRecordSha256": "fb720e2e39a688467ea09e838d37341dc09d321485c55cb2fa66298cc455536b",
+    "checks": [
+      {
+        "name": "administrator types form save",
+        "status": "pass",
+        "result": {
+          "id": 1,
+          "saved": true
+        }
+      },
+      {
+        "name": "administrator fields form save",
+        "status": "pass",
+        "result": {
+          "id": 23,
+          "saved": true
+        }
+      },
+      {
+        "name": "administrator tags form save",
+        "status": "pass",
+        "result": {
+          "id": 1,
+          "saved": true
+        }
+      },
+      {
+        "name": "batch dialog loads a configured field card",
+        "status": "pass",
+        "result": {
+          "fieldId": "28",
+          "loaded": true,
+          "removed": true
+        }
+      },
+      {
+        "name": "guest cannot open the frontend editing form",
+        "status": "pass",
+        "result": {
+          "status": 200,
+          "formAbsent": true
+        }
+      },
+      {
+        "name": "frontend administrator can edit and save",
+        "status": "fail",
+        "error": "locator.waitFor: Timeout 25000ms exceeded.\nCall log:\n  - waiting for locator('#jform_title')\n"
+      },
+      {
+        "name": "frontend editor without publish permission has no editable state control",
+        "status": "fail",
+        "error": "locator.waitFor: Timeout 25000ms exceeded.\nCall log:\n  - waiting for locator('#jform_title')\n"
+      }
+    ],
+    "observedPageErrors": []
+  },
+  {
+    "demo": "recipe",
+    "scope": "original module-producing batch field retest",
+    "candidate": "3021f806a",
+    "status": "pass",
+    "sourceRecord": "run-20261118-184638.json",
+    "sourceRecordSha256": "b7fd96d7fc681f7ed482814c15ebc33b7e673a3b089d616a352cc019a9a9b2e7",
+    "checks": [
+      {
+        "name": "administrator types form save",
+        "status": "pass",
+        "result": {
+          "id": 1,
+          "saved": true
+        }
+      },
+      {
+        "name": "administrator fields form save",
+        "status": "pass",
+        "result": {
+          "id": 15,
+          "saved": true
+        }
+      },
+      {
+        "name": "administrator tags form save",
+        "status": "pass",
+        "result": {
+          "id": 1,
+          "saved": true
+        }
+      },
+      {
+        "name": "batch dialog loads a configured field card",
+        "status": "pass",
+        "result": {
+          "fieldId": "16",
+          "loaded": true,
+          "removed": true
+        }
+      },
+      {
+        "name": "guest cannot open the frontend editing form",
+        "status": "pass",
+        "result": {
+          "status": 200,
+          "formAbsent": true
+        }
+      },
+      {
+        "name": "frontend administrator can edit and save",
+        "status": "pass",
+        "result": {
+          "id": 1,
+          "saved": true
+        }
+      },
+      {
+        "name": "frontend editor without publish permission has no editable state control",
+        "status": "pass",
+        "result": {
+          "editingAllowed": true,
+          "editableStateControls": 0
+        }
+      }
+    ],
+    "observedPageErrors": [
+      "Transition was skipped"
+    ]
+  },
+  {
+    "demo": "realestate",
+    "scope": "frontend access comparison, upstream then candidate",
+    "status": "blocked",
+    "sourceRecord": "run-20261118-184631.json",
+    "sourceRecordSha256": "506459fb50341843d452a513557a586ba3b57872daac0032b918e9ae0903f35e",
+    "comparison": [
+      {
+        "status": 200,
+        "editorFields": 0,
+        "redirectedToLogin": true,
+        "loginMessage": "Please Login into an account that can access this page.",
+        "pageErrors": []
+      },
+      {
+        "status": 200,
+        "editorFields": 0,
+        "redirectedToLogin": true,
+        "loginMessage": "Please Login into an account that can access this page.",
+        "pageErrors": []
+      }
+    ]
+  }
+]
