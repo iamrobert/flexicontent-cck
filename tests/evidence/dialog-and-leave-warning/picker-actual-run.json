@@ -1,0 +1,42 @@
+{
+  "before": {
+    "initial": {
+      "locked": true,
+      "count": 1,
+      "scrollY": 3438,
+      "contentScroll": 0
+    },
+    "afterScroll": {
+      "locked": true,
+      "count": 1,
+      "scrollY": 3438,
+      "contentScroll": 0
+    },
+    "errors": [
+      "Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node."
+    ],
+    "script": {
+      "rev": "4a32e918",
+      "hits": 2
+    }
+  },
+  "after": {
+    "initial": {
+      "locked": false,
+      "count": 0,
+      "scrollY": 3438,
+      "contentScroll": 0
+    },
+    "afterScroll": {
+      "locked": false,
+      "count": 0,
+      "scrollY": 4088,
+      "contentScroll": 0
+    },
+    "errors": [],
+    "script": {
+      "rev": "c51e274",
+      "hits": 3
+    }
+  }
+}

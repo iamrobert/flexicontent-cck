@@ -1,21 +1,23 @@
 # Before-and-after browser evidence
 
-These captures use isolated pages running the exact FLEXIcontent scripts and Joomla 6 dialog assets. The result panels report what the browsers observed.
+These screenshots were taken in the signed-in Kitchen Sink editor on the local Joomla 6 test site. The isolated browser loaded the exact before or after JavaScript for each run.
 
 ## My Files picker
 
-The fixture opens the native Joomla dialog and removes the transient node that stood immediately after the field in the editor. Closing the dialog reproduces the obsolete insertion target at PR #1421 head `4a32e918`. The patched run restores the selected file in the form and invokes the close callback once.
+In **Sample downloads**, open My Files, close it after the transient tooltip node disappears, then scroll down. The old code leaves the editor locked at Sample downloads. The fix releases the lock, and the same 650 px wheel gesture reaches Shared media and Workshop date. The chooser also opens again after the fix.
 
 | Before | After |
 | --- | --- |
-| [![The file field is missing after My Files closes](my-files-before.png)](my-files-before.png) | [![The file field and its selected value return after My Files closes](my-files-after.png)](my-files-after.png) |
+| [![The editor remains at Sample downloads after trying to scroll](my-files-before.png)](my-files-before.png) | [![The editor scrolls to Shared media and Workshop date](my-files-after.png)](my-files-after.png) |
+
+[Picker browser measurements](picker-actual-run.json)
 
 ## Item editor leave warning
 
-The fixture opens an untouched item, removes an empty Banner poster input, adds a zero upload count, and clicks Back to Items. Before the fix, Playwright records the browser's native `beforeunload` event and dismisses the prompt. The screenshot shows the editor afterward with the captured result. After the fix, the browser navigates to the list without raising the prompt.
+The run reproduces late uploader initialization by adding a zero upload count to the open Kitchen Sink editor after it records its initial values. Browser Back runs with the item title and content untouched. The before screenshot includes Chrome's actual **Leave site?** dialog. The patched editor returns to Items without a prompt.
 
 | Before | After |
 | --- | --- |
-| [![The unchanged item stays open after a false leave prompt](leave-warning-before.png)](leave-warning-before.png) | [![The browser returns to Items without a leave prompt](leave-warning-after.png)](leave-warning-after.png) |
+| [![Chrome's Leave site prompt on the untouched item](leave-warning-before.png)](leave-warning-before.png) | [![Chrome returns to the Items list without a prompt](leave-warning-after.png)](leave-warning-after.png) |
 
-[Chromium results](chromium-evidence.json) · [Firefox results](firefox-evidence.json)
+[Leave-warning browser results](leave-actual-run.json) · [Chromium regression results](chromium-evidence.json) · [Firefox regression results](firefox-evidence.json)

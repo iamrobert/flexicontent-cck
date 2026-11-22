@@ -1,0 +1,27 @@
+{
+  "before": {
+    "idle": {
+      "warned": true,
+      "existingCounter": false,
+      "activated": true
+    },
+    "script": {
+      "rev": "3558300",
+      "hits": 1
+    },
+    "nativePrompt": "beforeunload",
+    "location": "Editor"
+  },
+  "after": {
+    "idle": {
+      "warned": false,
+      "existingCounter": false,
+      "activated": true
+    },
+    "script": {
+      "rev": "0bd4b06",
+      "hits": 1
+    },
+    "location": "Items"
+  }
+}
