@@ -1,0 +1,41 @@
+{
+  "engine": "chromium",
+  "versions": {
+    "picker": "4a32e9183207d715f3c621c51b94168e598e4d3b",
+    "leave": "3558300667381ed2104dee34bcf1e28122bf17a3"
+  },
+  "picker": {
+    "before": {
+      "outcome": {
+        "value": null,
+        "restored": false,
+        "callbacks": 0,
+        "openCount": 1
+      },
+      "errors": [
+        "Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node."
+      ]
+    },
+    "after": {
+      "outcome": {
+        "value": "workshop.pdf",
+        "restored": true,
+        "callbacks": 1,
+        "openCount": 0
+      },
+      "errors": []
+    }
+  },
+  "leaveWarning": {
+    "before": {
+      "outcome": "prompt",
+      "prompts": [
+        "beforeunload"
+      ]
+    },
+    "after": {
+      "outcome": "left",
+      "prompts": []
+    }
+  }
+}
