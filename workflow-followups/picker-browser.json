@@ -1,0 +1,48 @@
+{
+  "before": [
+    {
+      "which": "picker-iamrobertja6-1440",
+      "escaped": false,
+      "focusBack": false,
+      "close": true
+    },
+    {
+      "which": "directory-picker-390",
+      "escaped": false,
+      "focusBack": false,
+      "close": true
+    }
+  ],
+  "after": [
+    {
+      "which": "realestate-picker-iamrobertja6-1440",
+      "escaped": true,
+      "focusBack": true,
+      "close": true
+    },
+    {
+      "which": "realestate-picker-iamrobertja6-390",
+      "escaped": true,
+      "focusBack": true,
+      "close": true
+    },
+    {
+      "which": "realestate-picker-atum-1440",
+      "escaped": true,
+      "focusBack": true,
+      "close": true
+    },
+    {
+      "which": "realestate-picker-atum-390",
+      "escaped": true,
+      "focusBack": true,
+      "close": true
+    },
+    {
+      "which": "directory-picker-390",
+      "escaped": true,
+      "focusBack": true,
+      "close": true
+    }
+  ]
+}
